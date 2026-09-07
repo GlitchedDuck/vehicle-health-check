@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0a1220" />
   <meta name="description" content="Customer-friendly digital vehicle health check proof of concept." />
   <title>Vehicle Health Check</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=12" />
   <script type="importmap">
   {
     "imports": {
@@ -85,46 +85,51 @@
       </div>
     </div>
 
-    <section class="card viewer-card">
-      <div class="viewer-head">
-        <div>
-          <h3>Interactive vehicle</h3>
-          <p>Our own viewer — no third-party controls or branding.</p>
+    <section class="inspection-workspace">
+      <section class="card viewer-card">
+        <div class="viewer-head">
+          <div>
+            <h3>Interactive vehicle</h3>
+            <p>Tap a marker or finding to focus on that area.</p>
+          </div>
+          <div class="viewer-actions">
+            <button id="toggleRotate" class="dark-btn" type="button">Pause rotation</button>
+            <button id="resetView" class="dark-btn" type="button">Reset view</button>
+          </div>
         </div>
-        <div class="viewer-actions">
-          <button id="toggleRotate" class="dark-btn" type="button">Pause rotation</button>
-          <button id="resetView" class="dark-btn" type="button">Reset view</button>
+        <div id="viewer" class="viewer" aria-label="Interactive 3D vehicle">
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <strong>Loading vehicle</strong>
+            <span>Preparing the 3D inspection view…</span>
+          </div>
+          <div id="viewerError" class="viewer-error">
+            <strong>3D vehicle could not load.</strong>
+            <span>The inspection findings are still available alongside the vehicle.</span>
+          </div>
+          <div class="viewer-badge">Tap a coloured marker to inspect that area</div>
         </div>
-      </div>
-      <div id="viewer" class="viewer" aria-label="Interactive 3D vehicle">
-        <div id="loading" class="loading">
-          <div class="spinner"></div>
-          <strong>Loading vehicle</strong>
-          <span>Preparing the 3D inspection view…</span>
+      </section>
+
+      <aside class="card findings-panel" aria-label="Inspection findings">
+        <div class="findings-panel-head">
+          <div>
+            <p class="eyebrow dark">Inspection findings</p>
+            <h2>What needs attention</h2>
+            <p>Choose an item and the vehicle will focus on that area without moving the page.</p>
+          </div>
         </div>
-        <div id="viewerError" class="viewer-error">
-          <strong>3D vehicle could not load.</strong>
-          <span>The inspection findings below are still available.</span>
+
+        <div class="filters" role="group" aria-label="Filter inspection findings">
+          <button class="filter active" data-filter="all" type="button">All 4</button>
+          <button class="filter" data-filter="red" type="button">Urgent 1</button>
+          <button class="filter" data-filter="amber" type="button">Attention 3</button>
+          <button class="filter" data-filter="approved" type="button">Approved</button>
         </div>
-        <div class="viewer-badge">Tap a coloured marker to inspect that area</div>
-      </div>
+
+        <section id="findings" class="findings findings-compact" aria-live="polite"></section>
+      </aside>
     </section>
-
-    <div class="section-title findings-title">
-      <div>
-        <h2>Inspection findings</h2>
-        <p>Choose an item to understand what it means and what happens next.</p>
-      </div>
-    </div>
-
-    <div class="filters" role="group" aria-label="Filter inspection findings">
-      <button class="filter active" data-filter="all" type="button">All 4</button>
-      <button class="filter" data-filter="red" type="button">Urgent 1</button>
-      <button class="filter" data-filter="amber" type="button">Attention 3</button>
-      <button class="filter" data-filter="approved" type="button">Approved</button>
-    </div>
-
-    <section id="findings" class="findings" aria-live="polite"></section>
 
     <section id="detail" class="card detail" aria-live="polite">
       <div class="detail-banner">
@@ -184,6 +189,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./app.js?v=12"></script>
 </body>
 </html>

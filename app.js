@@ -113,7 +113,7 @@ function renderFindings(){
         <span>${issue.location}${decision?` · ${decision==='approved'?'Approved':'Declined'}`:''}</span>
         <strong>${money(issue.price)}</strong>
       </div>`;
-    btn.addEventListener('click',()=>selectIssue(issue.id,{scrollToDetail:true,focus3d:true}));
+    btn.addEventListener('click',()=>selectIssue(issue.id,{focus3d:true}));
     els.findings.appendChild(btn);
   });
 }
@@ -149,12 +149,9 @@ function renderDetail(issue,{focus3d=true}={}){
   if(focus3d) focusIssue(issue);
 }
 
-function selectIssue(id,{scrollToDetail=false,focus3d=true}={}){
+function selectIssue(id,{focus3d=true}={}){
   const issue=issueById(id);
   renderDetail(issue,{focus3d});
-  if(scrollToDetail){
-    els.detail.scrollIntoView({behavior:'smooth',block:'start'});
-  }
 }
 
 function updateApproved(){
@@ -504,7 +501,7 @@ renderer.domElement.addEventListener('pointerup',e=>{
   let obj=hits[0].object;
   let id=clickableIssue.get(obj.uuid);
   while(!id && obj.parent){obj=obj.parent;id=obj.userData?.issueId||clickableIssue.get(obj.uuid);}
-  if(id) selectIssue(id,{scrollToDetail:false,focus3d:true});
+  if(id) selectIssue(id,{focus3d:true});
 });
 
 function resize(){

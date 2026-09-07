@@ -2,13 +2,15 @@
 
 A mobile-first customer-facing digital vehicle health check proof of concept.
 
-## Current POC — v11
+## Current POC — v12
 
 The report demonstrates a workshop-to-customer experience:
 
 - interactive self-hosted 3D vehicle rendered with Three.js
 - dealership-style neutral vehicle presentation with smaller inspection pins
 - 3D marker/part clicks stay in place and no longer force the page to scroll
+- side-by-side 3D viewer and inspection findings on desktop/tablet
+- finding selection never auto-scrolls the page
 - clickable inspection markers and wheel components
 - red / amber issue severity
 - plain-English customer explanations
