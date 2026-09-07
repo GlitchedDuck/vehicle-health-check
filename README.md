@@ -1,79 +1,53 @@
 # Vehicle Health Check POC
 
-A customer-facing digital vehicle health check proof of concept.
+A mobile-first customer-facing digital vehicle health check that turns workshop findings into a visual, plain-English report.
 
-The aim is to translate workshop inspection findings into clear, plain-English explanations that help a customer understand what has been found, why it matters, how urgent it is, and what the workshop recommends.
+## Current experience
 
-## Current POC
+- Interactive 3D generic SUV rather than a procedural diagram.
+- Rotate and zoom the vehicle on desktop or mobile.
+- Inspection markers identify affected areas and move the camera to the selected issue.
+- Traffic-light severity: urgent, attention and healthy.
+- Customer-friendly explanations for what was found, why it matters, what can happen if it is ignored, and what the workshop recommends.
+- Expandable technical detail for users who want the workshop measurements.
+- Technician photo/video evidence placeholders.
+- Example repair pricing.
+- Approve, decline and ask-about-this interactions with an approved-work total.
 
-- Mobile-first customer report
-- Vehicle health score
-- Red / amber / green severity system
-- Interactive Three.js vehicle
-- Clickable affected components
-- Plain-English explanations for each finding
-- Expandable technical details for workshop terminology
-- Technician evidence placeholders
-- Estimated repair pricing
-- Approve / Decline / Ask-about-this interactions
-- Approved-work running total
+## 3D integration
 
-## Demo data
+The POC uses the Sketchfab Viewer API with the public **Lowpoly Generic SUV** model by **mk2design**. The model is lightweight and includes separate wheel objects, allowing the proof of concept to highlight affected wheels and position inspection annotations around the vehicle.
 
-The current report uses sample vehicle and inspection data only. It does not call DVSA, a DMS, or a workshop system yet.
+Model: https://sketchfab.com/3d-models/lowpoly-generic-suv-edc994ad28ed438cb365c0e0389ac177
 
-The sample findings include:
+License: **CC BY 4.0**. Attribution must remain in any version that uses this asset.
 
-- Front-left tyre below the sample legal tread threshold
-- Rear-right brake pads wearing low
-- Reduced front-right headlamp output
-- Declining 12V battery health
+The user also supplied the GLB during development. A production version can self-host an optimised GLB instead of relying on the Sketchfab viewer while retaining the same component mapping and report UX.
 
-## Product direction
+## Sample findings
 
-The intended production workflow is:
+The demonstration currently includes:
 
-1. Technician completes a vehicle inspection.
-2. Findings, measurements, images and video are captured by the workshop system.
-3. Technical findings are normalised into a component taxonomy.
-4. Each issue is mapped to the relevant area of a vehicle model.
-5. Customer receives a mobile report link by SMS or email.
-6. Customer sees a plain-English explanation, evidence, urgency and price.
-7. Customer can approve work, decline it for now, or ask the service adviser a question.
-8. The workshop receives the customer's decisions immediately.
+- Front-left tyre below the legal tread limit — urgent.
+- Rear-right brake pads wearing low — attention.
+- Front-right headlamp output reduced — attention.
+- 12V battery health declining — attention.
 
-## Architecture direction
+All vehicle, inspection and pricing information in this POC is sample data.
 
-A production build could integrate with:
+## Production direction
 
-- DVSA MOT history data
-- Dealer Management Systems
-- Workshop inspection platforms
-- Technician photo/video capture
-- Parts and labour pricing
-- SMS/email delivery
-- Customer authorisation and audit history
+A production implementation would typically:
 
-The current GitHub Pages POC is deliberately front-end only and self-contained in `index.html`.
+1. Receive the vehicle registration or VIN from the workshop/DMS.
+2. Combine technician inspection data, service history and MOT data where appropriate.
+3. Normalise workshop terminology into a vehicle-component taxonomy.
+4. Map each finding to a 3D component or hotspot.
+5. Attach technician photos/video and measurements.
+6. Generate a customer-facing explanation and severity.
+7. Send the customer a secure report link.
+8. Return customer approvals/declines to the service adviser or workshop system.
 
-## Run locally
+## Hosting
 
-The page imports Three.js from jsDelivr, so an internet connection is required.
-
-You can serve the project with:
-
-```bash
-python -m http.server 8080
-```
-
-or:
-
-```bash
-npx serve .
-```
-
-Then open the local URL shown by the server.
-
-## Status
-
-Proof of concept only. Vehicle details, measurements, prices and inspection findings are sample data and must not be treated as real vehicle advice.
+The POC is a static site and is published using GitHub Pages from the `main` branch.
