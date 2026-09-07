@@ -3,17 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1017" />
+
   <title>Vehicle Health Visualiser POC</title>
+
   <link rel="stylesheet" href="./styles.css" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"
+    }
+  }
+  </script>
 </head>
+
 <body>
   <main class="app-shell">
+
     <header class="topbar">
       <div>
         <p class="eyebrow">POC</p>
         <h1>Vehicle Health Visualiser</h1>
-        <p class="subtitle">Turn MOT and service findings into an interactive vehicle health map.</p>
+        <p class="subtitle">
+          Turn MOT and service findings into an interactive vehicle health map.
+        </p>
       </div>
+
       <div class="legend" aria-label="Severity legend">
         <span><i class="dot green"></i>Healthy</span>
         <span><i class="dot amber"></i>Attention</span>
@@ -21,97 +38,260 @@
       </div>
     </header>
 
+
     <section class="search-card">
       <label for="registration">Registration</label>
+
       <div class="search-row">
-        <input id="registration" value="AB12 CDE" maxlength="8" aria-label="Vehicle registration" />
-        <button id="loadVehicle" type="button">Load vehicle</button>
+        <input
+          id="registration"
+          value="AB12 CDE"
+          maxlength="8"
+          aria-label="Vehicle registration"
+        />
+
+        <button id="loadVehicle" type="button">
+          Load vehicle
+        </button>
       </div>
-      <p class="hint">This POC uses sample inspection data. The data-provider layer is separated so the DVSA MOT API can replace it later.</p>
+
+      <p class="hint">
+        This POC uses sample inspection data. The data-provider layer is
+        separated so the DVSA MOT API can replace it later.
+      </p>
     </section>
 
+
     <section class="summary-grid">
+
       <article class="metric-card">
         <span>Vehicle</span>
         <strong id="vehicleName">2021 Example SUV</strong>
       </article>
+
       <article class="metric-card">
         <span>Mileage</span>
         <strong id="mileage">41,280 mi</strong>
       </article>
+
       <article class="metric-card">
         <span>Overall status</span>
-        <strong id="overallStatus" class="status-red">Urgent attention</strong>
+        <strong id="overallStatus" class="status-red">
+          Urgent attention
+        </strong>
       </article>
+
       <article class="metric-card">
         <span>Open findings</span>
         <strong id="findingCount">4</strong>
       </article>
+
     </section>
 
+
     <section class="workspace">
+
       <div class="viewer-card">
+
         <div class="viewer-toolbar">
           <div>
             <h2>Interactive vehicle</h2>
-            <p>Drag to rotate · scroll/pinch to zoom · click coloured components</p>
+
+            <p>
+              Drag to rotate · pinch to zoom · tap coloured components
+            </p>
           </div>
-          <button id="resetView" type="button" class="secondary">Reset view</button>
+
+          <button
+            id="resetView"
+            type="button"
+            class="secondary"
+          >
+            Reset view
+          </button>
         </div>
-        <div id="viewer" class="viewer" aria-label="Interactive 3D vehicle health model"></div>
+
+
+        <div
+          id="viewer"
+          class="viewer"
+          aria-label="Interactive 3D vehicle health model"
+        ></div>
+
       </div>
+
 
       <aside class="issues-card">
+
         <div class="issues-heading">
+
           <div>
             <h2>Inspection findings</h2>
-            <p id="inspectionDate">Latest inspection · 2 Sep 2026</p>
+
+            <p id="inspectionDate">
+              Latest inspection · 2 Sep 2026
+            </p>
           </div>
-          <div class="filter-row" role="group" aria-label="Issue filter">
-            <button type="button" class="filter active" data-filter="all">All</button>
-            <button type="button" class="filter" data-filter="urgent">Urgent</button>
-            <button type="button" class="filter" data-filter="attention">Attention</button>
+
+
+          <div
+            class="filter-row"
+            role="group"
+            aria-label="Issue filter"
+          >
+
+            <button
+              type="button"
+              class="filter active"
+              data-filter="all"
+            >
+              All
+            </button>
+
+            <button
+              type="button"
+              class="filter"
+              data-filter="urgent"
+            >
+              Urgent
+            </button>
+
+            <button
+              type="button"
+              class="filter"
+              data-filter="attention"
+            >
+              Attention
+            </button>
+
           </div>
+
         </div>
-        <div id="issueList" class="issue-list"></div>
+
+
+        <div
+          id="issueList"
+          class="issue-list"
+        ></div>
+
       </aside>
+
     </section>
 
-    <section class="detail-card" id="detailCard">
+
+    <section
+      class="detail-card"
+      id="detailCard"
+    >
+
       <div>
-        <p class="eyebrow">Selected component</p>
-        <h2 id="detailTitle">Nearside front tyre</h2>
-        <p id="detailLocation">Front left wheel</p>
+        <p class="eyebrow">
+          Selected component
+        </p>
+
+        <h2 id="detailTitle">
+          Nearside front tyre
+        </h2>
+
+        <p id="detailLocation">
+          Front left wheel
+        </p>
       </div>
+
+
       <div class="detail-grid">
+
         <div>
-          <span class="label">Severity</span>
-          <strong id="detailSeverity" class="severity-pill red-pill">Major</strong>
+          <span class="label">
+            Severity
+          </span>
+
+          <strong
+            id="detailSeverity"
+            class="severity-pill red-pill"
+          >
+            Major
+          </strong>
         </div>
+
+
         <div>
-          <span class="label">Source</span>
-          <strong id="detailSource">MOT</strong>
+          <span class="label">
+            Source
+          </span>
+
+          <strong id="detailSource">
+            MOT
+          </strong>
         </div>
+
+
         <div>
-          <span class="label">Recommended action</span>
-          <strong id="detailAction">Replace before driving</strong>
+          <span class="label">
+            Recommended action
+          </span>
+
+          <strong id="detailAction">
+            Replace before driving
+          </strong>
         </div>
+
       </div>
-      <p id="detailDescription">Tyre tread depth is below the legal minimum. This component is shown in red because it needs urgent attention.</p>
+
+
+      <p id="detailDescription">
+        Tyre tread depth is below the legal minimum.
+        This component is shown in red because it needs urgent attention.
+      </p>
+
     </section>
+
 
     <section class="pipeline-card">
-      <h2>How the production version would work</h2>
+
+      <h2>
+        How the production version would work
+      </h2>
+
+
       <div class="pipeline">
-        <div><b>1</b><span>Vehicle reg / VIN</span></div>
-        <div><b>2</b><span>MOT + service data</span></div>
-        <div><b>3</b><span>Normalise issue text</span></div>
-        <div><b>4</b><span>Map to component</span></div>
-        <div><b>5</b><span>3D health report</span></div>
+
+        <div>
+          <b>1</b>
+          <span>Vehicle reg / VIN</span>
+        </div>
+
+        <div>
+          <b>2</b>
+          <span>MOT + service data</span>
+        </div>
+
+        <div>
+          <b>3</b>
+          <span>Normalise issue text</span>
+        </div>
+
+        <div>
+          <b>4</b>
+          <span>Map to component</span>
+        </div>
+
+        <div>
+          <b>5</b>
+          <span>3D health report</span>
+        </div>
+
       </div>
+
     </section>
+
   </main>
 
-  <script type="module" src="./app.js"></script>
+
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
+
 </body>
 </html>
