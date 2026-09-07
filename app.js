@@ -113,12 +113,12 @@ function renderFindings(){
         <span>${issue.location}${decision?` · ${decision==='approved'?'Approved':'Declined'}`:''}</span>
         <strong>${money(issue.price)}</strong>
       </div>`;
-    btn.addEventListener('click',()=>selectIssue(issue.id,true));
+    btn.addEventListener('click',()=>selectIssue(issue.id,{scrollToDetail:true,focus3d:true}));
     els.findings.appendChild(btn);
   });
 }
 
-function renderDetail(issue){
+function renderDetail(issue,{focus3d=true}={}){
   selectedId=issue.id;
   els.detailSeverity.className=`severity ${issue.severity}`;
   els.detailSeverity.textContent=issue.severityLabel;
@@ -146,13 +146,15 @@ function renderDetail(issue){
     els.decisionNote.classList.remove('show');
   }
   renderFindings();
-  focusIssue(issue);
+  if(focus3d) focusIssue(issue);
 }
 
-function selectIssue(id, scroll=false){
+function selectIssue(id,{scrollToDetail=false,focus3d=true}={}){
   const issue=issueById(id);
-  renderDetail(issue);
-  if(scroll) els.detail.scrollIntoView({behavior:'smooth',block:'start'});
+  renderDetail(issue,{focus3d});
+  if(scrollToDetail){
+    els.detail.scrollIntoView({behavior:'smooth',block:'start'});
+  }
 }
 
 function updateApproved(){
@@ -187,11 +189,11 @@ const viewer=$('viewer');
 const loading=$('loading');
 const viewerError=$('viewerError');
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x0a1220);
-scene.fog=new THREE.Fog(0x0a1220,8,18);
+scene.background=new THREE.Color(0x0a111b);
+scene.fog=new THREE.Fog(0x0a111b,9,20);
 
-const camera=new THREE.PerspectiveCamera(37,1,.05,100);
-camera.position.set(5.7,3.35,6.6);
+const camera=new THREE.PerspectiveCamera(32,1,.05,100);
+camera.position.set(4.7,2.15,5.4);
 
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
@@ -199,18 +201,18 @@ renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.22;
+renderer.toneMappingExposure=1.04;
 viewer.prepend(renderer.domElement);
 
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
 controls.dampingFactor=.055;
-controls.minDistance=3.6;
-controls.maxDistance=10;
-controls.maxPolarAngle=Math.PI/2.05;
-controls.target.set(0,.8,0);
+controls.minDistance=2.9;
+controls.maxDistance=8.2;
+controls.maxPolarAngle=Math.PI/2.02;
+controls.target.set(0,.72,0);
 controls.autoRotate=true;
-controls.autoRotateSpeed=.55;
+controls.autoRotateSpeed=.42;
 
 let autoRotate=true;
 $('toggleRotate').addEventListener('click',e=>{
@@ -223,22 +225,19 @@ controls.addEventListener('start',()=>{
   }
 });
 
-scene.add(new THREE.HemisphereLight(0xdfeaff,0x101827,2.5));
-const key=new THREE.DirectionalLight(0xffffff,4.6);key.position.set(5,7,6);key.castShadow=true;scene.add(key);
-const fill=new THREE.DirectionalLight(0x8ab6ff,2.2);fill.position.set(-5,3,-4);scene.add(fill);
-const rim=new THREE.DirectionalLight(0xffffff,1.2);rim.position.set(-2,5,5);scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xe8eef8,0x0b1018,1.45));
+const key=new THREE.DirectionalLight(0xfff8ee,2.7);key.position.set(4.8,6.2,5.2);key.castShadow=true;scene.add(key);
+const fill=new THREE.DirectionalLight(0xb7ceff,1.0);fill.position.set(-4.5,2.8,-3.6);scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffffff,1.45);rim.position.set(-2.5,4.8,4.6);scene.add(rim);
 
 const floor=new THREE.Mesh(
-  new THREE.CircleGeometry(5.6,80),
-  new THREE.MeshStandardMaterial({color:0x172338,roughness:.88,metalness:.06})
+  new THREE.CircleGeometry(3.65,80),
+  new THREE.MeshStandardMaterial({color:0x101923,roughness:.98,metalness:.01})
 );
-floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
-
-const platform=new THREE.Mesh(
-  new THREE.CylinderGeometry(4.1,4.25,.13,80),
-  new THREE.MeshStandardMaterial({color:0x202d44,roughness:.65,metalness:.18})
-);
-platform.position.y=.065;platform.receiveShadow=true;scene.add(platform);
+floor.rotation.x=-Math.PI/2;
+floor.position.y=.012;
+floor.receiveShadow=true;
+scene.add(floor);
 
 let car=null;
 let carBounds=null;
@@ -251,31 +250,54 @@ const clickables=[];
 const clickableIssue=new Map();
 const originalMaterials=new Map();
 
+function markerTexture(colourHex){
+  const canvas=document.createElement('canvas');
+  canvas.width=128;canvas.height=128;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,128,128);
+  ctx.beginPath();ctx.arc(64,64,40,0,Math.PI*2);
+  ctx.fillStyle='#ffffff';ctx.fill();
+  ctx.beginPath();ctx.arc(64,64,31,0,Math.PI*2);
+  ctx.fillStyle=`#${colourHex.toString(16).padStart(6,'0')}`;ctx.fill();
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  return texture;
+}
+
 function makeMarker(issue, position){
   const group=new THREE.Group();
   const colour=SEVERITY[issue.severity].colour;
 
-  const ring=new THREE.Mesh(
-    new THREE.TorusGeometry(.19,.045,18,40),
-    new THREE.MeshStandardMaterial({color:colour,emissive:SEVERITY[issue.severity].glow,emissiveIntensity:1.2})
+  const sprite=new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map:markerTexture(colour),
+      transparent:true,
+      depthTest:false,
+      depthWrite:false
+    })
   );
-  ring.rotation.x=Math.PI/2;
+  sprite.scale.set(.31,.31,.31);
+  sprite.renderOrder=20;
 
-  const dot=new THREE.Mesh(
-    new THREE.SphereGeometry(.075,18,18),
-    new THREE.MeshStandardMaterial({color:colour,emissive:SEVERITY[issue.severity].glow,emissiveIntensity:1.55})
+  const stem=new THREE.Mesh(
+    new THREE.CylinderGeometry(.018,.018,.18,10),
+    new THREE.MeshStandardMaterial({
+      color:colour,
+      emissive:SEVERITY[issue.severity].glow,
+      emissiveIntensity:.45,
+      roughness:.5
+    })
   );
-  dot.position.y=.02;
+  stem.position.y=-.105;
 
-  group.add(ring,dot);
+  group.add(stem,sprite);
   group.position.copy(position);
   group.name=`MARKER_${issue.id}`;
   group.userData.issueId=issue.id;
   car.add(group);
   markerByIssue.set(issue.id,group);
-  clickables.push(ring,dot);
-  clickableIssue.set(ring.uuid,issue.id);
-  clickableIssue.set(dot.uuid,issue.id);
+  clickables.push(sprite);
+  clickableIssue.set(sprite.uuid,issue.id);
   return group;
 }
 
@@ -294,10 +316,10 @@ function applyMeshHighlight(issue){
         if(!originalMaterials.has(child)) originalMaterials.set(child,Array.isArray(child.material)?child.material.map(m=>m.clone()):child.material.clone());
         const mats=Array.isArray(child.material)?child.material:[child.material];
         mats.forEach(mat=>{
-          if(mat.color) mat.color.lerp(new THREE.Color(SEVERITY[issue.severity].colour),.48);
+          if(mat.color) mat.color.lerp(new THREE.Color(SEVERITY[issue.severity].colour),.22);
           if('emissive' in mat){
             mat.emissive=new THREE.Color(SEVERITY[issue.severity].glow);
-            mat.emissiveIntensity=.7;
+            mat.emissiveIntensity=.32;
           }
           mat.needsUpdate=true;
         });
@@ -336,11 +358,11 @@ function focusIssue(issue){
   const target=hotspotPosition(issue);
   desiredTarget.copy(target);
   const size=carBounds.getSize(new THREE.Vector3());
-  const offsetDir=new THREE.Vector3(1.5,1.05,1.7).normalize();
+  const offsetDir=new THREE.Vector3(1.45,.62,1.55).normalize();
   // Bias viewpoint to whichever side the target sits on.
   const side=Math.sign(target.x-carBounds.getCenter(new THREE.Vector3()).x)||1;
   offsetDir.x=Math.abs(offsetDir.x)*side;
-  desiredCamera.copy(target).add(offsetDir.multiplyScalar(Math.max(size.length()*.68,3.4)));
+  desiredCamera.copy(target).add(offsetDir.multiplyScalar(Math.max(size.length()*.48,2.55)));
   controls.autoRotate=false;
   autoRotate=false;
   $('toggleRotate').textContent='Start rotation';
@@ -350,8 +372,8 @@ $('resetView').addEventListener('click',()=>{
   if(!carBounds)return;
   const c=carBounds.getCenter(new THREE.Vector3());
   const size=carBounds.getSize(new THREE.Vector3());
-  desiredTarget.set(c.x,c.y+size.y*.05,c.z);
-  desiredCamera.set(c.x+size.x*.95,c.y+size.y*.78,c.z+size.z*1.25);
+  desiredTarget.set(c.x,c.y+size.y*.02,c.z);
+  desiredCamera.set(c.x+size.x*.78,c.y+size.y*.46,c.z+size.z*1.02);
 });
 
 const loader=new GLTFLoader();
@@ -365,8 +387,62 @@ loader.load(
       if(obj.isMesh){
         obj.castShadow=true;
         obj.receiveShadow=true;
+
+        const mats=Array.isArray(obj.material)?obj.material:[obj.material];
+        mats.forEach(mat=>{
+          if(!mat)return;
+          const objName=(obj.name||'').toLowerCase();
+          const matName=(mat.name||'').toLowerCase();
+
+          if(matName==='body'){
+            mat=mat.clone();
+            if(mat.map) mat.map=null;
+            mat.color.set(0xaeb6c1);
+            mat.metalness=.48;
+            mat.roughness=.3;
+            if(Array.isArray(obj.material)){
+              const idx=obj.material.indexOf(mats.find(x=>x===mat));
+            } else {
+              obj.material=mat;
+            }
+          }
+
+          if(matName==='glass'){
+            mat.color.set(0x14202d);
+            mat.transparent=true;
+            mat.opacity=.62;
+            mat.roughness=.08;
+            mat.metalness=.04;
+          }
+
+          if(objName.includes('wheel_') || obj.parent?.name?.toLowerCase().includes('wheel_')){
+            if(mat.color) mat.color.multiplyScalar(.72);
+            mat.metalness=Math.max(mat.metalness||0,.22);
+            mat.roughness=Math.max(mat.roughness||0,.38);
+          }
+        });
       }
     });
+
+    // Ensure the principal body material is neutral silver even when it uses a baked red texture.
+    const bodyRoot=car.getObjectByName('Body');
+    if(bodyRoot){
+      bodyRoot.traverse(child=>{
+        if(!child.isMesh||!child.material)return;
+        const mats=Array.isArray(child.material)?child.material:[child.material];
+        const styled=mats.map(mat=>{
+          const clone=mat.clone();
+          if((clone.name||'').toLowerCase()==='body'){
+            clone.map=null;
+            clone.color.set(0xaeb6c1);
+            clone.metalness=.5;
+            clone.roughness=.3;
+          }
+          return clone;
+        });
+        child.material=Array.isArray(child.material)?styled:styled[0];
+      });
+    }
 
     // Normalise imported model to a predictable web scale.
     let box=new THREE.Box3().setFromObject(car);
@@ -402,7 +478,7 @@ loader.load(
     });
 
     $('resetView').click();
-    renderDetail(ISSUES[0]);
+    renderDetail(ISSUES[0],{focus3d:false});
     loading.style.display='none';
   },
   undefined,
@@ -428,7 +504,7 @@ renderer.domElement.addEventListener('pointerup',e=>{
   let obj=hits[0].object;
   let id=clickableIssue.get(obj.uuid);
   while(!id && obj.parent){obj=obj.parent;id=obj.userData?.issueId||clickableIssue.get(obj.uuid);}
-  if(id) selectIssue(id,true);
+  if(id) selectIssue(id,{scrollToDetail:false,focus3d:true});
 });
 
 function resize(){
@@ -447,16 +523,16 @@ renderer.setAnimationLoop(()=>{
   camera.position.lerp(desiredCamera,.055);
   controls.target.lerp(desiredTarget,.075);
   if(selectedMarker){
-    const pulse=1+Math.sin(t*4.4)*.18;
+    const pulse=1+Math.sin(t*4.2)*.08;
     selectedMarker.scale.setScalar(pulse);
   }
-  markerByIssue.forEach((marker,id)=>{
-    if(marker!==selectedMarker) marker.rotation.y=t*.4;
+  markerByIssue.forEach(marker=>{
+    if(marker!==selectedMarker) marker.scale.setScalar(1);
   });
   controls.update();
   renderer.render(scene,camera);
 });
 
 renderFindings();
-renderDetail(ISSUES[0]);
+renderDetail(ISSUES[0],{focus3d:false});
 updateApproved();
