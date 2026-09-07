@@ -1,83 +1,79 @@
-# Vehicle Health Visualiser POC
+# Vehicle Health Check POC
 
-A front-end proof of concept showing how MOT and service findings can be mapped onto an interactive 3D vehicle.
+A customer-facing digital vehicle health check proof of concept.
 
-## What it demonstrates
+The aim is to translate workshop inspection findings into clear, plain-English explanations that help a customer understand what has been found, why it matters, how urgent it is, and what the workshop recommends.
 
-- Enter a vehicle registration.
-- Load mock MOT/service inspection data.
-- Rotate and zoom a 3D vehicle.
-- Highlight affected components using a traffic-light system.
-- Click a highlighted component or finding to view severity, source and recommended action.
-- Separate issue `componentKey` values from 3D mesh names so future data providers can map into the same model.
+## Current POC
 
-## Run it
+- Mobile-first customer report
+- Vehicle health score
+- Red / amber / green severity system
+- Interactive Three.js vehicle
+- Clickable affected components
+- Plain-English explanations for each finding
+- Expandable technical details for workshop terminology
+- Technician evidence placeholders
+- Estimated repair pricing
+- Approve / Decline / Ask-about-this interactions
+- Approved-work running total
 
-This POC imports Three.js from jsDelivr, so the browser needs internet access.
+## Demo data
 
-### Simplest option
+The current report uses sample vehicle and inspection data only. It does not call DVSA, a DMS, or a workshop system yet.
 
-Open `index.html` in a modern browser. If your browser blocks module imports from local files, run a tiny local web server instead.
+The sample findings include:
 
-### Python
+- Front-left tyre below the sample legal tread threshold
+- Rear-right brake pads wearing low
+- Reduced front-right headlamp output
+- Declining 12V battery health
 
-From this folder:
+## Product direction
+
+The intended production workflow is:
+
+1. Technician completes a vehicle inspection.
+2. Findings, measurements, images and video are captured by the workshop system.
+3. Technical findings are normalised into a component taxonomy.
+4. Each issue is mapped to the relevant area of a vehicle model.
+5. Customer receives a mobile report link by SMS or email.
+6. Customer sees a plain-English explanation, evidence, urgency and price.
+7. Customer can approve work, decline it for now, or ask the service adviser a question.
+8. The workshop receives the customer's decisions immediately.
+
+## Architecture direction
+
+A production build could integrate with:
+
+- DVSA MOT history data
+- Dealer Management Systems
+- Workshop inspection platforms
+- Technician photo/video capture
+- Parts and labour pricing
+- SMS/email delivery
+- Customer authorisation and audit history
+
+The current GitHub Pages POC is deliberately front-end only and self-contained in `index.html`.
+
+## Run locally
+
+The page imports Three.js from jsDelivr, so an internet connection is required.
+
+You can serve the project with:
 
 ```bash
 python -m http.server 8080
 ```
 
-Then browse to:
-
-```text
-http://localhost:8080
-```
-
-### Node
+or:
 
 ```bash
 npx serve .
 ```
 
-## Where real DVSA data plugs in
+Then open the local URL shown by the server.
 
-Replace the mock `sampleVehicle` object in `app.js` with a server-side API call that returns the same normalised shape:
+## Status
 
-```json
-{
-  "registration": "AB12 CDE",
-  "name": "Vehicle description",
-  "mileage": "41,280 mi",
-  "inspectionDate": "2 Sep 2026",
-  "issues": [
-    {
-      "componentKey": "tyre.FL",
-      "meshName": "TYRE_FL",
-      "title": "Nearside front tyre",
-      "location": "Front left wheel",
-      "severity": "red",
-      "officialSeverity": "Major",
-      "source": "MOT",
-      "action": "Replace before driving",
-      "description": "..."
-    }
-  ]
-}
-```
-
-Recommended production flow:
-
-1. Backend receives registration.
-2. Backend calls DVSA MOT History API using server-side credentials.
-3. MOT defects are normalised into a vehicle component taxonomy.
-4. A rule/mapping engine converts positions such as near-side/front into keys such as `tyre.FL`.
-5. The front-end maps those keys to named meshes in the GLB/Three.js vehicle model.
-
-## Good next steps
-
-1. Add a Node/Express backend and real DVSA adapter.
-2. Replace the primitive car with a GLB model containing named components.
-3. Add technician service inspection entry.
-4. Add photos against each issue.
-5. Add customer approval and estimated repair cost.
-6. Add historic inspections so each component has a trend over time.
+Proof of concept only. Vehicle details, measurements, prices and inspection findings are sample data and must not be treated as real vehicle advice.
