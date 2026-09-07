@@ -1,53 +1,46 @@
-# Vehicle Health Check POC
+# Vehicle Health Check
 
-A mobile-first customer-facing digital vehicle health check that turns workshop findings into a visual, plain-English report.
+A mobile-first customer-facing digital vehicle health check proof of concept.
 
-## Current experience
+## Current POC
 
-- Interactive 3D generic SUV rather than a procedural diagram.
-- Rotate and zoom the vehicle on desktop or mobile.
-- Inspection markers identify affected areas and move the camera to the selected issue.
-- Traffic-light severity: urgent, attention and healthy.
-- Customer-friendly explanations for what was found, why it matters, what can happen if it is ignored, and what the workshop recommends.
-- Expandable technical detail for users who want the workshop measurements.
-- Technician photo/video evidence placeholders.
-- Example repair pricing.
-- Approve, decline and ask-about-this interactions with an approved-work total.
+The report demonstrates a workshop-to-customer experience:
 
-## 3D integration
+- interactive self-hosted 3D vehicle rendered with Three.js
+- clickable inspection markers and wheel components
+- red / amber issue severity
+- plain-English customer explanations
+- expandable workshop technical detail
+- technician photo/video placeholders
+- estimated repair pricing
+- approve / decline / ask-about-this interactions
+- running approved-work total
+- responsive mobile layout
 
-The POC uses the Sketchfab Viewer API with the public **Lowpoly Generic SUV** model by **mk2design**. The model is lightweight and includes separate wheel objects, allowing the proof of concept to highlight affected wheels and position inspection annotations around the vehicle.
+## 3D implementation
 
-Model: https://sketchfab.com/3d-models/lowpoly-generic-suv-edc994ad28ed438cb365c0e0389ac177
+The app uses a self-hosted GLB at:
 
-License: **CC BY 4.0**. Attribution must remain in any version that uses this asset.
+`assets/lowpoly_generic_suv.glb`
 
-The user also supplied the GLB during development. A production version can self-host an optimised GLB instead of relying on the Sketchfab viewer while retaining the same component mapping and report UX.
+The model is loaded with Three.js `GLTFLoader`; the site does **not** embed the Sketchfab viewer.
 
-## Sample findings
+Current directly addressable model parts include the four wheel objects (`Wheel_FL`, `Wheel_FR`, `Wheel_RL`, `Wheel_RR`). Other inspection locations use our own 3D hotspots until a more componentised model is available.
 
-The demonstration currently includes:
+## Run
 
-- Front-left tyre below the legal tread limit — urgent.
-- Rear-right brake pads wearing low — attention.
-- Front-right headlamp output reduced — attention.
-- 12V battery health declining — attention.
+This is a static GitHub Pages project. No build step is required.
 
-All vehicle, inspection and pricing information in this POC is sample data.
+Open `index.html` via a local web server, or use the published GitHub Pages site.
 
 ## Production direction
 
-A production implementation would typically:
+A production version could receive inspection data from a DMS/workshop system and normalise it to component keys, then map those keys to 3D meshes or hotspot zones. Technician media and customer decisions would be persisted server-side.
 
-1. Receive the vehicle registration or VIN from the workshop/DMS.
-2. Combine technician inspection data, service history and MOT data where appropriate.
-3. Normalise workshop terminology into a vehicle-component taxonomy.
-4. Map each finding to a 3D component or hotspot.
-5. Attach technician photos/video and measurements.
-6. Generate a customer-facing explanation and severity.
-7. Send the customer a secure report link.
-8. Return customer approvals/declines to the service adviser or workshop system.
+## 3D model attribution
 
-## Hosting
+**Lowpoly Generic SUV** by **mk2design**, licensed under **CC BY 4.0**.
 
-The POC is a static site and is published using GitHub Pages from the `main` branch.
+Source: https://sketchfab.com/3d-models/lowpoly-generic-suv-edc994ad28ed438cb365c0e0389ac177
+
+Licence: https://creativecommons.org/licenses/by/4.0/
