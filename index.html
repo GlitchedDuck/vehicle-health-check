@@ -2,12 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b1017" />
-
-  <title>Vehicle Health Visualiser POC</title>
-
-  <link rel="stylesheet" href="./styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="Customer-friendly digital vehicle health check proof of concept." />
+  <title>Vehicle Health Check</title>
 
   <script type="importmap">
   {
@@ -17,281 +15,160 @@
     }
   }
   </script>
+
+  <style>
+    :root {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #152033;
+      background: #f3f6fa;
+      --ink:#152033; --muted:#68758a; --line:#dce4ed; --panel:#fff;
+      --navy:#0b1220; --navy2:#17233a; --blue:#2563eb;
+      --green:#15865f; --green-bg:#eaf8f2;
+      --amber:#b76a00; --amber-bg:#fff5df;
+      --red:#c53b45; --red-bg:#fff0f1;
+      --shadow:0 18px 45px rgba(21,32,51,.08);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;background:radial-gradient(circle at 90% -10%,rgba(37,99,235,.09),transparent 28rem),#f3f6fa;color:var(--ink)}
+    button{font:inherit;cursor:pointer}
+    .page{width:min(1180px,100%);margin:auto;padding:22px 22px 110px}
+    .brandbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:850;letter-spacing:-.02em}
+    .mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#0b1220,#25324a);box-shadow:0 8px 18px rgba(11,18,32,.17)}
+    .mark svg{width:22px;height:22px}.ref{color:var(--muted);font-size:12px;text-align:right}
+    .hero{position:relative;overflow:hidden;background:linear-gradient(140deg,#0b1220,#17233a 64%,#1d345c);color:#fff;border-radius:28px;padding:28px;box-shadow:0 24px 60px rgba(11,18,32,.18)}
+    .hero:after{content:"";position:absolute;width:300px;height:300px;border-radius:50%;right:-110px;top:-155px;background:rgba(255,255,255,.05)}
+    .eyebrow{margin:0 0 8px;color:#8db6ff;font-size:11px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+    h1,h2,h3,p{margin-top:0}h1{margin-bottom:8px;max-width:760px;font-size:clamp(30px,5vw,52px);line-height:1.02;letter-spacing:-.045em}.hero-copy{margin:0;max-width:700px;color:#c3cede;line-height:1.6}
+    .vehicle-strip{display:grid;grid-template-columns:1.45fr repeat(3,1fr);gap:10px;margin-top:24px}.stat{padding:13px 14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);border-radius:16px}.stat span{display:block;margin-bottom:5px;color:#9daac0;font-size:11px}.stat strong{display:block;font-size:14px}
+    .health-grid{display:grid;grid-template-columns:.9fr 1.45fr;gap:16px;margin-top:16px}.card{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+    .score-card{padding:22px;display:grid;grid-template-columns:134px 1fr;gap:20px;align-items:center}.ring{width:128px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--amber) 0 68%,#e8edf3 68%)}.ring:before{content:"";position:absolute;inset:10px;border-radius:50%;background:#fff}.ring>div{position:relative;text-align:center;line-height:1}.ring strong{display:block;font-size:34px;letter-spacing:-.05em}.ring small{color:var(--muted);font-size:11px;font-weight:750}.score-copy h2,.intro h2{margin-bottom:6px;letter-spacing:-.025em}.score-copy p,.intro p{margin:0;color:var(--muted);line-height:1.55;font-size:14px}.intro{padding:22px;display:flex;flex-direction:column;justify-content:center}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chip,.severity{display:inline-flex;align-items:center;gap:7px;width:fit-content;border-radius:999px;font-weight:800;white-space:nowrap}.chip{padding:7px 10px;font-size:11px}.severity{padding:6px 9px;font-size:11px}.chip:before,.severity:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.red{color:var(--red);background:var(--red-bg)}.amber{color:var(--amber);background:var(--amber-bg)}.green{color:var(--green);background:var(--green-bg)}
+    .section-title{display:flex;justify-content:space-between;gap:14px;align-items:end;margin:26px 2px 12px}.section-title h2{margin:0;font-size:23px;letter-spacing:-.03em}.section-title p{margin:4px 0 0;color:var(--muted);font-size:13px}.legend{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.legend .chip{background:#fff;border:1px solid var(--line)}
+    .viewer-card{overflow:hidden;background:var(--navy);border-color:#1d2a3f;box-shadow:0 20px 48px rgba(11,18,32,.18)}.viewer-head{color:#fff;padding:16px 17px;display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #243149}.viewer-head h3{margin:0 0 4px;font-size:17px}.viewer-head p{margin:0;color:#94a3b8;font-size:12px}.viewer-actions{display:flex;gap:8px}.dark-btn{min-height:38px;padding:0 12px;border:1px solid #35425a;background:#182337;color:#e6edf8;border-radius:11px;font-weight:780;font-size:12px}
+    .viewer{height:440px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 20%,rgba(83,111,157,.19),transparent 38%),linear-gradient(180deg,#0f1929,#080e18);touch-action:none}.viewer canvas{display:block;width:100%;height:100%;touch-action:none}.viewer-badge{position:absolute;left:14px;bottom:14px;z-index:2;color:#cdd7e7;background:rgba(7,12,21,.72);border:1px solid rgba(255,255,255,.1);padding:8px 10px;border-radius:12px;font-size:11px;backdrop-filter:blur(10px);pointer-events:none}.viewer-error{display:none;position:absolute;inset:0;align-items:center;justify-content:center;padding:30px;text-align:center;color:#dce5f3}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}.filter{min-height:39px;border-radius:999px;padding:0 14px;color:#5f6b7d;background:#fff;border:1px solid var(--line);font-weight:780;font-size:12px}.filter.active{color:#fff;background:var(--navy);border-color:var(--navy)}
+    .findings{display:grid;gap:10px}.finding{width:100%;text-align:left;padding:16px;background:#fff;color:inherit;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px rgba(21,32,51,.04)}.finding.selected{border-color:#8caef5;box-shadow:0 0 0 3px rgba(37,99,235,.08),0 14px 30px rgba(21,32,51,.07)}.finding-top{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:start}.finding-icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:21px;font-weight:900}.finding h3{margin:1px 0 4px;font-size:16px}.summary{margin:0;color:var(--muted);line-height:1.45;font-size:13px}.finding-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #edf1f5}.finding-bottom span{color:var(--muted);font-size:11px}.finding-bottom strong{font-size:13px}
+    .detail{margin-top:16px;overflow:hidden}.detail-banner{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcfe)}.detail-banner h2{margin:5px 0;font-size:25px;letter-spacing:-.035em}.detail-banner p{margin:0;color:var(--muted);font-size:13px}.price{text-align:right;min-width:100px}.price span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.08em}.price strong{display:block;margin-top:3px;font-size:23px;letter-spacing:-.04em}
+    .detail-body{display:grid;grid-template-columns:1.4fr .8fr}.explanation{padding:20px;border-right:1px solid var(--line)}.blocks{display:grid;gap:10px}.block{padding:14px 15px;border:1px solid var(--line);background:#fbfcfe;border-radius:16px}.block h3{margin:0 0 5px;font-size:13px}.block p{margin:0;color:#566376;font-size:13px;line-height:1.55}.side{padding:20px;background:#fbfcfe}.side h3{margin-bottom:10px;font-size:14px}.evidence{min-height:150px;border:1px dashed #c8d2df;background:#fff;border-radius:16px;display:grid;place-items:center;padding:18px;text-align:center;color:var(--muted)}.evidence strong{display:block;color:var(--ink);margin-bottom:4px;font-size:13px}details{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;font-size:12px;font-weight:800;color:#344055}.technical{margin:10px 0 0;padding:12px;background:#fff;border:1px solid var(--line);border-radius:13px;color:#566376;font-size:12px;line-height:1.55}
+    .actions{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:9px;padding:16px 20px 20px;border-top:1px solid var(--line)}.action{min-height:48px;border-radius:14px;font-weight:820;border:1px solid var(--line);background:#fff;color:var(--ink)}.action.primary{border-color:var(--blue);background:var(--blue);color:#fff}.action.approved{border-color:var(--green);background:var(--green);color:#fff}.action.declined{color:var(--red);border-color:#f2c6c9;background:var(--red-bg)}.decision{display:none;margin:-7px 20px 18px;padding:10px 12px;border-radius:12px;background:var(--green-bg);color:var(--green);font-size:12px;font-weight:750}.decision.show{display:block}
+    .footer{margin:18px 2px 0;color:var(--muted);font-size:11px;line-height:1.5}.quote{position:fixed;z-index:20;left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom));width:min(720px,calc(100% - 24px));display:flex;justify-content:space-between;align-items:center;gap:14px;color:#fff;background:rgba(11,18,32,.94);border:1px solid rgba(255,255,255,.11);box-shadow:0 18px 50px rgba(11,18,32,.28);backdrop-filter:blur(18px);border-radius:18px;padding:12px 14px}.quote small{display:block;color:#98a6bb;margin-bottom:2px}.quote button{min-height:42px;padding:0 15px;color:var(--navy);background:#fff;border:0;border-radius:12px;font-weight:820}.toast{position:fixed;z-index:50;left:50%;top:max(16px,env(safe-area-inset-top));transform:translate(-50%,-140%);width:min(440px,calc(100% - 28px));padding:12px 14px;color:#fff;background:#111a2a;border:1px solid #2f3d55;border-radius:14px;box-shadow:0 16px 40px rgba(11,18,32,.26);font-size:13px;transition:transform .22s ease}.toast.show{transform:translate(-50%,0)}
+    @media(max-width:820px){.health-grid{grid-template-columns:1fr}.vehicle-strip{grid-template-columns:1fr 1fr}.detail-body{grid-template-columns:1fr}.explanation{border-right:0;border-bottom:1px solid var(--line)}}
+    @media(max-width:620px){.page{padding:14px 14px 106px}.hero{padding:21px 18px;border-radius:23px}h1{font-size:33px}.vehicle-strip{grid-template-columns:1fr 1fr;margin-top:18px}.stat:first-child{grid-column:1/-1}.score-card{grid-template-columns:104px 1fr;gap:15px;padding:17px}.ring{width:100px}.ring strong{font-size:28px}.intro{padding:17px}.section-title{align-items:flex-start;flex-direction:column;margin-top:22px}.legend{justify-content:flex-start}.viewer-head{align-items:flex-start;flex-direction:column}.viewer{height:340px}.finding-top{grid-template-columns:42px 1fr}.finding-top .severity{grid-column:2;justify-self:start}.finding-icon{width:42px;height:42px}.detail-banner{padding:17px}.detail-banner h2{font-size:22px}.explanation,.side{padding:17px}.actions{grid-template-columns:1fr;padding:14px 17px 17px}.decision{margin-left:17px;margin-right:17px}}
+  </style>
 </head>
-
 <body>
-  <main class="app-shell">
-
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">POC</p>
-        <h1>Vehicle Health Visualiser</h1>
-        <p class="subtitle">
-          Turn MOT and service findings into an interactive vehicle health map.
-        </p>
+  <main class="page">
+    <div class="brandbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 14.5 5.8 9.8c.5-1.4 1.9-2.3 3.4-2.3h5.6c1.5 0 2.9.9 3.4 2.3l1.8 4.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 14.5h17v3.2a1.8 1.8 0 0 1-1.8 1.8H5.3a1.8 1.8 0 0 1-1.8-1.8v-3.2Z" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="16.7" r="1.2" fill="currentColor"/><circle cx="17" cy="16.7" r="1.2" fill="currentColor"/></svg></div>
+        <span>Vehicle Health Check</span>
       </div>
+      <div class="ref">Report VHC-260902-1847<br>Customer copy</div>
+    </div>
 
-      <div class="legend" aria-label="Severity legend">
-        <span><i class="dot green"></i>Healthy</span>
-        <span><i class="dot amber"></i>Attention</span>
-        <span><i class="dot red"></i>Urgent</span>
+    <section class="hero">
+      <p class="eyebrow">Your digital inspection report</p>
+      <h1>Your vehicle needs some attention</h1>
+      <p class="hero-copy">We found four items worth showing you. Tap a highlighted area of the vehicle or choose a finding below to see what we found, why it matters and what we recommend.</p>
+      <div class="vehicle-strip">
+        <div class="stat"><span>Vehicle</span><strong>2021 Example SUV · AB12 CDE</strong></div>
+        <div class="stat"><span>Mileage</span><strong>41,280 miles</strong></div>
+        <div class="stat"><span>Inspected</span><strong>2 Sep 2026</strong></div>
+        <div class="stat"><span>Workshop</span><strong>Demo Service Centre</strong></div>
       </div>
-    </header>
-
-
-    <section class="search-card">
-      <label for="registration">Registration</label>
-
-      <div class="search-row">
-        <input
-          id="registration"
-          value="AB12 CDE"
-          maxlength="8"
-          aria-label="Vehicle registration"
-        />
-
-        <button id="loadVehicle" type="button">
-          Load vehicle
-        </button>
-      </div>
-
-      <p class="hint">
-        This POC uses sample inspection data. The data-provider layer is
-        separated so the DVSA MOT API can replace it later.
-      </p>
     </section>
 
-
-    <section class="summary-grid">
-
-      <article class="metric-card">
-        <span>Vehicle</span>
-        <strong id="vehicleName">2021 Example SUV</strong>
+    <section class="health-grid">
+      <article class="card score-card">
+        <div class="ring"><div><strong>68</strong><small>out of 100</small></div></div>
+        <div class="score-copy"><p class="eyebrow">Vehicle health</p><h2>Needs attention</h2><p>Most of the vehicle checked out well, but one item should be dealt with before normal use.</p><div class="chips"><span class="chip red">1 urgent</span><span class="chip amber">3 attention</span></div></div>
       </article>
-
-      <article class="metric-card">
-        <span>Mileage</span>
-        <strong id="mileage">41,280 mi</strong>
-      </article>
-
-      <article class="metric-card">
-        <span>Overall status</span>
-        <strong id="overallStatus" class="status-red">
-          Urgent attention
-        </strong>
-      </article>
-
-      <article class="metric-card">
-        <span>Open findings</span>
-        <strong id="findingCount">4</strong>
-      </article>
-
+      <article class="card intro"><p class="eyebrow">Made for customers, not technicians</p><h2>Clear explanations without the workshop jargon</h2><p>Each finding is translated into plain English. Technical measurements are still available if you want them, but the main report focuses on what the issue means for you.</p></article>
     </section>
 
+    <div class="section-title"><div><h2>Where we found issues</h2><p>Drag to rotate · pinch to zoom · tap a highlighted component</p></div><div class="legend"><span class="chip green">Healthy</span><span class="chip amber">Attention</span><span class="chip red">Urgent</span></div></div>
 
-    <section class="workspace">
-
-      <div class="viewer-card">
-
-        <div class="viewer-toolbar">
-          <div>
-            <h2>Interactive vehicle</h2>
-
-            <p>
-              Drag to rotate · pinch to zoom · tap coloured components
-            </p>
-          </div>
-
-          <button
-            id="resetView"
-            type="button"
-            class="secondary"
-          >
-            Reset view
-          </button>
-        </div>
-
-
-        <div
-          id="viewer"
-          class="viewer"
-          aria-label="Interactive 3D vehicle health model"
-        ></div>
-
-      </div>
-
-
-      <aside class="issues-card">
-
-        <div class="issues-heading">
-
-          <div>
-            <h2>Inspection findings</h2>
-
-            <p id="inspectionDate">
-              Latest inspection · 2 Sep 2026
-            </p>
-          </div>
-
-
-          <div
-            class="filter-row"
-            role="group"
-            aria-label="Issue filter"
-          >
-
-            <button
-              type="button"
-              class="filter active"
-              data-filter="all"
-            >
-              All
-            </button>
-
-            <button
-              type="button"
-              class="filter"
-              data-filter="urgent"
-            >
-              Urgent
-            </button>
-
-            <button
-              type="button"
-              class="filter"
-              data-filter="attention"
-            >
-              Attention
-            </button>
-
-          </div>
-
-        </div>
-
-
-        <div
-          id="issueList"
-          class="issue-list"
-        ></div>
-
-      </aside>
-
+    <section class="card viewer-card">
+      <div class="viewer-head"><div><h3>Interactive vehicle</h3><p>Highlighted parts match the inspection findings below.</p></div><div class="viewer-actions"><button id="toggleRotate" class="dark-btn">Pause rotation</button><button id="resetView" class="dark-btn">Reset view</button></div></div>
+      <div id="viewer" class="viewer"><div class="viewer-badge">Tap a coloured part to view the finding</div><div id="viewerError" class="viewer-error">The 3D model could not load. The inspection findings below still contain the full report.</div></div>
     </section>
 
+    <div class="section-title"><div><h2>Inspection findings</h2><p>Choose an item to understand what it means and what happens next.</p></div></div>
+    <div class="filters"><button class="filter active" data-filter="all">All 4</button><button class="filter" data-filter="red">Urgent 1</button><button class="filter" data-filter="amber">Attention 3</button><button class="filter" data-filter="approved">Approved</button></div>
+    <section id="findings" class="findings"></section>
 
-    <section
-      class="detail-card"
-      id="detailCard"
-    >
-
-      <div>
-        <p class="eyebrow">
-          Selected component
-        </p>
-
-        <h2 id="detailTitle">
-          Nearside front tyre
-        </h2>
-
-        <p id="detailLocation">
-          Front left wheel
-        </p>
+    <section id="detail" class="card detail">
+      <div class="detail-banner"><div><span id="detailSeverity" class="severity red">Urgent</span><h2 id="detailTitle">Front left tyre</h2><p id="detailLocation">Nearside front wheel</p></div><div class="price"><span>Estimated price</span><strong id="detailPrice">£145</strong></div></div>
+      <div class="detail-body">
+        <div class="explanation"><div class="blocks"><div class="block"><h3>What have we found?</h3><p id="detailFound"></p></div><div class="block"><h3>Why does it matter?</h3><p id="detailWhy"></p></div><div class="block"><h3>What could happen if I leave it?</h3><p id="detailRisk"></p></div><div class="block"><h3>What do you recommend?</h3><p id="detailRecommend"></p></div></div></div>
+        <aside class="side"><h3>Technician evidence</h3><div class="evidence"><div><strong id="evidenceTitle">Technician photo</strong><small id="evidenceText">A photo or short video taken during the inspection would appear here.</small></div></div><details><summary>Show technical details</summary><div id="technical" class="technical"></div></details></aside>
       </div>
-
-
-      <div class="detail-grid">
-
-        <div>
-          <span class="label">
-            Severity
-          </span>
-
-          <strong
-            id="detailSeverity"
-            class="severity-pill red-pill"
-          >
-            Major
-          </strong>
-        </div>
-
-
-        <div>
-          <span class="label">
-            Source
-          </span>
-
-          <strong id="detailSource">
-            MOT
-          </strong>
-        </div>
-
-
-        <div>
-          <span class="label">
-            Recommended action
-          </span>
-
-          <strong id="detailAction">
-            Replace before driving
-          </strong>
-        </div>
-
-      </div>
-
-
-      <p id="detailDescription">
-        Tyre tread depth is below the legal minimum.
-        This component is shown in red because it needs urgent attention.
-      </p>
-
+      <div class="actions"><button id="approve" class="action primary">Approve this work</button><button id="ask" class="action">Ask me about this</button><button id="decline" class="action">Decline for now</button></div><div id="decision" class="decision"></div>
     </section>
 
-
-    <section class="pipeline-card">
-
-      <h2>
-        How the production version would work
-      </h2>
-
-
-      <div class="pipeline">
-
-        <div>
-          <b>1</b>
-          <span>Vehicle reg / VIN</span>
-        </div>
-
-        <div>
-          <b>2</b>
-          <span>MOT + service data</span>
-        </div>
-
-        <div>
-          <b>3</b>
-          <span>Normalise issue text</span>
-        </div>
-
-        <div>
-          <b>4</b>
-          <span>Map to component</span>
-        </div>
-
-        <div>
-          <b>5</b>
-          <span>3D health report</span>
-        </div>
-
-      </div>
-
-    </section>
-
+    <p class="footer">Proof of concept only. Vehicle details, findings, measurements and prices shown here are sample data. A production version could be populated from a workshop inspection system, DMS, MOT data source and technician media.</p>
   </main>
 
+  <div class="quote"><div><small>Approved work</small><strong id="approvedTotal">£0 approved</strong></div><button id="reviewApprovals">Review choices</button></div>
+  <div id="toast" class="toast"></div>
 
-  <script
-    type="module"
-    src="./app.js"
-  ></script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    const ISSUES = [
+      {id:'tyre-fl',icon:'◉',mesh:'TYRE_FL',title:'Front left tyre',location:'Nearside front wheel',severity:'red',label:'Urgent',summary:'The tyre has worn past the legal tread limit.',price:145,found:'The grooves in this tyre have worn down too far. We measured the tread at 1.3 mm.',why:'Those grooves help the tyre grip the road and move water away from underneath it. When they become too shallow, the tyre cannot do that job as effectively.',risk:'Grip can be reduced in wet weather and stopping distances can increase. Because the tyre is below the legal minimum, the vehicle should not be used normally until it has been replaced.',recommend:'Replace this tyre before normal road use. We would also check the opposite tyre for uneven wear and confirm the tyre pressures.',technical:'Technician note: NSF tyre measured at 1.3 mm across the principal grooves. Sample legal minimum: 1.6 mm across the central three-quarters of the tread.',evidence:'Tread depth measurement — show the technician photo with the tread gauge visible.'},
+      {id:'brake-rr',icon:'◌',mesh:'BRAKE_RR',title:'Rear right brake pads',location:'Offside rear wheel',severity:'amber',label:'Attention',summary:'The brake pads are getting low and will need replacing soon.',price:210,found:'The rear brake pads still work, but there is much less friction material left than when they were new.',why:'Brake pads are designed to wear down as they slow the car. Once they become thin, there is less material remaining before the metal backing reaches the brake disc.',risk:'If they wear too far, braking performance can be affected and the brake discs can also be damaged, making the repair more expensive.',recommend:'Plan to replace the rear brake pads soon. They are not shown as an immediate stop-driving issue in this sample.',technical:'Technician note: OSR pad approximately 3 mm remaining. Rear axle inspection recommended.',evidence:'Brake pad thickness — show a close-up photo of the remaining pad material.'},
+      {id:'lamp-fr',icon:'✦',mesh:'LAMP_FR',title:'Front right headlamp',location:'Offside front lamp',severity:'amber',label:'Attention',summary:'The lamp is working, but its light output is weaker than expected.',price:65,found:'The front right lamp is producing less light than the other side.',why:'Your headlamps help you see the road and help other road users see you. Both sides should provide a clear and balanced light output.',risk:'Visibility may be reduced at night or in poor weather, and a lamp fault can become an MOT issue depending on the cause and severity.',recommend:'Inspect the bulb, lens and electrical connection and repair the cause of the reduced output.',technical:'Technician note: OSF headlamp output visually reduced compared with NSF.',evidence:'Lamp comparison — show both lamps switched on so the difference is obvious.'},
+      {id:'battery',icon:'⚡',mesh:'BATTERY',title:'12V battery',location:'Engine bay',severity:'amber',label:'Attention',summary:'The battery is still usable, but its health is starting to decline.',price:0,found:'The battery health test returned 71%. It is currently starting the vehicle, but it is no longer at full strength.',why:'The 12V battery powers the vehicle electronics and provides the energy needed to start the car. Batteries gradually lose capacity as they age.',risk:'A weakening battery can eventually cause slow starting or leave the vehicle unable to start, especially during colder weather.',recommend:'No replacement is required today in this sample. Retest it at the next service or sooner if starting becomes slower.',technical:'Technician note: battery state of health 71% in sample test. Charging system normal.',evidence:'Battery health test — show a photo or screenshot of the tester result.'}
+    ];
+
+    const decisions = new Map(); let selectedId='tyre-fl', currentFilter='all';
+    const $=id=>document.getElementById(id); const money=v=>v===0?'No charge':`£${v}`;
+    const toast=m=>{const e=$('toast');e.textContent=m;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2400)};
+    const issue=id=>ISSUES.find(x=>x.id===id)||ISSUES[0];
+
+    function renderFindings(){
+      const list=$('findings'); list.innerHTML='';
+      const visible=ISSUES.filter(i=>currentFilter==='all'||(currentFilter==='approved'&&decisions.get(i.id)==='approved')||i.severity===currentFilter);
+      if(!visible.length){list.innerHTML='<div class="card" style="padding:18px;color:var(--muted)">No findings match this filter.</div>';return}
+      visible.forEach(i=>{const d=decisions.get(i.id),b=document.createElement('button');b.className='finding'+(i.id===selectedId?' selected':'');b.innerHTML=`<div class="finding-top"><div class="finding-icon ${i.severity}">${i.icon}</div><div><h3>${i.title}</h3><p class="summary">${i.summary}</p></div><span class="severity ${i.severity}">${i.label}</span></div><div class="finding-bottom"><span>${i.location}${d?' · '+(d==='approved'?'Approved':'Declined'):''}</span><strong>${money(i.price)}</strong></div>`;b.onclick=()=>select(i.id,true);list.appendChild(b)});
+    }
+
+    function renderDetail(i){selectedId=i.id;$('detailSeverity').className=`severity ${i.severity}`;$('detailSeverity').textContent=i.label;$('detailTitle').textContent=i.title;$('detailLocation').textContent=i.location;$('detailPrice').textContent=money(i.price);$('detailFound').textContent=i.found;$('detailWhy').textContent=i.why;$('detailRisk').textContent=i.risk;$('detailRecommend').textContent=i.recommend;$('technical').textContent=i.technical;$('evidenceTitle').textContent='Technician evidence';$('evidenceText').textContent=i.evidence;const d=decisions.get(i.id);$('approve').textContent=d==='approved'?'Approved ✓':'Approve this work';$('approve').className='action '+(d==='approved'?'approved':'primary');$('decline').textContent=d==='declined'?'Declined for now':'Decline for now';$('decline').className='action'+(d==='declined'?' declined':'');$('decision').classList.toggle('show',!!d);$('decision').textContent=d==='approved'?'You have approved this item. In production the workshop would be notified immediately.':'You have declined this item for now. The workshop would record your choice and can discuss it with you.';renderFindings();focusModel(i)}
+    function select(id,scroll=false){renderDetail(issue(id));if(scroll)$('detail').scrollIntoView({behavior:'smooth',block:'start'})}
+    function updateTotal(){const a=ISSUES.filter(i=>decisions.get(i.id)==='approved');const total=a.reduce((s,i)=>s+i.price,0);$('approvedTotal').textContent=a.length?`${money(total)} · ${a.length} approved`:'£0 approved'}
+    $('approve').onclick=()=>{const i=issue(selectedId);decisions.set(i.id,'approved');renderDetail(i);updateTotal();toast(`${i.title} approved.`)};
+    $('decline').onclick=()=>{const i=issue(selectedId);decisions.set(i.id,'declined');renderDetail(i);updateTotal();toast(`${i.title} declined for now.`)};
+    $('ask').onclick=()=>toast(`Demo: a question about ${issue(selectedId).title.toLowerCase()} would be sent to the service adviser.`);
+    $('reviewApprovals').onclick=()=>{const a=ISSUES.filter(i=>decisions.get(i.id)==='approved');toast(a.length?`${a.length} item${a.length===1?'':'s'} approved · ${money(a.reduce((s,i)=>s+i.price,0))} total.`:'No work has been approved yet.')};
+    document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{currentFilter=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));renderFindings()});
+
+    let car,controls,renderer,camera,selectedObject=null; const map=new Map(),targets=[]; const viewer=$('viewer');
+    try{
+      const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1220);scene.fog=new THREE.Fog(0x0b1220,12,23);
+      camera=new THREE.PerspectiveCamera(39,1,.1,100);camera.position.set(7.6,4.1,7.4);
+      renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;viewer.prepend(renderer.domElement);
+      controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1.25,0);controls.minDistance=5.3;controls.maxDistance=13;controls.maxPolarAngle=Math.PI/2.05;controls.autoRotate=true;controls.autoRotateSpeed=.6;
+      scene.add(new THREE.HemisphereLight(0xe8f2ff,0x182237,2.3));const key=new THREE.DirectionalLight(0xffffff,4.1);key.position.set(5.5,8.5,6);key.castShadow=true;scene.add(key);const rim=new THREE.DirectionalLight(0x6ea8ff,2);rim.position.set(-5,4,-6);scene.add(rim);
+      const floor=new THREE.Mesh(new THREE.CircleGeometry(6.7,72),new THREE.MeshStandardMaterial({color:0x111b2b,roughness:.92}));floor.rotation.x=-Math.PI/2;scene.add(floor);const platform=new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.8,.22,72),new THREE.MeshStandardMaterial({color:0x172235,roughness:.62,metalness:.18}));platform.position.y=.11;scene.add(platform);
+      car=new THREE.Group();car.position.y=.47;scene.add(car);
+      const bodyMat=new THREE.MeshPhysicalMaterial({color:0xc9d0da,metalness:.67,roughness:.26,clearcoat:.6});const glassMat=new THREE.MeshPhysicalMaterial({color:0x172a42,roughness:.12,transparent:true,opacity:.82});const darkMat=new THREE.MeshStandardMaterial({color:0x11161e,roughness:.58});const chrome=new THREE.MeshStandardMaterial({color:0xaeb9c8,metalness:.85,roughness:.2});
+      const shape=new THREE.Shape();shape.moveTo(-3.15,.63);shape.lineTo(-2.95,1.02);shape.lineTo(-2.25,1.2);shape.lineTo(-1.55,1.92);shape.lineTo(-.95,2.18);shape.lineTo(.75,2.16);shape.lineTo(1.45,1.62);shape.lineTo(2.55,1.27);shape.lineTo(3.12,.93);shape.lineTo(3.18,.65);shape.closePath();const geo=new THREE.ExtrudeGeometry(shape,{depth:1.78,bevelEnabled:true,bevelSegments:3,bevelSize:.08,bevelThickness:.08});geo.translate(0,0,-.89);const body=new THREE.Mesh(geo,bodyMat);body.castShadow=true;car.add(body);
+      const cabin=new THREE.Mesh(new THREE.BoxGeometry(2.45,.83,1.84),glassMat);cabin.position.set(-.18,1.72,0);car.add(cabin);const roof=new THREE.Mesh(new THREE.BoxGeometry(2.25,.12,1.77),bodyMat);roof.position.set(-.22,2.18,0);car.add(roof);
+      const wheels=[['FL',1.95,-1.02],['FR',1.95,1.02],['RL',-2,-1.02],['RR',-2,1.02]];for(const [k,x,z] of wheels){const tyre=new THREE.Mesh(new THREE.TorusGeometry(.55,.17,18,52),darkMat.clone());tyre.name=`TYRE_${k}`;tyre.position.set(x,.67,z);car.add(tyre);const rimM=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.09,40),chrome.clone());rimM.rotation.x=Math.PI/2;rimM.position.set(x,.67,z);car.add(rimM);const brake=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.11,36),new THREE.MeshStandardMaterial({color:0x42c38c,metalness:.5}));brake.name=`BRAKE_${k}`;brake.rotation.x=Math.PI/2;brake.position.set(x,.67,z);car.add(brake)}
+      for(const [name,z] of [['LAMP_FL',-.64],['LAMP_FR',.64]]){const l=new THREE.Mesh(new THREE.BoxGeometry(.24,.25,.5),new THREE.MeshStandardMaterial({color:0xeaf5ff,emissive:0xb8dcff,emissiveIntensity:1.2}));l.name=name;l.position.set(3.05,1.1,z);car.add(l)}
+      const batt=new THREE.Mesh(new THREE.BoxGeometry(.74,.3,.52),new THREE.MeshStandardMaterial({color:0xf4b94a,emissive:0x6c4300,emissiveIntensity:.5}));batt.name='BATTERY';batt.position.set(1.65,1.42,-.28);car.add(batt);
+      const colours={red:0xe84f5b,amber:0xf4b94a};ISSUES.forEach(i=>{const o=car.getObjectByName(i.mesh);if(o&&o.material){o.material.color.setHex(colours[i.severity]);if(o.material.emissive){o.material.emissive.setHex(colours[i.severity]);o.material.emissiveIntensity=.35}targets.push(o);map.set(o.name,i.id)}});
+      const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();renderer.domElement.addEventListener('pointerup',e=>{const r=renderer.domElement.getBoundingClientRect();ptr.x=((e.clientX-r.left)/r.width)*2-1;ptr.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(ptr,camera);const hit=ray.intersectObjects(targets,true)[0];if(hit&&map.has(hit.object.name))select(map.get(hit.object.name),true)});
+      const resize=()=>{renderer.setSize(viewer.clientWidth,viewer.clientHeight,false);camera.aspect=viewer.clientWidth/viewer.clientHeight;camera.updateProjectionMatrix()};new ResizeObserver(resize).observe(viewer);resize();
+      $('resetView').onclick=()=>{camera.position.set(7.6,4.1,7.4);controls.target.set(0,1.25,0);controls.update()};$('toggleRotate').onclick=e=>{controls.autoRotate=!controls.autoRotate;e.currentTarget.textContent=controls.autoRotate?'Pause rotation':'Start rotation'};
+      renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera)});
+    }catch(err){console.error(err);$('viewerError').style.display='flex'}
+    function focusModel(i){if(!car||!controls)return;const o=car.getObjectByName(i.mesh);if(!o)return;selectedObject=o;const w=new THREE.Vector3();o.getWorldPosition(w);controls.target.lerp(w,.34);controls.update()}
+    renderFindings();renderDetail(ISSUES[0]);updateTotal();
+  </script>
 </body>
 </html>
