@@ -173,6 +173,7 @@ function createViewer(){
   function makeModule(issue){
     const root=new THREE.Group(),pieces=[],labels=[];root.position.set(0,1.05,0);scene.add(root);
     function piece(name,geometry,mat,start,end){const mesh=new THREE.Mesh(geometry,mat);root.add(mesh);mesh.position.set(...start);const item={object:mesh,start:new THREE.Vector3(...start),end:new THREE.Vector3(...end)};pieces.push(item);if(name){const label=document.createElement('span');label.className='part-label';label.textContent=name;$('partLabels').append(label);labels.push({label,object:mesh});}return mesh;}
+    function flagLabel(object,title){const entry=labels.find(item=>item.object===object);if(!entry)return;entry.label.className=`part-label part-label--${issue.severity}`;if(title)entry.label.textContent=title;const status=document.createElement('small');status.className='part-label-status';status.textContent=issue.severityLabel;entry.label.append(status);}
     const metal=()=>material(0xbac7d6,{metalness:.8,roughness:.3}), rubber=()=>material(0x242934,{roughness:.93,metalness:0}), amber=()=>material(0xe5aa43), red=()=>material(0xc65461);
     const torus=(radius,tube)=>new THREE.TorusGeometry(radius,tube,16,64);
     const cylinder=(radius,depth)=>{const geo=new THREE.CylinderGeometry(radius,radius,depth,64);geo.rotateX(Math.PI/2);return geo;};
@@ -198,6 +199,7 @@ function createViewer(){
       const valve=attach(rim,new THREE.CylinderGeometry(.008,.01,.055,12),rubber(),[.29,.08,.13]);valve.rotation.x=Math.PI/3;
       const hub=piece('Wheel hub',cylinder(.105,.15),metal(),[0,0,-.18],[0,0,-.73]);circleBolts(hub,.072,.095);
       tyre.userData.labelOffset=[0,.74,0];rim.userData.labelOffset=[-.5,-.48,0];hub.userData.labelOffset=[0,.24,0];
+      flagLabel(tyre);
     }else if(issue.id==='brake-rr'){
       let reused=false;const wheel=car?.getObjectByName('Wheel_RR');
       if(wheel){
@@ -220,6 +222,7 @@ function createViewer(){
       attach(caliper,cylinder(.085,.04),material(0x445061),[-.12,0,-.09]);
       repeat(caliper,box(.008,.22,.025),metal(),4,(o,i)=>o.position.set((i-1.5)*.02,0,.064));
       disc.userData.labelOffset=[-.15,-.55,0];outer.userData.labelOffset=[.12,.35,0];inner.userData.labelOffset=[.2,-.34,0];caliper.userData.labelOffset=[-.1,.4,0];
+      flagLabel(outer);flagLabel(inner);
     }else if(issue.id==='battery'){
       // An open case, removable cover and six cells reveal the battery structure.
       const base=piece('Battery case',rounded(1.08,.09,.68,.025),rubber(),[0,-.27,0],[0,-.49,0]);
@@ -237,6 +240,7 @@ function createViewer(){
       const terminals=piece('Terminals + / −',box(.01,.01,.01),metal(),[0,.35,0],[0,.94,0]);
       for(const x of [-.38,.38]){attach(terminals,new THREE.CylinderGeometry(.041,.052,.09,24),metal(),[x,0,.19]);attach(terminals,rounded(.12,.018,.12,.025),material(x<0?0xb64951:0x445061),[x,-.05,.19]);attach(terminals,box(.057,.01,.012),material(0xe4e9ef),[x,-.038,.24]);if(x<0)attach(terminals,box(.012,.01,.057),material(0xe4e9ef),[x,-.038,.24]);}
       base.userData.labelOffset=[-.15,-.16,.1];cells.userData.labelOffset=[.12,-.05,.36];cover.userData.labelOffset=[-.63,.1,0];terminals.userData.labelOffset=[.3,.17,0];
+      flagLabel(base,'Battery · 71% health');
     }else{
       const housing=piece('Headlamp housing',rounded(1,.5,.14,.13),rubber(),[0,0,-.16],[0,0,-.72]);
       attach(housing,cylinder(.145,.12),rubber(),[-.16,0,-.11]);attach(housing,rounded(.15,.1,.14,.02),material(0x536175),[.22,-.05,-.14]);
@@ -253,6 +257,8 @@ function createViewer(){
       const lens=piece('Clear outer lens',rounded(.99,.49,.03,.13),material(0xc2dce9,{transparent:true,opacity:.2,metalness:0,roughness:.1,depthWrite:false}),[0,0,.19],[0,0,.96]);
       repeat(lens,box(.005,.32,.009),material(0xdbeaf1,{transparent:true,opacity:.4}),9,(o,i)=>o.position.set(.22+i*.021,0,.021));
       housing.userData.labelOffset=[-.4,.4,0];reflector.userData.labelOffset=[-.2,-.4,0];bulb.userData.labelOffset=[-.17,.28,0];lens.userData.labelOffset=[.25,-.4,0];
+      // Reduced output is a whole-lamp finding; its underlying cause is unconfirmed.
+      flagLabel(housing,'Headlamp · reduced output');
     }
     return {root,pieces,labels,origin:pointFor(issue),progress:0};
   }
