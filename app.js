@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js?v=14';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js?v=14';
 
 const ISSUES = [
   {
@@ -53,483 +53,194 @@ const ISSUES = [
   }
 ];
 
-const SEVERITY = {
-  red:{colour:0xff4f5f, glow:0x8d101b},
-  amber:{colour:0xffbb3d, glow:0x805300}
-};
-
-const decisions = new Map();
-let currentFilter = 'all';
-let selectedId = ISSUES[0].id;
-
+// v14: session-only report state; no workshop submissions or forced scrolling.
 const $ = id => document.getElementById(id);
-const els = {
-  findings:$('findings'), detail:$('detail'), detailSeverity:$('detailSeverity'), detailTitle:$('detailTitle'),
-  detailLocation:$('detailLocation'), detailPrice:$('detailPrice'), detailFound:$('detailFound'),
-  detailWhy:$('detailWhy'), detailRisk:$('detailRisk'), detailRecommend:$('detailRecommend'),
-  technical:$('technical'), evidenceTitle:$('evidenceTitle'), evidenceText:$('evidenceText'),
-  approve:$('approve'), ask:$('ask'), decline:$('decline'), decisionNote:$('decisionNote'),
-  approvedTotal:$('approvedTotal'), toast:$('toast')
+const money = value => value === 0 ? 'No charge' : `£${value}`;
+const measurements = {
+  'tyre-fl': {label:'Tread depth',value:1.3,unit:'mm',max:8,stops:[20,37.5],labels:['Replace','Plan soon','Healthy'],note:'Illustrative tread bands: below 1.6 mm / 1.6–3 mm / above 3 mm.',history:[5.6,4.2,2.8,1.3],parts:['Tyre & worn tread','Wheel rim','Hub'],short:'Tyre'},
+  'brake-rr': {label:'Pad material remaining',value:3,unit:'mm',max:12,stops:[16.7,33.3],labels:['Replace','Plan soon','Healthy'],note:'Demo pad bands only; replacement limits depend on the vehicle.',history:[10,7,5,3],parts:['Wheel','Outer pad','Brake disc','Inner pad','Caliper'],short:'Brakes'},
+  battery: {label:'Battery state of health',value:71,unit:'%',max:100,stops:[50,75],labels:['Investigate','Monitor','Healthy'],note:'Sample health bands; interpret with the complete battery test.',history:[96,88,79,71],parts:['Battery cover','Cell pack','Battery case','Terminals'],short:'Battery'},
+  'lamp-fr': {label:'Relative lamp output',value:62,unit:'%',max:100,stops:[40,80],labels:['Investigate','Reduced','Reference'],note:'Illustrative output relative to the other lamp; not a calibrated beam test.',history:[100,94,80,62],parts:['Clear lens','Reflector','Bulb','Lamp housing'],short:'Headlamp'}
 };
-
-function money(value){ return value === 0 ? 'No charge' : `£${value}`; }
-function issueById(id){ return ISSUES.find(x=>x.id===id) || ISSUES[0]; }
-
-function toast(message){
-  els.toast.textContent = message;
-  els.toast.classList.add('show');
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(()=>els.toast.classList.remove('show'),2400);
-}
-
+const decisions = new Map(), questions = new Map();
+let selectedId = ISSUES[0].id, currentFilter = 'all', viewMode = 'overview', engine = null;
+const currentIssue = () => ISSUES.find(issue => issue.id === selectedId);
+function toast(text){ $('toast').textContent=text; $('toast').classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>$('toast').classList.remove('show'),3000); }
 function renderFindings(){
-  const visible = ISSUES.filter(issue=>{
-    if(currentFilter==='all') return true;
-    if(currentFilter==='approved') return decisions.get(issue.id)==='approved';
-    return issue.severity===currentFilter;
-  });
-  els.findings.innerHTML='';
-  if(!visible.length){
-    const div=document.createElement('div');
-    div.className='card';
-    div.style.padding='18px';
-    div.style.color='var(--muted)';
-    div.textContent=currentFilter==='approved'?'You have not approved any work yet.':'No findings match this filter.';
-    els.findings.appendChild(div);
-    return;
-  }
-  visible.forEach(issue=>{
+  $('findings').replaceChildren(); $('issueNav').replaceChildren();
+  ISSUES.forEach(issue=>{
     const decision=decisions.get(issue.id);
-    const btn=document.createElement('button');
-    btn.type='button';
-    btn.className=`finding${selectedId===issue.id?' selected':''}`;
-    btn.innerHTML=`
-      <div class="finding-top">
-        <div class="finding-icon ${issue.severity}">${issue.icon}</div>
-        <div><h3>${issue.title}</h3><p class="finding-summary">${issue.summary}</p></div>
-        <span class="severity ${issue.severity}">${issue.severityLabel}</span>
-      </div>
-      <div class="finding-bottom">
-        <span>${issue.location}${decision?` · ${decision==='approved'?'Approved':'Declined'}`:''}</span>
-        <strong>${money(issue.price)}</strong>
-      </div>`;
-    btn.addEventListener('click',()=>selectIssue(issue.id,{focus3d:true}));
-    els.findings.appendChild(btn);
+    const nav=document.createElement('button'); nav.type='button'; nav.textContent=measurements[issue.id].short;
+    nav.setAttribute('aria-label',`Inspect ${issue.title}`); nav.setAttribute('aria-pressed',String(viewMode==='focus'&&selectedId===issue.id));
+    nav.onclick=()=>selectIssue(issue.id); $('issueNav').append(nav);
+    if(currentFilter!=='all' && (currentFilter==='approved'?decision!=='approved':issue.severity!==currentFilter))return;
+    const button=document.createElement('button'); button.type='button';button.className='finding';button.setAttribute('aria-pressed',String(selectedId===issue.id));
+    button.innerHTML=`<span><strong>${issue.title}</strong><small>${money(issue.price)}${decision?` · ${decision==='approved'?'Approved':'Deferred'}`:''}${questions.has(issue.id)?' · Question saved':''}</small></span><span class="severity ${issue.severity}">${issue.severityLabel}</span>`;
+    button.onclick=()=>selectIssue(issue.id);$('findings').append(button);
   });
+  if(!$('findings').children.length){const p=document.createElement('p');p.textContent='No findings match this filter.';$('findings').append(p);}
 }
-
-function renderDetail(issue,{focus3d=true}={}){
-  selectedId=issue.id;
-  els.detailSeverity.className=`severity ${issue.severity}`;
-  els.detailSeverity.textContent=issue.severityLabel;
-  els.detailTitle.textContent=issue.title;
-  els.detailLocation.textContent=issue.location;
-  els.detailPrice.textContent=money(issue.price);
-  els.detailFound.textContent=issue.found;
-  els.detailWhy.textContent=issue.why;
-  els.detailRisk.textContent=issue.risk;
-  els.detailRecommend.textContent=issue.recommend;
-  els.technical.textContent=issue.technical;
-  els.evidenceTitle.textContent=issue.evidenceTitle;
-  els.evidenceText.textContent=issue.evidenceText;
-  const decision=decisions.get(issue.id);
-  els.approve.textContent=decision==='approved'?'Approved ✓':'Approve this work';
-  els.approve.className=`action ${decision==='approved'?'approved':'primary'}`;
-  els.decline.textContent=decision==='declined'?'Declined for now':'Decline for now';
-  els.decline.className=`action${decision==='declined'?' declined':''}`;
-  if(decision){
-    els.decisionNote.textContent=decision==='approved'
-      ?'You have approved this item. In a production system the workshop would be notified immediately.'
-      :'You have declined this item for now. The workshop would record your choice and can discuss it with you.';
-    els.decisionNote.classList.add('show');
-  } else {
-    els.decisionNote.classList.remove('show');
-  }
+function renderDetail(){
+  const issue=currentIssue(), m=measurements[issue.id];
+  for(const [element,field] of Object.entries({detailTitle:'title',detailLocation:'location',detailFound:'found',detailWhy:'why',detailRisk:'risk',detailRecommend:'recommend',technical:'technical',evidenceTitle:'evidenceTitle'}))$(element).textContent=issue[field];
+  $('detailSeverity').className=`severity ${issue.severity}`;$('detailSeverity').textContent=issue.severityLabel;$('detailPrice').textContent=money(issue.price);
+  $('evidenceText').textContent=`Sample inspection: ${m.label.toLowerCase()} recorded as ${m.value}${m.unit==='%'?'':' '}${m.unit}. ${issue.evidenceText}`;
+  $('measureTitle').textContent=m.label;$('measureValue').textContent=`${m.value}${m.unit==='%'?'':' '}${m.unit}`;$('measureNote').textContent=m.note;
+  $('gauge').style.background=`linear-gradient(90deg,#db6473 0 ${m.stops[0]}%,#e4b457 ${m.stops[0]}% ${m.stops[1]}%,#63ae96 ${m.stops[1]}%)`;
+  $('gauge').setAttribute('aria-label',`${m.label}: ${m.value} ${m.unit}. ${m.note}`);$('gaugePointer').style.left=`${m.value/m.max*100}%`;
+  $('gaugeLabels').replaceChildren(...m.labels.map(label=>{const el=document.createElement('span');el.textContent=label;return el;}));
+  const points=m.history.map((v,i)=>`${16+i*109},${70-v/m.max*55}`);
+  $('historyChart').innerHTML=`<path d="M16 73H344" stroke="#dce3eb"/><polyline points="${points.join(' ')}" fill="none" stroke="#4971a7" stroke-width="2.5"/>${points.map((point,i)=>`<circle cx="${point.split(',')[0]}" cy="${point.split(',')[1]}" r="4" fill="${i===3?'#b77e31':'#4971a7'}"/>`).join('')}`;
+  $('historyChart').setAttribute('aria-label',`${m.label} history: ${m.history.join(', ')} ${m.unit}`);
+  $('historyValues').innerHTML=m.history.map((value,i)=>`<span><small>${['Mar 2024','Mar 2025','Mar 2026','Today'][i]}</small>${value}${m.unit==='%'?'':' '}${m.unit}</span>`).join('');
+  const delta=+(m.value-m.history[2]).toFixed(1);$('historyDelta').textContent=`${delta} ${m.unit==='%'?'points':m.unit} since last visit`;
+  const decision=decisions.get(issue.id);$('approve').textContent=decision==='approved'?'Approved ✓':'Approve this work';$('approve').setAttribute('aria-pressed',String(decision==='approved'));
+  $('defer').textContent=decision==='deferred'?'Deferred ✓':'Defer for now';$('defer').setAttribute('aria-pressed',String(decision==='deferred'));
+  $('ask').textContent=questions.has(issue.id)?'Edit question':'Ask a question';
+  $('decisionNote').textContent=`${decision?`${decision==='approved'?'Approved':'Deferred'} in this demo. `:''}${questions.has(issue.id)?'Question saved. ':''}Session only; nothing is sent to the workshop.`;
+  const approved=ISSUES.filter(i=>decisions.get(i.id)==='approved');$('approvedTotal').textContent=`£${approved.reduce((s,i)=>s+i.price,0)} approved · ${approved.length} item${approved.length===1?'':'s'}`;
   renderFindings();
-  if(focus3d) focusIssue(issue);
 }
-
-function selectIssue(id,{focus3d=true}={}){
-  const issue=issueById(id);
-  renderDetail(issue,{focus3d});
+function renderMode(){
+  const focused=viewMode==='focus';$('backVehicle').hidden=!focused;$('explodeControl').hidden=!focused;$('schematicNote').hidden=!focused;
+  $('viewMode').textContent=focused?'Exploded part view':'Vehicle overview';$('viewTitle').textContent=focused?currentIssue().title:'Explore your vehicle';
+  $('viewHint').textContent=focused?'Drag to rotate. Use the slider to bring the parts together.':'Choose a finding or a coloured marker. Drag to rotate; pinch to zoom.';
+  $('viewer').setAttribute('aria-label',focused?`${currentIssue().title}: ${measurements[selectedId].parts.join(', ')}`:'Interactive full vehicle overview');
 }
+function selectIssue(id){selectedId=id;viewMode='focus';$('explodeRange').value='100';renderDetail();renderMode();engine?.focus(currentIssue());}
+function backToVehicle(){viewMode='overview';renderMode();renderFindings();engine?.overview();$('backVehicle').hidden=true;}
+$('backVehicle').onclick=()=>{backToVehicle();$('resetView').focus({preventScroll:true});};
+$('approve').onclick=()=>{decisions.set(selectedId,'approved');renderDetail();toast('Approval saved in this demo.');};
+$('defer').onclick=()=>{decisions.set(selectedId,'deferred');renderDetail();toast('Deferral saved in this demo.');};
+let questionIssueId=null;
+$('ask').onclick=()=>{questionIssueId=selectedId;$('questionSubject').textContent=currentIssue().title;$('questionText').value=questions.get(selectedId)||'';$('questionDialog').showModal();};
+$('cancelQuestion').onclick=()=>$('questionDialog').close();
+$('questionForm').onsubmit=e=>{e.preventDefault();const value=$('questionText').value.trim();if(!value){$('questionText').setCustomValidity('Please enter a question.');$('questionText').reportValidity();return;}questions.set(questionIssueId,value);$('questionDialog').close();renderDetail();toast('Question saved locally for this session.');};
+$('questionText').oninput=()=>$('questionText').setCustomValidity('');
+$('reviewApprovals').onclick=()=>{
+  $('reviewList').replaceChildren();
+  ISSUES.forEach(issue=>{const row=document.createElement('p');row.textContent=`${issue.title} · ${decisions.get(issue.id)||'No decision'} · ${money(issue.price)}${questions.has(issue.id)?` — Question: ${questions.get(issue.id)}`:''}`;$('reviewList').append(row);});
+  $('reviewDialog').showModal();
+};
+$('closeReview').onclick=()=>$('reviewDialog').close();
+document.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{currentFilter=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderFindings();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&viewMode==='focus')backToVehicle();});
+$('resetView').onclick=()=>engine?.reset();$('toggleRotate').onclick=()=>engine?.toggleRotate();$('explodeRange').oninput=e=>engine?.separate(Number(e.target.value)/100);
+renderDetail();renderMode();
 
-function updateApproved(){
-  const approved=ISSUES.filter(i=>decisions.get(i.id)==='approved');
-  const total=approved.reduce((s,i)=>s+i.price,0);
-  els.approvedTotal.textContent=approved.length?`${money(total)} · ${approved.length} approved`:'£0 approved';
-}
-
-els.approve.addEventListener('click',()=>{
-  const issue=issueById(selectedId);decisions.set(issue.id,'approved');renderDetail(issue);updateApproved();toast(`${issue.title} approved.`);
-});
-els.decline.addEventListener('click',()=>{
-  const issue=issueById(selectedId);decisions.set(issue.id,'declined');renderDetail(issue);updateApproved();toast(`${issue.title} declined for now.`);
-});
-els.ask.addEventListener('click',()=>{
-  const issue=issueById(selectedId);toast(`Demo: a question about ${issue.title.toLowerCase()} would be sent to the service adviser.`);
-});
-$('reviewApprovals').addEventListener('click',()=>{
-  const approved=ISSUES.filter(i=>decisions.get(i.id)==='approved');
-  if(!approved.length) return toast('No work has been approved yet.');
-  const total=approved.reduce((s,i)=>s+i.price,0);
-  toast(`${approved.length} item${approved.length===1?'':'s'} approved · ${money(total)} total.`);
-});
-document.querySelectorAll('.filter').forEach(btn=>btn.addEventListener('click',()=>{
-  currentFilter=btn.dataset.filter;
-  document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===btn));
-  renderFindings();
-}));
-
-// ---------- 3D viewer ----------
-const viewer=$('viewer');
-const loading=$('loading');
-const viewerError=$('viewerError');
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x0a111b);
-scene.fog=new THREE.Fog(0x0a111b,9,20);
-
-const camera=new THREE.PerspectiveCamera(32,1,.05,100);
-camera.position.set(4.7,2.15,5.4);
-
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.04;
-viewer.prepend(renderer.domElement);
-
-const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true;
-controls.dampingFactor=.055;
-controls.minDistance=2.9;
-controls.maxDistance=8.2;
-controls.maxPolarAngle=Math.PI/2.02;
-controls.target.set(0,.72,0);
-controls.autoRotate=true;
-controls.autoRotateSpeed=.42;
-
-let autoRotate=true;
-$('toggleRotate').addEventListener('click',e=>{
-  autoRotate=!autoRotate;controls.autoRotate=autoRotate;
-  e.currentTarget.textContent=autoRotate?'Pause rotation':'Start rotation';
-});
-controls.addEventListener('start',()=>{
-  if(autoRotate){
-    autoRotate=false;controls.autoRotate=false;$('toggleRotate').textContent='Start rotation';
+function createViewer(){
+  const viewer=$('viewer'), scene=new THREE.Scene();scene.background=new THREE.Color(0x0a1220);
+  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;viewer.prepend(renderer.domElement);
+  const camera=new THREE.PerspectiveCamera(36,1,.05,100);camera.position.set(5,3.2,6);
+  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.enablePan=false;controls.target.set(0,.8,0);controls.minDistance=2;controls.maxDistance=10;controls.maxPolarAngle=Math.PI*.86;controls.autoRotateSpeed=.7;
+  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  scene.add(new THREE.HemisphereLight(0xd5eaff,0x303044,2.5));
+  for(const [position,color,power] of [[[4,6,4],0xfff1df,4],[[-4,3,-2],0xa4c6ff,3]]){const light=new THREE.DirectionalLight(color,power);light.position.set(...position);scene.add(light);}
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(3.8,64),new THREE.MeshStandardMaterial({color:0x111e31,roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.y=.01;scene.add(floor);
+  let car=null, bounds=null, module=null, animation=null, carOpacity=1, separation=1, targetSeparation=1;
+  const overviewPosition=new THREE.Vector3(5,3.2,6),overviewTarget=new THREE.Vector3(0,.85,0),markers=[],clickables=[],carMaterials=[];
+  const markerGroup=new THREE.Group();scene.add(markerGroup);
+  function stopRotation(){controls.autoRotate=false;$('toggleRotate').textContent='Rotate';$('toggleRotate').setAttribute('aria-pressed','false');}
+  controls.addEventListener('start',()=>{stopRotation();if(animation)animation.cameraEnabled=false;});
+  function fadeCar(value){carOpacity=value;if(!car)return;car.visible=value>.015;carMaterials.forEach(({material,opacity,transparent,depthWrite})=>{material.opacity=opacity*value;material.transparent=value<.999||transparent;material.depthWrite=value<.999?false:depthWrite;});}
+  function clearModule(){if(!module)return;scene.remove(module.root);module.root.traverse(obj=>{if(obj.isMesh){if(!obj.userData.sharedGeometry)obj.geometry.dispose();const mats=Array.isArray(obj.material)?obj.material:[obj.material];mats.forEach(m=>m.dispose());}});module=null;$('partLabels').replaceChildren();}
+  function transition(position,target,opacity,onEnd){animation={start:performance.now(),duration:reduceMotion.matches?0:950,from:camera.position.clone(),to:position.clone(),targetFrom:controls.target.clone(),targetTo:target.clone(),opacityFrom:carOpacity,opacityTo:opacity,cameraEnabled:true,onEnd};}
+  function pointFor(issue){
+    if(!car||!bounds)return new THREE.Vector3(0,.9,0);
+    const wheel=issue.component&&car.getObjectByName(issue.component);if(wheel)return new THREE.Box3().setFromObject(wheel).getCenter(new THREE.Vector3());
+    const size=bounds.getSize(new THREE.Vector3());return issue.id==='battery'?new THREE.Vector3(.1,size.y*.75,size.z*.27):new THREE.Vector3(-size.x*.36,size.y*.43,size.z*.45);
   }
-});
-
-scene.add(new THREE.HemisphereLight(0xe8eef8,0x0b1018,1.45));
-const key=new THREE.DirectionalLight(0xfff8ee,2.7);key.position.set(4.8,6.2,5.2);key.castShadow=true;scene.add(key);
-const fill=new THREE.DirectionalLight(0xb7ceff,1.0);fill.position.set(-4.5,2.8,-3.6);scene.add(fill);
-const rim=new THREE.DirectionalLight(0xffffff,1.45);rim.position.set(-2.5,4.8,4.6);scene.add(rim);
-
-const floor=new THREE.Mesh(
-  new THREE.CircleGeometry(3.65,80),
-  new THREE.MeshStandardMaterial({color:0x101923,roughness:.98,metalness:.01})
-);
-floor.rotation.x=-Math.PI/2;
-floor.position.y=.012;
-floor.receiveShadow=true;
-scene.add(floor);
-
-let car=null;
-let carBounds=null;
-let selectedMarker=null;
-let currentTarget=new THREE.Vector3(0,.8,0);
-let desiredTarget=currentTarget.clone();
-let desiredCamera=camera.position.clone();
-const markerByIssue=new Map();
-const clickables=[];
-const clickableIssue=new Map();
-const originalMaterials=new Map();
-
-function markerTexture(colourHex){
-  const canvas=document.createElement('canvas');
-  canvas.width=128;canvas.height=128;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,128,128);
-  ctx.beginPath();ctx.arc(64,64,40,0,Math.PI*2);
-  ctx.fillStyle='#ffffff';ctx.fill();
-  ctx.beginPath();ctx.arc(64,64,31,0,Math.PI*2);
-  ctx.fillStyle=`#${colourHex.toString(16).padStart(6,'0')}`;ctx.fill();
-  const texture=new THREE.CanvasTexture(canvas);
-  texture.colorSpace=THREE.SRGBColorSpace;
-  return texture;
-}
-
-function makeMarker(issue, position){
-  const group=new THREE.Group();
-  const colour=SEVERITY[issue.severity].colour;
-
-  const sprite=new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      map:markerTexture(colour),
-      transparent:true,
-      depthTest:false,
-      depthWrite:false
-    })
-  );
-  sprite.scale.set(.31,.31,.31);
-  sprite.renderOrder=20;
-
-  const stem=new THREE.Mesh(
-    new THREE.CylinderGeometry(.018,.018,.18,10),
-    new THREE.MeshStandardMaterial({
-      color:colour,
-      emissive:SEVERITY[issue.severity].glow,
-      emissiveIntensity:.45,
-      roughness:.5
-    })
-  );
-  stem.position.y=-.105;
-
-  group.add(stem,sprite);
-  group.position.copy(position);
-  group.name=`MARKER_${issue.id}`;
-  group.userData.issueId=issue.id;
-  car.add(group);
-  markerByIssue.set(issue.id,group);
-  clickables.push(sprite);
-  clickableIssue.set(sprite.uuid,issue.id);
-  return group;
-}
-
-function applyMeshHighlight(issue){
-  if(!car)return;
-  originalMaterials.forEach((materials,obj)=>{
-    if(Array.isArray(materials)) obj.material=materials.map(m=>m.clone());
-    else obj.material=materials.clone();
-  });
-
-  if(issue.component){
-    const obj=car.getObjectByName(issue.component);
-    if(obj){
-      obj.traverse(child=>{
-        if(!child.isMesh||!child.material)return;
-        if(!originalMaterials.has(child)) originalMaterials.set(child,Array.isArray(child.material)?child.material.map(m=>m.clone()):child.material.clone());
-        const mats=Array.isArray(child.material)?child.material:[child.material];
-        mats.forEach(mat=>{
-          if(mat.color) mat.color.lerp(new THREE.Color(SEVERITY[issue.severity].colour),.22);
-          if('emissive' in mat){
-            mat.emissive=new THREE.Color(SEVERITY[issue.severity].glow);
-            mat.emissiveIntensity=.32;
-          }
-          mat.needsUpdate=true;
-        });
-      });
-    }
-  }
-}
-
-function objectWorldCenter(obj){
-  const box=new THREE.Box3().setFromObject(obj);
-  return box.getCenter(new THREE.Vector3());
-}
-
-function hotspotPosition(issue){
-  if(!carBounds) return new THREE.Vector3();
-  const size=carBounds.getSize(new THREE.Vector3());
-  const center=carBounds.getCenter(new THREE.Vector3());
-
-  if(issue.component){
-    const obj=car.getObjectByName(issue.component);
-    if(obj) return objectWorldCenter(obj).add(new THREE.Vector3(0,.25,0));
-  }
-
-  // Model convention after normalisation: +Z is front, +X is left.
-  if(issue.hotspot==='lampFR') return new THREE.Vector3(center.x-size.x*.31, center.y+size.y*.18, center.z+size.z*.47);
-  if(issue.hotspot==='battery') return new THREE.Vector3(center.x, center.y+size.y*.42, center.z+size.z*.25);
-  return center.clone();
-}
-
-function focusIssue(issue){
-  if(!car||!carBounds)return;
-  applyMeshHighlight(issue);
-  if(selectedMarker) selectedMarker.scale.setScalar(1);
-  selectedMarker=markerByIssue.get(issue.id)||null;
-
-  const target=hotspotPosition(issue);
-  desiredTarget.copy(target);
-  const size=carBounds.getSize(new THREE.Vector3());
-  const offsetDir=new THREE.Vector3(1.45,.62,1.55).normalize();
-  // Bias viewpoint to whichever side the target sits on.
-  const side=Math.sign(target.x-carBounds.getCenter(new THREE.Vector3()).x)||1;
-  offsetDir.x=Math.abs(offsetDir.x)*side;
-  desiredCamera.copy(target).add(offsetDir.multiplyScalar(Math.max(size.length()*.48,2.55)));
-  controls.autoRotate=false;
-  autoRotate=false;
-  $('toggleRotate').textContent='Start rotation';
-}
-
-$('resetView').addEventListener('click',()=>{
-  if(!carBounds)return;
-  const c=carBounds.getCenter(new THREE.Vector3());
-  const size=carBounds.getSize(new THREE.Vector3());
-  desiredTarget.set(c.x,c.y+size.y*.02,c.z);
-  desiredCamera.set(c.x+size.x*.78,c.y+size.y*.46,c.z+size.z*1.02);
-});
-
-const loader=new GLTFLoader();
-loader.load(
-  './assets/lowpoly_generic_suv.glb',
-  gltf=>{
-    car=gltf.scene;
-    scene.add(car);
-
-    car.traverse(obj=>{
-      if(obj.isMesh){
-        obj.castShadow=true;
-        obj.receiveShadow=true;
-
-        const mats=Array.isArray(obj.material)?obj.material:[obj.material];
-        mats.forEach(mat=>{
-          if(!mat)return;
-          const objName=(obj.name||'').toLowerCase();
-          const matName=(mat.name||'').toLowerCase();
-
-          if(matName==='body'){
-            mat=mat.clone();
-            if(mat.map) mat.map=null;
-            mat.color.set(0xaeb6c1);
-            mat.metalness=.48;
-            mat.roughness=.3;
-            if(Array.isArray(obj.material)){
-              const idx=obj.material.indexOf(mats.find(x=>x===mat));
-            } else {
-              obj.material=mat;
-            }
-          }
-
-          if(matName==='glass'){
-            mat.color.set(0x14202d);
-            mat.transparent=true;
-            mat.opacity=.62;
-            mat.roughness=.08;
-            mat.metalness=.04;
-          }
-
-          if(objName.includes('wheel_') || obj.parent?.name?.toLowerCase().includes('wheel_')){
-            if(mat.color) mat.color.multiplyScalar(.72);
-            mat.metalness=Math.max(mat.metalness||0,.22);
-            mat.roughness=Math.max(mat.roughness||0,.38);
-          }
-        });
+  function material(color,extra={}){return new THREE.MeshStandardMaterial({color,roughness:.48,metalness:.25,...extra});}
+  function makeModule(issue){
+    const root=new THREE.Group(),pieces=[],labels=[];root.position.set(0,1.05,0);scene.add(root);
+    function piece(name,geometry,mat,start,end){const mesh=new THREE.Mesh(geometry,mat);root.add(mesh);mesh.position.set(...start);const item={object:mesh,start:new THREE.Vector3(...start),end:new THREE.Vector3(...end)};pieces.push(item);if(name){const label=document.createElement('span');label.className='part-label';label.textContent=name;$('partLabels').append(label);labels.push({label,object:mesh});}return mesh;}
+    const metal=()=>material(0xbac7d6,{metalness:.8,roughness:.3}), rubber=()=>material(0x242934,{roughness:.93,metalness:0}), amber=()=>material(0xe5aa43), red=()=>material(0xc65461);
+    const torus=(radius,tube)=>new THREE.TorusGeometry(radius,tube,16,64);
+    const cylinder=(radius,depth)=>{const geo=new THREE.CylinderGeometry(radius,radius,depth,64);geo.rotateX(Math.PI/2);return geo;};
+    const box=(x,y,z)=>new THREE.BoxGeometry(x,y,z);
+    if(issue.id==='tyre-fl'){
+      const tyre=piece('Tyre · 1.3 mm tread',torus(.48,.145),rubber(),[0,0,0],[0,0,.62]);
+      // Raised tread blocks and coloured centre band expose the worn surface.
+      for(let i=0;i<44;i++){const tread=new THREE.Mesh(box(.045,.017,.19),rubber());const a=i/44*Math.PI*2;tread.position.set(Math.sin(a)*.62,Math.cos(a)*.62,0);tread.rotation.z=-a;tyre.add(tread);}
+      const band=new THREE.Mesh(torus(.613,.012),red());tyre.add(band);
+      const rim=piece('Wheel rim',torus(.32,.065),metal(),[0,0,0],[0,0,-.05]);
+      for(let i=0;i<5;i++){const spoke=new THREE.Mesh(box(.055,.53,.06),metal());spoke.rotation.z=i*Math.PI/5;rim.add(spoke);}
+      piece('Hub',cylinder(.11,.18),metal(),[0,0,-.1],[0,0,-.73]);
+    }else if(issue.id==='brake-rr'){
+      let reused=false;const wheel=car?.getObjectByName('Wheel_RR');
+      if(wheel){
+        const clone=wheel.clone(true);wheel.updateWorldMatrix(true,true);wheel.matrixWorld.decompose(clone.position,clone.quaternion,clone.scale);
+        clone.traverse(obj=>{if(obj.isMesh){obj.userData.sharedGeometry=true;const copy=m=>{const result=m.clone(),original=carMaterials.find(entry=>entry.material===m);if(original){result.opacity=original.opacity;result.transparent=original.transparent;result.depthWrite=original.depthWrite;}return result;};obj.material=Array.isArray(obj.material)?obj.material.map(copy):copy(obj.material);}});
+        const wrap=new THREE.Group();wrap.add(clone);wrap.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(wrap),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3());clone.position.sub(c);wrap.scale.setScalar(1.1/Math.max(s.x,s.y,s.z));wrap.rotation.y=Math.PI/2;
+        const carrier=piece('Wheel',box(.01,.01,.01),metal(),[0,0,.2],[0,0,1.25]);carrier.add(wrap);reused=true;
       }
-    });
-
-    // Ensure the principal body material is neutral silver even when it uses a baked red texture.
-    const bodyRoot=car.getObjectByName('Body');
-    if(bodyRoot){
-      bodyRoot.traverse(child=>{
-        if(!child.isMesh||!child.material)return;
-        const mats=Array.isArray(child.material)?child.material:[child.material];
-        const styled=mats.map(mat=>{
-          const clone=mat.clone();
-          if((clone.name||'').toLowerCase()==='body'){
-            clone.map=null;
-            clone.color.set(0xaeb6c1);
-            clone.metalness=.5;
-            clone.roughness=.3;
-          }
-          return clone;
-        });
-        child.material=Array.isArray(child.material)?styled:styled[0];
-      });
+      if(!reused)piece('Wheel',torus(.46,.12),rubber(),[0,0,.2],[0,0,1.25]);
+      const disc=piece('Brake disc',cylinder(.4,.065),metal(),[0,0,0],[0,0,-.15]);
+      const hub=new THREE.Mesh(cylinder(.14,.13),metal());disc.add(hub);
+      for(let i=0;i<16;i++){const hole=new THREE.Mesh(cylinder(.014,.07),rubber());const a=i/16*Math.PI*2;hole.position.set(Math.cos(a)*.32,Math.sin(a)*.32,0);disc.add(hole);}
+      piece('Outer pad · 3 mm',box(.17,.37,.04),amber(),[.24,0,.07],[.53,.15,.65]);
+      piece('Inner pad',box(.17,.37,.04),amber(),[.24,0,-.07],[.53,.15,-.72]);
+      piece('Caliper',box(.25,.51,.22),red(),[.35,0,0],[-.61,.18,-.35]);
+    }else if(issue.id==='battery'){
+      // An open case, removable cover and six cells reveal the battery structure.
+      const base=piece('Battery case',box(1.08,.09,.68),rubber(),[0,-.27,0],[0,-.49,0]);
+      for(const [size,pos] of [[[1.08,.46,.04],[0,.25,-.32]],[[.04,.46,.64],[-.52,.25,0]],[[.04,.46,.64],[.52,.25,0]]]){const wall=new THREE.Mesh(box(...size),rubber());wall.position.set(...pos);base.add(wall);}
+      const cells=piece('Six-cell pack',box(.01,.01,.01),metal(),[0,0,0],[0,.03,.23]);
+      for(let i=0;i<6;i++){const cell=new THREE.Mesh(box(.14,.4,.47),material(i===5?0xd9a948:0x7598b7));cell.position.x=(i-2.5)*.16;cells.add(cell);}
+      piece('Battery cover',box(1.12,.085,.7),rubber(),[0,.28,0],[0,.74,0]);
+      const terminals=piece('Terminals + / −',box(.01,.01,.01),metal(),[0,.35,0],[0,.94,0]);
+      for(const x of [-.38,.38]){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.09,24),material(x<0?0xd36a68:0x8293a9));pole.position.set(x,0,.14);terminals.add(pole);}
+    }else{
+      piece('Lamp housing',new THREE.SphereGeometry(.46,40,24,0,Math.PI*2,0,Math.PI/2).rotateX(-Math.PI/2),rubber(),[0,0,-.12],[0,0,-.72]);
+      const reflector=piece('Reflector',new THREE.ConeGeometry(.38,.25,48,1,true).rotateX(-Math.PI/2),material(0xd4dfeb,{metalness:.95,roughness:.16,side:THREE.DoubleSide}),[0,0,0],[0,0,-.22]);reflector.scale.y=.78;
+      piece('Bulb · reduced output',new THREE.SphereGeometry(.095,24,16),material(0xffda86,{emissive:0xffae33,emissiveIntensity:.65}),[0,0,.05],[0,0,.38]);
+      const lens=piece('Clear lens',new THREE.SphereGeometry(.43,40,24),material(0xb7d9ef,{transparent:true,opacity:.32,metalness:0,roughness:.13,depthWrite:false}),[0,0,.19],[0,0,.94]);lens.scale.set(1,.78,.15);
     }
-
-    // Normalise imported model to a predictable web scale.
-    let box=new THREE.Box3().setFromObject(car);
-    const size=box.getSize(new THREE.Vector3());
-    const maxDim=Math.max(size.x,size.y,size.z);
-    const scale=4.3/maxDim;
-    car.scale.setScalar(scale);
-    box=new THREE.Box3().setFromObject(car);
-    const center=box.getCenter(new THREE.Vector3());
-    car.position.x-=center.x;
-    car.position.z-=center.z;
-    car.position.y-=box.min.y-.16;
-    car.updateMatrixWorld(true);
-
-    carBounds=new THREE.Box3().setFromObject(car);
-
-    ISSUES.forEach(issue=>{
-      const marker=makeMarker(issue,hotspotPosition(issue));
-      marker.position.y+=.06;
-    });
-
-    // Make the actual wheel meshes clickable too.
-    ['Wheel_FL','Wheel_FR','Wheel_RL','Wheel_RR'].forEach(name=>{
-      const root=car.getObjectByName(name);
-      if(!root)return;
-      root.traverse(child=>{
-        if(child.isMesh){
-          clickables.push(child);
-          if(name==='Wheel_FL') clickableIssue.set(child.uuid,'tyre-fl');
-          if(name==='Wheel_RR') clickableIssue.set(child.uuid,'brake-rr');
-        }
-      });
-    });
-
-    $('resetView').click();
-    renderDetail(ISSUES[0],{focus3d:false});
-    loading.style.display='none';
-  },
-  undefined,
-  err=>{
-    console.error(err);
-    loading.style.display='none';
-    viewerError.style.display='flex';
+    return {root,pieces,labels,origin:pointFor(issue),progress:0};
   }
-);
-
-const raycaster=new THREE.Raycaster();
-const pointer=new THREE.Vector2();
-let pointerDown=null;
-renderer.domElement.addEventListener('pointerdown',e=>{pointerDown={x:e.clientX,y:e.clientY};});
-renderer.domElement.addEventListener('pointerup',e=>{
-  if(pointerDown && Math.hypot(e.clientX-pointerDown.x,e.clientY-pointerDown.y)>8) return;
-  const rect=renderer.domElement.getBoundingClientRect();
-  pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
-  pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
-  raycaster.setFromCamera(pointer,camera);
-  const hits=raycaster.intersectObjects(clickables,true);
-  if(!hits.length)return;
-  let obj=hits[0].object;
-  let id=clickableIssue.get(obj.uuid);
-  while(!id && obj.parent){obj=obj.parent;id=obj.userData?.issueId||clickableIssue.get(obj.uuid);}
-  if(id) selectIssue(id,{focus3d:true});
-});
-
-function resize(){
-  const w=viewer.clientWidth,h=viewer.clientHeight;
-  if(!w||!h)return;
-  renderer.setSize(w,h,false);
-  camera.aspect=w/h;
-  camera.updateProjectionMatrix();
-}
-new ResizeObserver(resize).observe(viewer);
-resize();
-
-const clock=new THREE.Clock();
-renderer.setAnimationLoop(()=>{
-  const t=clock.getElapsedTime();
-  camera.position.lerp(desiredCamera,.055);
-  controls.target.lerp(desiredTarget,.075);
-  if(selectedMarker){
-    const pulse=1+Math.sin(t*4.2)*.08;
-    selectedMarker.scale.setScalar(pulse);
+  function focus(issue){stopRotation();clearModule();module=makeModule(issue);separation=targetSeparation=1;markerGroup.visible=false;controls.minDistance=1.7;
+    const target=new THREE.Vector3(0,1.05,0);const distance=viewer.clientWidth/viewer.clientHeight<1?5.1:4.25;
+    transition(target.clone().add(new THREE.Vector3(1.3,.68,1.85).normalize().multiplyScalar(distance)),target,0);
   }
-  markerByIssue.forEach(marker=>{
-    if(marker!==selectedMarker) marker.scale.setScalar(1);
+  function overview(){stopRotation();markerGroup.visible=true;controls.minDistance=2.9;transition(overviewPosition,overviewTarget,1,clearModule);}
+  function reset(){stopRotation();if(viewMode==='focus'){const target=new THREE.Vector3(0,1.05,0),distance=viewer.clientWidth/viewer.clientHeight<1?5.1:4.25;transition(target.clone().add(new THREE.Vector3(1.3,.68,1.85).normalize().multiplyScalar(distance)),target,0);}else transition(overviewPosition,overviewTarget,1);}
+  function buildMarkers(){
+    ISSUES.forEach(issue=>{const marker=new THREE.Mesh(new THREE.SphereGeometry(.09,20,16),new THREE.MeshBasicMaterial({color:issue.severity==='red'?0xf77583:0xffc657,depthTest:false}));marker.position.copy(pointFor(issue)).add(new THREE.Vector3(0,.18,0));marker.renderOrder=5;marker.userData.issueId=issue.id;markerGroup.add(marker);markers.push(marker);clickables.push(marker);});
+    ISSUES.filter(issue=>issue.component).forEach(issue=>car.getObjectByName(issue.component)?.traverse(obj=>{if(obj.isMesh){obj.userData.issueId=issue.id;clickables.push(obj);}}));
+  }
+  new GLTFLoader().load('./assets/lowpoly_generic_suv.glb?v=14',gltf=>{
+    car=gltf.scene;scene.add(car);car.updateMatrixWorld(true);
+    // Derive forward from the named axles instead of assuming exporter orientation.
+    const front=car.getObjectByName('Wheel_FL'),rear=car.getObjectByName('Wheel_RL');
+    if(front&&rear){const a=new THREE.Box3().setFromObject(front).getCenter(new THREE.Vector3()),b=new THREE.Box3().setFromObject(rear).getCenter(new THREE.Vector3());const delta=a.sub(b);const orient=new THREE.Group();scene.remove(car);orient.add(car);scene.add(orient);orient.rotation.y=-Math.atan2(delta.x,delta.z);car=orient;}
+    let b=new THREE.Box3().setFromObject(car),size=b.getSize(new THREE.Vector3());car.scale.multiplyScalar(4.3/Math.max(size.x,size.y,size.z));b=new THREE.Box3().setFromObject(car);const center=b.getCenter(new THREE.Vector3());car.position.x-=center.x;car.position.z-=center.z;car.position.y+=.07-b.min.y;car.updateMatrixWorld(true);bounds=new THREE.Box3().setFromObject(car);
+    car.traverse(obj=>{if(!obj.isMesh)return;const mats=(Array.isArray(obj.material)?obj.material:[obj.material]).map(original=>{const mat=original.clone();if(mat.name.toLowerCase()==='body'){mat.map=null;mat.color.set(0xaebacb);mat.metalness=.5;mat.roughness=.32;}carMaterials.push({material:mat,opacity:mat.opacity,transparent:mat.transparent,depthWrite:mat.depthWrite});return mat;});obj.material=Array.isArray(obj.material)?mats:mats[0];});
+    buildMarkers();$('loading').hidden=true;
+    if(viewMode==='focus')focus(currentIssue());else reset();
+  },undefined,error=>{console.error('Vehicle model loading failed',error);$('loading').hidden=true;$('viewerError').textContent='Vehicle unavailable. Choose a finding to explore its component illustration.';$('viewerError').hidden=viewMode==='focus';});
+  let down=null;const raycaster=new THREE.Raycaster();
+  renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,id:e.pointerId};});
+  renderer.domElement.addEventListener('pointercancel',()=>{down=null;});
+  renderer.domElement.addEventListener('pointerup',e=>{if(!down||down.id!==e.pointerId)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y);down=null;if(moved>7||viewMode!=='overview')return;const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const hit=raycaster.intersectObjects(clickables,false)[0];if(hit)selectIssue(hit.object.userData.issueId);});
+  function resize(){const w=viewer.clientWidth,h=viewer.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  new ResizeObserver(resize).observe(viewer);resize();
+  let last=performance.now();
+  renderer.setAnimationLoop(now=>{
+    const dt=Math.min((now-last)/1000,.05);last=now;
+    if(animation){const a=animation,p=a.duration?Math.min(1,(now-a.start)/a.duration):1,e=p*p*(3-2*p);if(a.cameraEnabled){camera.position.lerpVectors(a.from,a.to,e);controls.target.lerpVectors(a.targetFrom,a.targetTo,e);}fadeCar(THREE.MathUtils.lerp(a.opacityFrom,a.opacityTo,e));if(p===1){animation=null;a.onEnd?.();}}
+    separation=THREE.MathUtils.damp(separation,targetSeparation,12,dt);
+    if(module){
+      const goal=viewMode==='focus'?1:0;module.progress=reduceMotion.matches?goal:THREE.MathUtils.damp(module.progress,goal,6,dt);
+      module.root.position.lerpVectors(module.origin,new THREE.Vector3(0,1.05,0),module.progress);module.root.scale.setScalar(.18+.82*module.progress);
+      module.pieces.forEach(piece=>piece.object.position.lerpVectors(piece.start,piece.end,separation*module.progress));
+      module.root.updateMatrixWorld(true);
+      module.labels.forEach(({label,object},index)=>{const point=object.getWorldPosition(new THREE.Vector3());point.y+=.18+(index%2)*.12;point.project(camera);label.style.left=`${(point.x*.5+.5)*viewer.clientWidth}px`;label.style.top=`${(-point.y*.5+.5)*viewer.clientHeight}px`;label.hidden=module.progress<.9||point.z>1||point.z< -1||separation<.25;});
+    }
+    controls.update();renderer.render(scene,camera);
   });
-  controls.update();
-  renderer.render(scene,camera);
-});
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();$('viewerError').textContent='3D view interrupted. Reload the page to restore it. Findings remain available.';$('viewerError').hidden=false;});
+  return {focus:issue=>{$('viewerError').hidden=true;$('loading').hidden=true;focus(issue);},overview,reset,separate:value=>{targetSeparation=value;},toggleRotate:()=>{controls.autoRotate=!controls.autoRotate;$('toggleRotate').textContent=controls.autoRotate?'Pause rotation':'Rotate';$('toggleRotate').setAttribute('aria-pressed',String(controls.autoRotate));}};
+}
+try{engine=createViewer();}catch(error){console.error('3D viewer unavailable',error);$('loading').hidden=true;$('viewerError').textContent='3D is unavailable on this device. All findings, evidence records and choices remain available below.';$('viewerError').hidden=false;$('toggleRotate').disabled=true;$('resetView').disabled=true;$('explodeRange').disabled=true;}
 
-renderFindings();
-renderDetail(ISSUES[0],{focus3d:false});
-updateApproved();
