@@ -148,8 +148,26 @@ function createViewer(){
   function transition(position,target,opacity,onEnd){animation={start:performance.now(),duration:reduceMotion.matches?0:950,from:camera.position.clone(),to:position.clone(),targetFrom:controls.target.clone(),targetTo:target.clone(),opacityFrom:carOpacity,opacityTo:opacity,cameraEnabled:true,onEnd};}
   function pointFor(issue){
     if(!car||!bounds)return new THREE.Vector3(0,.9,0);
-    const wheel=issue.component&&car.getObjectByName(issue.component);if(wheel)return new THREE.Box3().setFromObject(wheel).getCenter(new THREE.Vector3());
-    const size=bounds.getSize(new THREE.Vector3());return issue.id==='battery'?new THREE.Vector3(.1,size.y*.75,size.z*.27):new THREE.Vector3(-size.x*.36,size.y*.43,size.z*.45);
+    const wheel=issue.component&&car.getObjectByName(issue.component);
+    const size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
+    // Intersect the actual component surface, rather than a padded scene box.
+    // The imported Shadow plane is deliberately excluded from body anchoring.
+    let origin,direction,target;
+    if(wheel){
+      const box=new THREE.Box3().setFromObject(wheel),c=box.getCenter(new THREE.Vector3());
+      const side=Math.sign(c.x-center.x)||1;
+      origin=c.clone().add(new THREE.Vector3(side*size.x,0,0));direction=new THREE.Vector3(-side,0,0);target=wheel;
+    }else if(issue.id==='battery'){
+      origin=new THREE.Vector3(center.x,bounds.max.y+1,center.z+size.z*.28);direction=new THREE.Vector3(0,-1,0);target=car.getObjectByName('Body');
+    }else{
+      const rightWheel=car.getObjectByName('Wheel_FR');
+      const side=rightWheel?Math.sign(new THREE.Box3().setFromObject(rightWheel).getCenter(new THREE.Vector3()).x-center.x):-1;
+      origin=new THREE.Vector3(center.x+side*size.x*.32,bounds.min.y+size.y*.42,bounds.max.z+1);direction=new THREE.Vector3(0,0,-1);target=car.getObjectByName('Body');
+    }
+    const ray=new THREE.Raycaster(origin,direction);
+    const hit=target&&ray.intersectObject(target,true)[0];
+    if(hit)return hit.point.clone().addScaledVector(direction,-.025);
+    return wheel?new THREE.Box3().setFromObject(wheel).getCenter(new THREE.Vector3()):center;
   }
   function material(color,extra={}){return new THREE.MeshStandardMaterial({color,roughness:.48,metalness:.25,...extra});}
   function makeModule(issue){
@@ -206,7 +224,7 @@ function createViewer(){
   function overview(){stopRotation();markerGroup.visible=true;controls.minDistance=2.9;transition(overviewPosition,overviewTarget,1,clearModule);}
   function reset(){stopRotation();if(viewMode==='focus'){const target=new THREE.Vector3(0,1.05,0),distance=viewer.clientWidth/viewer.clientHeight<1?5.1:4.25;transition(target.clone().add(new THREE.Vector3(1.3,.68,1.85).normalize().multiplyScalar(distance)),target,0);}else transition(overviewPosition,overviewTarget,1);}
   function buildMarkers(){
-    ISSUES.forEach(issue=>{const marker=new THREE.Mesh(new THREE.SphereGeometry(.09,20,16),new THREE.MeshBasicMaterial({color:issue.severity==='red'?0xf77583:0xffc657,depthTest:false}));marker.position.copy(pointFor(issue)).add(new THREE.Vector3(0,.18,0));marker.renderOrder=5;marker.userData.issueId=issue.id;markerGroup.add(marker);markers.push(marker);clickables.push(marker);});
+    ISSUES.forEach(issue=>{const marker=new THREE.Mesh(new THREE.SphereGeometry(.07,20,16),new THREE.MeshBasicMaterial({color:issue.severity==='red'?0xf77583:0xffc657}));marker.position.copy(pointFor(issue));marker.userData.issueId=issue.id;markerGroup.add(marker);markers.push(marker);clickables.push(marker);});
     ISSUES.filter(issue=>issue.component).forEach(issue=>car.getObjectByName(issue.component)?.traverse(obj=>{if(obj.isMesh){obj.userData.issueId=issue.id;clickables.push(obj);}}));
   }
   new GLTFLoader().load('./assets/lowpoly_generic_suv.glb?v=14',gltf=>{
@@ -216,13 +234,16 @@ function createViewer(){
     if(front&&rear){const a=new THREE.Box3().setFromObject(front).getCenter(new THREE.Vector3()),b=new THREE.Box3().setFromObject(rear).getCenter(new THREE.Vector3());const delta=a.sub(b);const orient=new THREE.Group();scene.remove(car);orient.add(car);scene.add(orient);orient.rotation.y=-Math.atan2(delta.x,delta.z);car=orient;}
     let b=new THREE.Box3().setFromObject(car),size=b.getSize(new THREE.Vector3());car.scale.multiplyScalar(4.3/Math.max(size.x,size.y,size.z));b=new THREE.Box3().setFromObject(car);const center=b.getCenter(new THREE.Vector3());car.position.x-=center.x;car.position.z-=center.z;car.position.y+=.07-b.min.y;car.updateMatrixWorld(true);bounds=new THREE.Box3().setFromObject(car);
     car.traverse(obj=>{if(!obj.isMesh)return;const mats=(Array.isArray(obj.material)?obj.material:[obj.material]).map(original=>{const mat=original.clone();if(mat.name.toLowerCase()==='body'){mat.map=null;mat.color.set(0xaebacb);mat.metalness=.5;mat.roughness=.32;}carMaterials.push({material:mat,opacity:mat.opacity,transparent:mat.transparent,depthWrite:mat.depthWrite});return mat;});obj.material=Array.isArray(obj.material)?mats:mats[0];});
+    // Scene bounds include the baked ground shadow; use only the vehicle body
+    // to place non-wheel markers. Keep the existing overview framing unchanged.
+    const body=car.getObjectByName('Body');if(body)bounds=new THREE.Box3().setFromObject(body);
     buildMarkers();$('loading').hidden=true;
     if(viewMode==='focus')focus(currentIssue());else reset();
   },undefined,error=>{console.error('Vehicle model loading failed',error);$('loading').hidden=true;$('viewerError').textContent='Vehicle unavailable. Choose a finding to explore its component illustration.';$('viewerError').hidden=viewMode==='focus';});
   let down=null;const raycaster=new THREE.Raycaster();
   renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,id:e.pointerId};});
   renderer.domElement.addEventListener('pointercancel',()=>{down=null;});
-  renderer.domElement.addEventListener('pointerup',e=>{if(!down||down.id!==e.pointerId)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y);down=null;if(moved>7||viewMode!=='overview')return;const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const hit=raycaster.intersectObjects(clickables,false)[0];if(hit)selectIssue(hit.object.userData.issueId);});
+  renderer.domElement.addEventListener('pointerup',e=>{if(!down||down.id!==e.pointerId)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y);down=null;if(moved>7||viewMode!=='overview')return;const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const hit=raycaster.intersectObjects(clickables,false)[0];if(hit){const obstruction=car&&raycaster.intersectObject(car,true)[0];if(!obstruction||obstruction.distance>=hit.distance-.01)selectIssue(hit.object.userData.issueId);}});
   function resize(){const w=viewer.clientWidth,h=viewer.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
   new ResizeObserver(resize).observe(viewer);resize();
   let last=performance.now();

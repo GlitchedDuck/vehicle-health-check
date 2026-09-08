@@ -1,5 +1,7 @@
 # v14 validation
 
+Marker correction (v14.1 app cache key): all four markers verified within 0.035 scene units of the actual wheel/body surfaces, with depth testing enabled. Removed the vertical marker offset and excluded the shadow plane from body marker bounds.
+
 - `node --check app.js`: passed.
 - Actual GLB container and scene parsing: passed. The model contains the named wheel nodes used by the application; model images and buffers are embedded.
 - All four module constructors: passed with real Three.js geometry.
