@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a1220">
   <meta name="description" content="Explore your vehicle inspection, understand each component and review your choices.">
-  <title>Vehicle Health Check · v15</title>
-  <link rel="stylesheet" href="./styles.css?v=15.1">
-  <script type="importmap">{"imports":{"three":"./vendor/three.module.js?v=15","three/addons/":"./vendor/"}}</script>
+  <title>Vehicle Health Check · v16</title>
+  <link rel="stylesheet" href="./styles.css?v=16">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js?v=16","three/addons/":"./vendor/"}}</script>
 </head>
 <body>
 <main class="page">
-  <header class="brandbar"><div class="brand">VHC <span>Vehicle health check</span></div><span class="demo-tag">Demo report · v15</span></header>
-  <section class="report-heading"><div><p class="eyebrow">Inspection · 2 September 2026</p><h1>Your vehicle, explained.</h1><p>2021 Example SUV <b>AB12 CDE</b> · 41,280 miles · Demo Service Centre</p></div><div class="status-row"><span class="severity red">1 urgent</span><span class="severity amber">3 attention</span></div></section>
+  <header class="brandbar"><div class="brand">VHC <span>Vehicle health check</span></div><span class="demo-tag">Demo report · v16</span></header>
+  <section class="report-heading"><div><p class="eyebrow">Inspection · 2 September 2026</p><h1>Your vehicle, explained.</h1><p>Example coupé <b>AB12 CDE</b> · 41,280 miles · Demo Service Centre</p></div><div class="status-row"><span class="severity red">1 urgent</span><span class="severity amber">3 attention</span></div></section>
   <section class="workspace" aria-label="Vehicle inspection workspace">
     <section class="viewer-card">
       <div class="viewer-head"><div><p class="eyebrow" id="viewMode">Vehicle overview</p><h2 id="viewTitle">Explore your vehicle</h2></div><button id="backVehicle" type="button" hidden>← Back to vehicle</button></div>
@@ -37,12 +37,12 @@
   </section>
   <section class="lower-grid"><section class="report-card findings-card"><div class="section-heading"><h2>All findings</h2><div class="filters" role="group" aria-label="Filter findings"><button data-filter="all" aria-pressed="true">All</button><button data-filter="red" aria-pressed="false">Urgent</button><button data-filter="amber" aria-pressed="false">Attention</button><button data-filter="approved" aria-pressed="false">Approved</button></div></div><div id="findings"></div></section>
   <section class="report-card explanation"><h2>Understanding this finding</h2><h3>Why does it matter?</h3><p id="detailWhy"></p><h3>What if I leave it?</h3><p id="detailRisk"></p><h3>Our recommendation</h3><p id="detailRecommend"></p><details><summary>Technician notes</summary><p id="technical"></p></details></section></section>
-  <footer><p>Proof of concept. Vehicle, measurements, history, findings and prices are sample data.</p><p>3D model: <a href="https://sketchfab.com/3d-models/lowpoly-generic-suv-edc994ad28ed438cb365c0e0389ac177">Lowpoly Generic SUV</a> by mk2design · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Procedural component illustrations added in v15.</p></footer>
+  <footer><p>Proof of concept. Vehicle, measurements, history, findings and prices are sample data.</p><p>Overview model: supplied Car_v2 OBJ, converted to GLB. Exploded components are generic illustrations.</p></footer>
 </main>
 <div class="quote-bar"><div><small>Your choices</small><strong id="approvedTotal">£0 approved</strong></div><button id="reviewApprovals" type="button">Review choices</button></div>
 <dialog id="questionDialog"><form id="questionForm"><h2>Ask about this finding</h2><p id="questionSubject"></p><label for="questionText">Your question</label><textarea id="questionText" required maxlength="1200" rows="4"></textarea><p>Demo only: your question is kept in this session, not sent.</p><div class="dialog-actions"><button type="button" id="cancelQuestion">Cancel</button><button type="submit" class="primary">Save question</button></div></form></dialog>
 <dialog id="reviewDialog"><h2>Your choices</h2><div id="reviewList"></div><p>Demo only. No booking, payment or workshop notification is made.</p><button id="closeReview" type="button">Close</button></dialog>
 <div id="toast" role="status"></div>
-<script type="module" src="./app.js?v=15.1"></script>
+<script type="module" src="./app.js?v=16"></script>
 </body>
 </html>

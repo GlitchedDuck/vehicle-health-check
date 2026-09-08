@@ -148,6 +148,8 @@ function createViewer(){
   function transition(position,target,opacity,onEnd){animation={start:performance.now(),duration:reduceMotion.matches?0:950,from:camera.position.clone(),to:position.clone(),targetFrom:controls.target.clone(),targetTo:target.clone(),opacityFrom:carOpacity,opacityTo:opacity,cameraEnabled:true,onEnd};}
   function pointFor(issue){
     if(!car||!bounds)return new THREE.Vector3(0,.9,0);
+    const anchor=car.getObjectByName(`ANCHOR_${issue.id}`);
+    if(anchor){const origin=anchor.getWorldPosition(new THREE.Vector3()),direction=new THREE.Vector3(...anchor.userData.rayDirection).transformDirection(car.matrixWorld);const hit=new THREE.Raycaster(origin,direction).intersectObject(car.getObjectByName('Body')||car,true)[0];if(hit)return hit.point.clone().addScaledVector(direction,-.025);}
     const wheel=issue.component&&car.getObjectByName(issue.component);
     const size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
     // Intersect the actual component surface, rather than a padded scene box.
@@ -208,7 +210,7 @@ function createViewer(){
         const wrap=new THREE.Group();wrap.add(clone);wrap.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(wrap),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3());clone.position.sub(c);wrap.scale.setScalar(1.1/Math.max(s.x,s.y,s.z));wrap.rotation.y=Math.PI/2;
         const carrier=piece('Wheel',box(.01,.01,.01),metal(),[0,0,.2],[0,0,1.25]);carrier.add(wrap);reused=true;
       }
-      if(!reused)piece('Wheel',torus(.46,.12),rubber(),[0,0,.2],[0,0,1.25]);
+      if(!reused){const wheel=piece('Wheel',tyreGeometry(),rubber(),[0,0,.2],[0,0,1.25]);attach(wheel,ring(.346,.31,.2),metal());attach(wheel,cylinder(.085,.055),metal(),[0,0,.09]);repeat(wheel,rounded(.045,.25,.04,.012),metal(),5,(o,i)=>{const a=i/5*Math.PI*2;o.position.set(Math.sin(a)*.19,Math.cos(a)*.19,.08);o.rotation.z=-a;});circleBolts(wheel,.058,.13);wheel.userData.labelOffset=[0,.73,0];}
       const disc=piece('Ventilated brake disc',ring(.4,.145,.016),metal(),[0,0,0],[0,0,-.15]);
       attach(disc,ring(.4,.145,.016),metal(),[0,0,-.045]);
       repeat(disc,box(.17,.009,.03),material(0x687687,{metalness:.7}),32,(o,i)=>{const a=i/32*Math.PI*2;o.position.set(Math.cos(a)*.27,Math.sin(a)*.27,-.0225);o.rotation.z=a;});
@@ -272,7 +274,7 @@ function createViewer(){
     ISSUES.forEach(issue=>{const marker=new THREE.Mesh(new THREE.SphereGeometry(.07,20,16),new THREE.MeshBasicMaterial({color:issue.severity==='red'?0xf77583:0xffc657}));marker.position.copy(pointFor(issue));marker.userData.issueId=issue.id;markerGroup.add(marker);markers.push(marker);clickables.push(marker);});
     ISSUES.filter(issue=>issue.component).forEach(issue=>car.getObjectByName(issue.component)?.traverse(obj=>{if(obj.isMesh){obj.userData.issueId=issue.id;clickables.push(obj);}}));
   }
-  new GLTFLoader().load('./assets/lowpoly_generic_suv.glb?v=15',gltf=>{
+  new GLTFLoader().load('./assets/car_v2.glb?v=16',gltf=>{
     car=gltf.scene;scene.add(car);car.updateMatrixWorld(true);
     // Derive forward from the named axles instead of assuming exporter orientation.
     const front=car.getObjectByName('Wheel_FL'),rear=car.getObjectByName('Wheel_RL');
