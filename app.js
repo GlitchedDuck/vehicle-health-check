@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js?v=14';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js?v=14';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js?v=15';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js?v=15';
 
 const ISSUES = [
   {
@@ -144,7 +144,7 @@ function createViewer(){
   function stopRotation(){controls.autoRotate=false;$('toggleRotate').textContent='Rotate';$('toggleRotate').setAttribute('aria-pressed','false');}
   controls.addEventListener('start',()=>{stopRotation();if(animation)animation.cameraEnabled=false;});
   function fadeCar(value){carOpacity=value;if(!car)return;car.visible=value>.015;carMaterials.forEach(({material,opacity,transparent,depthWrite})=>{material.opacity=opacity*value;material.transparent=value<.999||transparent;material.depthWrite=value<.999?false:depthWrite;});}
-  function clearModule(){if(!module)return;scene.remove(module.root);module.root.traverse(obj=>{if(obj.isMesh){if(!obj.userData.sharedGeometry)obj.geometry.dispose();const mats=Array.isArray(obj.material)?obj.material:[obj.material];mats.forEach(m=>m.dispose());}});module=null;$('partLabels').replaceChildren();}
+  function clearModule(){if(!module)return;scene.remove(module.root);module.root.traverse(obj=>{if(obj.isMesh){if(!obj.userData.sharedGeometry)obj.geometry.dispose();if(obj.isInstancedMesh)obj.dispose();const mats=Array.isArray(obj.material)?obj.material:[obj.material];mats.forEach(m=>m.dispose());}});module=null;$('partLabels').replaceChildren();}
   function transition(position,target,opacity,onEnd){animation={start:performance.now(),duration:reduceMotion.matches?0:950,from:camera.position.clone(),to:position.clone(),targetFrom:controls.target.clone(),targetTo:target.clone(),opacityFrom:carOpacity,opacityTo:opacity,cameraEnabled:true,onEnd};}
   function pointFor(issue){
     if(!car||!bounds)return new THREE.Vector3(0,.9,0);
@@ -177,14 +177,27 @@ function createViewer(){
     const torus=(radius,tube)=>new THREE.TorusGeometry(radius,tube,16,64);
     const cylinder=(radius,depth)=>{const geo=new THREE.CylinderGeometry(radius,radius,depth,64);geo.rotateX(Math.PI/2);return geo;};
     const box=(x,y,z)=>new THREE.BoxGeometry(x,y,z);
+    // Original reusable parts: centimetre-scale details, no purchased meshes.
+    function ring(outer,inner,depth){const shape=new THREE.Shape();shape.absarc(0,0,outer,0,Math.PI*2,false);const hole=new THREE.Path();hole.absarc(0,0,inner,0,Math.PI*2,true);shape.holes.push(hole);const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false,curveSegments:48});geo.translate(0,0,-depth/2);return geo;}
+    function rounded(width,height,depth,radius=.035){const s=new THREE.Shape(),x=-width/2,y=-height/2,r=Math.min(radius,width/2,height/2);s.moveTo(x+r,y);s.lineTo(x+width-r,y);s.quadraticCurveTo(x+width,y,x+width,y+r);s.lineTo(x+width,y+height-r);s.quadraticCurveTo(x+width,y+height,x+width-r,y+height);s.lineTo(x+r,y+height);s.quadraticCurveTo(x,y+height,x,y+height-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);const geo=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.007,bevelThickness:.007,curveSegments:5});geo.translate(0,0,-depth/2);return geo;}
+    function attach(parent,geometry,mat,position=[0,0,0]){const mesh=new THREE.Mesh(geometry,mat);mesh.position.set(...position);parent.add(mesh);return mesh;}
+    function repeat(parent,geometry,mat,count,transform){const mesh=new THREE.InstancedMesh(geometry,mat,count),dummy=new THREE.Object3D();for(let i=0;i<count;i++){dummy.position.set(0,0,0);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);transform(dummy,i);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}mesh.instanceMatrix.needsUpdate=true;parent.add(mesh);return mesh;}
+    function circleBolts(parent,radius,z,count=5){repeat(parent,cylinder(.018,.025),metal(),count,(o,i)=>{const a=i/count*Math.PI*2;o.position.set(Math.cos(a)*radius,Math.sin(a)*radius,z);});}
+    function tyreGeometry(){const profile=[[.345,-.115],[.39,-.145],[.52,-.165],[.59,-.145],[.619,-.108],[.627,-.055],[.627,.055],[.619,.108],[.59,.145],[.52,.165],[.39,.145],[.345,.115],[.345,-.115]].map(([r,z])=>new THREE.Vector2(r,z));const geo=new THREE.LatheGeometry(profile,72);geo.rotateX(Math.PI/2);return geo;}
     if(issue.id==='tyre-fl'){
-      const tyre=piece('Tyre · 1.3 mm tread',torus(.48,.145),rubber(),[0,0,0],[0,0,.62]);
-      // Raised tread blocks and coloured centre band expose the worn surface.
-      for(let i=0;i<44;i++){const tread=new THREE.Mesh(box(.045,.017,.19),rubber());const a=i/44*Math.PI*2;tread.position.set(Math.sin(a)*.62,Math.cos(a)*.62,0);tread.rotation.z=-a;tyre.add(tread);}
-      const band=new THREE.Mesh(torus(.613,.012),red());tyre.add(band);
-      const rim=piece('Wheel rim',torus(.32,.065),metal(),[0,0,0],[0,0,-.05]);
-      for(let i=0;i<5;i++){const spoke=new THREE.Mesh(box(.055,.53,.06),metal());spoke.rotation.z=i*Math.PI/5;rim.add(spoke);}
-      piece('Hub',cylinder(.11,.18),metal(),[0,0,-.1],[0,0,-.73]);
+      const tyre=piece('Tyre · worn tread',tyreGeometry(),rubber(),[0,0,0],[0,0,.7]);
+      // Four staggered rows form a tread pattern with visible drainage channels.
+      repeat(tyre,box(.065,.014,.046),material(0x333a43,{roughness:.95,metalness:0}),192,(o,i)=>{const row=Math.floor(i/48),a=(i%48+(row%2)*.5)/48*Math.PI*2;o.position.set(Math.sin(a)*.626,Math.cos(a)*.626,(row-1.5)*.057);o.rotation.z=-a;});
+      for(const z of [-.149,.149]){attach(tyre,torus(.43,.004),material(0x525963,{roughness:.85}),[0,0,z]);attach(tyre,torus(.56,.003),rubber(),[0,0,z]);}
+      // Highlight only the inspected patch; the measurement stays in the report.
+      const patch=attach(tyre,new THREE.TorusGeometry(.634,.009,8,18,.48),red());patch.rotation.z=.9;
+      const rim=piece('Alloy wheel rim',ring(.346,.309,.235),metal(),[0,0,0],[0,0,-.09]);
+      attach(rim,torus(.332,.012),metal(),[0,0,.123]);attach(rim,cylinder(.087,.07),metal(),[0,0,.07]);
+      repeat(rim,rounded(.04,.245,.045,.012),metal(),10,(o,i)=>{const a=Math.floor(i/2)/5*Math.PI*2+(i%2===0?-.10:.10);o.position.set(Math.sin(a)*.19,Math.cos(a)*.19,.065);o.rotation.z=-a;});
+      circleBolts(rim,.061,.117);attach(rim,cylinder(.035,.016),material(0x586579),[0,0,.117]);
+      const valve=attach(rim,new THREE.CylinderGeometry(.008,.01,.055,12),rubber(),[.29,.08,.13]);valve.rotation.x=Math.PI/3;
+      const hub=piece('Wheel hub',cylinder(.105,.15),metal(),[0,0,-.18],[0,0,-.73]);circleBolts(hub,.072,.095);
+      tyre.userData.labelOffset=[0,.74,0];rim.userData.labelOffset=[-.5,-.48,0];hub.userData.labelOffset=[0,.24,0];
     }else if(issue.id==='brake-rr'){
       let reused=false;const wheel=car?.getObjectByName('Wheel_RR');
       if(wheel){
@@ -194,26 +207,52 @@ function createViewer(){
         const carrier=piece('Wheel',box(.01,.01,.01),metal(),[0,0,.2],[0,0,1.25]);carrier.add(wrap);reused=true;
       }
       if(!reused)piece('Wheel',torus(.46,.12),rubber(),[0,0,.2],[0,0,1.25]);
-      const disc=piece('Brake disc',cylinder(.4,.065),metal(),[0,0,0],[0,0,-.15]);
-      const hub=new THREE.Mesh(cylinder(.14,.13),metal());disc.add(hub);
-      for(let i=0;i<16;i++){const hole=new THREE.Mesh(cylinder(.014,.07),rubber());const a=i/16*Math.PI*2;hole.position.set(Math.cos(a)*.32,Math.sin(a)*.32,0);disc.add(hole);}
-      piece('Outer pad · 3 mm',box(.17,.37,.04),amber(),[.24,0,.07],[.53,.15,.65]);
-      piece('Inner pad',box(.17,.37,.04),amber(),[.24,0,-.07],[.53,.15,-.72]);
-      piece('Caliper',box(.25,.51,.22),red(),[.35,0,0],[-.61,.18,-.35]);
+      const disc=piece('Ventilated brake disc',ring(.4,.145,.016),metal(),[0,0,0],[0,0,-.15]);
+      attach(disc,ring(.4,.145,.016),metal(),[0,0,-.045]);
+      repeat(disc,box(.17,.009,.03),material(0x687687,{metalness:.7}),32,(o,i)=>{const a=i/32*Math.PI*2;o.position.set(Math.cos(a)*.27,Math.sin(a)*.27,-.0225);o.rotation.z=a;});
+      attach(disc,ring(.165,.052,.105),material(0x75808e,{metalness:.7}),[0,0,.018]);circleBolts(disc,.108,.084);
+      for(const radius of [.2,.27,.35,.388])attach(disc,torus(radius,.0016),material(0x8995a3,{metalness:.7,roughness:.5}),[0,0,.009]);
+      function pad(name,start,end){const backing=piece(name,rounded(.14,.3,.018,.052),material(0x526274),start,end);const friction=attach(backing,rounded(.12,.264,.021,.045),material(0xc39a57,{roughness:.92,metalness:0}),[0,0,.025]);attach(friction,box(.124,.009,.023),material(0x3b3a37),[0,0,0]);for(const y of [-.135,.135])attach(backing,box(.05,.025,.022),metal(),[0,y,0]);return backing;}
+      const outer=pad('Outer pad · 3 mm',[.29,0,.047],[.61,.17,.58]);
+      const inner=pad('Inner pad',[.29,0,-.092],[.61,.17,-.73]);inner.rotation.y=Math.PI;
+      const caliper=piece('Brake caliper',rounded(.1,.41,.10,.045),material(0x748397),[.46,0,-.02],[-.64,.13,-.28]);
+      for(const y of [-.155,.155])attach(caliper,rounded(.21,.082,.17,.025),material(0x748397),[-.10,y,0]);
+      attach(caliper,cylinder(.085,.04),material(0x445061),[-.12,0,-.09]);
+      repeat(caliper,box(.008,.22,.025),metal(),4,(o,i)=>o.position.set((i-1.5)*.02,0,.064));
+      disc.userData.labelOffset=[-.15,-.55,0];outer.userData.labelOffset=[.12,.35,0];inner.userData.labelOffset=[.2,-.34,0];caliper.userData.labelOffset=[-.1,.4,0];
     }else if(issue.id==='battery'){
       // An open case, removable cover and six cells reveal the battery structure.
-      const base=piece('Battery case',box(1.08,.09,.68),rubber(),[0,-.27,0],[0,-.49,0]);
+      const base=piece('Battery case',rounded(1.08,.09,.68,.025),rubber(),[0,-.27,0],[0,-.49,0]);
       for(const [size,pos] of [[[1.08,.46,.04],[0,.25,-.32]],[[.04,.46,.64],[-.52,.25,0]],[[.04,.46,.64],[.52,.25,0]]]){const wall=new THREE.Mesh(box(...size),rubber());wall.position.set(...pos);base.add(wall);}
-      const cells=piece('Six-cell pack',box(.01,.01,.01),metal(),[0,0,0],[0,.03,.23]);
-      for(let i=0;i<6;i++){const cell=new THREE.Mesh(box(.14,.4,.47),material(i===5?0xd9a948:0x7598b7));cell.position.x=(i-2.5)*.16;cells.add(cell);}
-      piece('Battery cover',box(1.12,.085,.7),rubber(),[0,.28,0],[0,.74,0]);
+      // A low front wall exposes the illustrative lead-acid plate stacks.
+      attach(base,rounded(1.06,.12,.04,.015),rubber(),[0,.105,.32]);
+      repeat(base,box(.025,.36,.025),rubber(),9,(o,i)=>o.position.set((i-4)*.112,.22,-.346));
+      const cells=piece('Six-cell plate pack',box(.001,.001,.001),metal(),[0,0,0],[0,.04,.27]);
+      repeat(cells,box(.012,.345,.42),material(0x738899,{roughness:.73}),42,(o,i)=>{const cell=Math.floor(i/7),plate=i%7;o.position.set((cell-2.5)*.164+(plate-3)*.018,0,0);});
+      repeat(cells,box(.01,.35,.42),material(0xc3c4b2,{roughness:.95,metalness:0}),36,(o,i)=>{const cell=Math.floor(i/6),plate=i%6;o.position.set((cell-2.5)*.164+(plate-2.5)*.018,0,0);});
+      repeat(cells,box(.13,.025,.045),metal(),6,(o,i)=>o.position.set((i-2.5)*.164,.181,.13));
+      const cover=piece('Vented cover',rounded(1.12,.085,.7,.03),rubber(),[0,.28,0],[0,.68,0]);
+      repeat(cover,new THREE.CylinderGeometry(.033,.033,.018,16),material(0x576576),6,(o,i)=>o.position.set((i-2.5)*.164,.054,0));
+      const handle=attach(cover,rounded(.44,.11,.045,.035),material(0x536070),[0,.1,-.18]);attach(handle,rounded(.35,.055,.048,.02),rubber(),[0,-.019,0]);
       const terminals=piece('Terminals + / −',box(.01,.01,.01),metal(),[0,.35,0],[0,.94,0]);
-      for(const x of [-.38,.38]){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.09,24),material(x<0?0xd36a68:0x8293a9));pole.position.set(x,0,.14);terminals.add(pole);}
+      for(const x of [-.38,.38]){attach(terminals,new THREE.CylinderGeometry(.041,.052,.09,24),metal(),[x,0,.19]);attach(terminals,rounded(.12,.018,.12,.025),material(x<0?0xb64951:0x445061),[x,-.05,.19]);attach(terminals,box(.057,.01,.012),material(0xe4e9ef),[x,-.038,.24]);if(x<0)attach(terminals,box(.012,.01,.057),material(0xe4e9ef),[x,-.038,.24]);}
+      base.userData.labelOffset=[-.15,-.16,.1];cells.userData.labelOffset=[.12,-.05,.36];cover.userData.labelOffset=[-.63,.1,0];terminals.userData.labelOffset=[.3,.17,0];
     }else{
-      piece('Lamp housing',new THREE.SphereGeometry(.46,40,24,0,Math.PI*2,0,Math.PI/2).rotateX(-Math.PI/2),rubber(),[0,0,-.12],[0,0,-.72]);
-      const reflector=piece('Reflector',new THREE.ConeGeometry(.38,.25,48,1,true).rotateX(-Math.PI/2),material(0xd4dfeb,{metalness:.95,roughness:.16,side:THREE.DoubleSide}),[0,0,0],[0,0,-.22]);reflector.scale.y=.78;
-      piece('Bulb · reduced output',new THREE.SphereGeometry(.095,24,16),material(0xffda86,{emissive:0xffae33,emissiveIntensity:.65}),[0,0,.05],[0,0,.38]);
-      const lens=piece('Clear lens',new THREE.SphereGeometry(.43,40,24),material(0xb7d9ef,{transparent:true,opacity:.32,metalness:0,roughness:.13,depthWrite:false}),[0,0,.19],[0,0,.94]);lens.scale.set(1,.78,.15);
+      const housing=piece('Headlamp housing',rounded(1,.5,.14,.13),rubber(),[0,0,-.16],[0,0,-.72]);
+      attach(housing,cylinder(.145,.12),rubber(),[-.16,0,-.11]);attach(housing,rounded(.15,.1,.14,.02),material(0x536175),[.22,-.05,-.14]);
+      for(const x of [-.49,.49]){const tab=attach(housing,rounded(.14,.065,.045,.02),rubber(),[x,.20,0]);attach(tab,ring(.02,.01,.048),metal());}
+      const bowlProfile=[new THREE.Vector2(.055,-.1),new THREE.Vector2(.09,-.085),new THREE.Vector2(.14,-.04),new THREE.Vector2(.20,.035),new THREE.Vector2(.225,.095)];
+      const bowlGeo=new THREE.LatheGeometry(bowlProfile,48);bowlGeo.rotateX(Math.PI/2);
+      const reflector=piece('Reflector assembly',rounded(.93,.43,.035,.1),material(0x8598ad,{metalness:.8,roughness:.24}),[0,0,-.02],[0,0,-.26]);
+      attach(reflector,bowlGeo,material(0xdde5ef,{metalness:.85,roughness:.19,side:THREE.DoubleSide}),[-.18,0,.10]);
+      attach(reflector,ring(.228,.217,.013),metal(),[-.18,0,.015]);
+      const secondary=attach(reflector,bowlGeo.clone(),material(0xc6d5e6,{metalness:.85,side:THREE.DoubleSide}),[.26,0,.075]);secondary.scale.set(.65,.65,.65);
+      const bulb=piece('Bulb · reduced output',cylinder(.055,.10),metal(),[-.18,0,.04],[-.18,0,.39]);
+      attach(bulb,cylinder(.032,.115),material(0xe2e6e9,{transparent:true,opacity:.4,depthWrite:false}),[0,0,.095]);attach(bulb,new THREE.TorusGeometry(.013,.003,6,16),material(0xffdd8a,{emissive:0xffb237,emissiveIntensity:1.4}),[0,0,.11]);
+      repeat(bulb,box(.008,.012,.08),metal(),2,(o,i)=>o.position.set((i-.5)*.025,0,.045));
+      const lens=piece('Clear outer lens',rounded(.99,.49,.03,.13),material(0xc2dce9,{transparent:true,opacity:.2,metalness:0,roughness:.1,depthWrite:false}),[0,0,.19],[0,0,.96]);
+      repeat(lens,box(.005,.32,.009),material(0xdbeaf1,{transparent:true,opacity:.4}),9,(o,i)=>o.position.set(.22+i*.021,0,.021));
+      housing.userData.labelOffset=[-.4,.4,0];reflector.userData.labelOffset=[-.2,-.4,0];bulb.userData.labelOffset=[-.17,.28,0];lens.userData.labelOffset=[.25,-.4,0];
     }
     return {root,pieces,labels,origin:pointFor(issue),progress:0};
   }
@@ -227,7 +266,7 @@ function createViewer(){
     ISSUES.forEach(issue=>{const marker=new THREE.Mesh(new THREE.SphereGeometry(.07,20,16),new THREE.MeshBasicMaterial({color:issue.severity==='red'?0xf77583:0xffc657}));marker.position.copy(pointFor(issue));marker.userData.issueId=issue.id;markerGroup.add(marker);markers.push(marker);clickables.push(marker);});
     ISSUES.filter(issue=>issue.component).forEach(issue=>car.getObjectByName(issue.component)?.traverse(obj=>{if(obj.isMesh){obj.userData.issueId=issue.id;clickables.push(obj);}}));
   }
-  new GLTFLoader().load('./assets/lowpoly_generic_suv.glb?v=14',gltf=>{
+  new GLTFLoader().load('./assets/lowpoly_generic_suv.glb?v=15',gltf=>{
     car=gltf.scene;scene.add(car);car.updateMatrixWorld(true);
     // Derive forward from the named axles instead of assuming exporter orientation.
     const front=car.getObjectByName('Wheel_FL'),rear=car.getObjectByName('Wheel_RL');
@@ -256,7 +295,7 @@ function createViewer(){
       module.root.position.lerpVectors(module.origin,new THREE.Vector3(0,1.05,0),module.progress);module.root.scale.setScalar(.18+.82*module.progress);
       module.pieces.forEach(piece=>piece.object.position.lerpVectors(piece.start,piece.end,separation*module.progress));
       module.root.updateMatrixWorld(true);
-      module.labels.forEach(({label,object},index)=>{const point=object.getWorldPosition(new THREE.Vector3());point.y+=.18+(index%2)*.12;point.project(camera);label.style.left=`${(point.x*.5+.5)*viewer.clientWidth}px`;label.style.top=`${(-point.y*.5+.5)*viewer.clientHeight}px`;label.hidden=module.progress<.9||point.z>1||point.z< -1||separation<.25;});
+      module.labels.forEach(({label,object},index)=>{const point=object.userData.labelOffset?new THREE.Vector3(...object.userData.labelOffset).applyMatrix4(object.matrixWorld):object.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,.18+(index%2)*.12,0));point.project(camera);label.style.left=`${Math.max(75,Math.min(viewer.clientWidth-75,(point.x*.5+.5)*viewer.clientWidth))}px`;label.style.top=`${Math.max(18,Math.min(viewer.clientHeight-18,(-point.y*.5+.5)*viewer.clientHeight))}px`;label.hidden=module.progress<.9||point.z>1||point.z< -1||separation<.25;});
     }
     controls.update();renderer.render(scene,camera);
   });

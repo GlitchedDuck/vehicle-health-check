@@ -1,4 +1,4 @@
-# Vehicle Health Check — v14
+# Vehicle Health Check — v15
 
 ## Run or upload
 
@@ -6,9 +6,13 @@ Extract the complete ZIP and keep its folder structure. Upload its contents to t
 
 Do not double-click index.html: browser security may block module and GLB loading under file://.
 
-The complete build includes index.html, app.js, styles.css, assets/lowpoly_generic_suv.glb and vendor/. All 3D dependencies are local; no runtime CDN is required. The three individual source downloads require the assets/ and vendor/ folders from the ZIP. App, stylesheet, model and vendor module references use v14 cache keys.
+The complete build includes index.html, app.js, styles.css, assets/lowpoly_generic_suv.glb and vendor/. All 3D dependencies are local; no runtime CDN is required. The three individual source downloads require the assets/ and vendor/ folders from the ZIP. App, stylesheet, model and vendor module references use v15 cache keys.
 
-## v14 interaction
+## v15 component refinements
+
+Original procedural geometry now includes staggered tyre tread, alloy spokes and wheel hardware; a ventilated disc, shaped friction pads and an open caliper; lead-acid plate stacks, vents and terminals; and a headlamp housing, reflector bowls, bulb and outer lens. Repeated details use instancing to reduce draw calls. The v14.1 surface marker correction is retained. These remain generic educational illustrations, not manufacturer-specific assemblies. No paid assets were added.
+
+## Interaction
 
 - Starts with the complete original SUV. Select a coloured marker, component button or finding to open its local exploded illustration.
 - Tyre: worn tread, tyre, rim and hub separate.

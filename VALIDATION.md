@@ -1,4 +1,6 @@
-# v14 validation
+# v15 validation
+
+Original component refinements: syntax and all four component constructors passed. Finite vertex data and a limit of 85 mesh draws per component are checked in the geometry harness. Repeated tread blocks, plate stacks and hardware use instancing. Surface marker regression and report interaction checks are retained. No visual browser test performed.
 
 Marker correction (v14.1 app cache key): all four markers verified within 0.035 scene units of the actual wheel/body surfaces, with depth testing enabled. Removed the vertical marker offset and excluded the shadow plane from body marker bounds.
 
