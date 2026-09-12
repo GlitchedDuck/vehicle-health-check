@@ -1,32 +1,29 @@
-# DriveWell Vehicle Health Platform — v6
+# DriveWell Vehicle Health Platform — v7
 
-DriveWell v6 is a clean rebuild of the 3D experience.
+v7 fixes the blank component-focus scene by preserving the complete GLB hierarchy.
 
-## What changed
+## 3D fix
 
-- Restored the vehicle to a clean white finish
-- Kept the original free SUV GLB geometry
-- Removed the fake procedural tyre, brake, wiper, battery, filter, lamp and exhaust models
-- Removed the exploded-view pedestal that was causing components to visually intersect the ground
-- Component focus now uses cloned geometry from the actual vehicle GLB
-- Front-left tyre uses the actual `Wheel_FL` vehicle node
-- Rear-right brake focus uses the actual `Wheel_RR` vehicle node as real context
-- Body, glass, interior, details and wheels separate using the original vehicle geometry
-- Items that are not separate meshes in the GLB are highlighted in the real vehicle context instead of being represented by invented boxes/cylinders
-- All component scenes are automatically grounded above the floor
-- The overview vehicle is larger and sits clear of the floor
+The previous build cloned individual child nodes out of the source GLB. That discarded inherited parent transforms and could leave the component view empty.
 
-## Important limitation
+v7 instead:
 
-The current free SUV GLB does not contain separate geometry for brake pads, battery, wiper blades, air filter, pollen filter, exhaust or headlamp internals.
+- clones the complete, normalised vehicle scene
+- keeps the entire source hierarchy intact
+- ghosts the real car as component context
+- separates the actual `Wheel_FL` for the front-left tyre
+- separates the actual `Wheel_RR` for the rear-right brake context
+- leaves a ghost wheel in the original position to make the separation clear
+- camera-fits every component scene from its real calculated bounding box
+- grounds every component scene from its real calculated bounding box
+- keeps the requested white body finish
+- uses no fake procedural tyre, wiper, battery, filter, lamp or exhaust models
 
-v6 deliberately does **not** fake those parts.
-
-A later asset pass can add licensed/CC0 component GLBs for true component-level exploded views.
+Where the free source GLB does not contain a component as a separate mesh, DriveWell highlights the correct area on the real vehicle rather than inventing low-quality geometry.
 
 ## Clean deployment
 
-`deploy-clean.ps1` deletes everything except `.git` before copying v6 into the repository and pushing `main`.
+`deploy-clean.ps1` still deletes every existing application file from the repository working tree, preserving `.git` only, before copying v7 and pushing `main`.
 
 ## Attribution
 
