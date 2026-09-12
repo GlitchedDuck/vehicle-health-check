@@ -1,44 +1,52 @@
-# DriveWell Vehicle Health Platform — v3
+# DriveWell Vehicle Health Platform — v4
 
-This is a **clean rebuild** of the DriveWell working demo.
+DriveWell v4 is a **clean rebuild**, not a patch on v3.
 
-Nothing from v1/v2 is required by the v3 source other than the existing licensed SUV GLB asset.
+## Main v4 change: premium 3D interaction
 
-## v3 goals
+The vehicle overview now uses a cleaner 3/4 presentation with only four subtle, component-anchored hotspots:
 
-- Premium DriveWell branding
-- Product-style navigation rather than a generic admin sidebar
-- Cleaner customer report layout
-- Neutral graphite vehicle presentation
-- Smaller, anchored, numbered issue markers
-- No floating ring markers
-- Rebuilt exploded component scenes
-- Improved tyre, brake, battery, headlamp, wiper, filter and exhaust component views
-- Customer approve / ask / defer flow
-- Dealer communications flow
-- Simple technician structured-data capture
-- No forced scrolling
+- front-left tyre
+- rear-right brakes
+- front-right headlamp
+- front wipers
 
-## Clean deployment rule
+Battery, air filter, cabin filter and exhaust remain in the findings list but do not clutter the vehicle overview.
 
-Use `deploy-clean.ps1`.
+Selecting an exterior hotspot now follows a progressive interaction:
 
-The deployment script clones the repository and then removes **everything except `.git`** before copying the new build into place.
+1. other hotspots fade
+2. camera glides toward the affected area
+3. a compact callout identifies the finding
+4. the experience transitions into the exploded component view
+5. Back to vehicle restores the overview
 
-This means each release is a clean repository snapshot rather than another layer of edits on top of the previous release.
+The exploded component scenes have also been rebuilt for clearer part separation and context.
 
-## Run locally
+## Platform flow
 
-```powershell
-python -m http.server 8000
-```
+- Manager dashboard
+- Simple technician data capture
+- Customer vehicle health report
+- 3D component education
+- Approve / ask / defer
+- Communications & approvals
 
-Then browse to:
+## Clean GitHub deployment
 
-```text
-http://localhost:8000
-```
+Run `deploy-clean.ps1` after placing both the script and `drivewell-platform-v4-clean.zip` in Downloads.
 
-## Asset attribution
+The script:
 
-The demo uses “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
+1. clones `GlitchedDuck/vehicle-health-check`
+2. deletes everything except `.git`
+3. copies the complete v4 build
+4. stages all deletions and additions
+5. commits
+6. pushes `main`
+
+No old application files are retained.
+
+## Attribution
+
+The vehicle demo uses “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
