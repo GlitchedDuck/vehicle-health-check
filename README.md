@@ -36,3 +36,11 @@ It clones the repo, deletes everything except `.git`, copies v5 as a complete sn
 ## Attribution
 
 The demo uses “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
+
+
+## v5b grounding fix
+
+- Vehicle overview lift corrected
+- Exploded modules auto-lifted above the presentation stage
+- Floor plane dropped slightly to prevent visual clipping
+- Camera reset height raised for cleaner framing

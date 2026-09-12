@@ -2,14 +2,14 @@ $ErrorActionPreference = "Continue"
 
 $RepoUrl  = "https://github.com/GlitchedDuck/vehicle-health-check.git"
 $Branch   = "main"
-$ZipPath  = "$env:USERPROFILE\Downloads\drivewell-platform-v5-clean.zip"
+$ZipPath  = "$env:USERPROFILE\Downloads\drivewell-platform-v5b-clean.zip"
 $Root     = "$env:TEMP\drivewell-v5-clean-deploy"
 $BuildDir = Join-Path $Root "build"
 $RepoDir  = Join-Path $Root "repo"
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host " DriveWell v5 - CLEAN GitHub Deployment" -ForegroundColor Cyan
+Write-Host " DriveWell v5b - CLEAN GitHub Deployment" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -21,7 +21,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 if (-not (Test-Path $ZipPath)) {
     Write-Host "ERROR: Cannot find:" -ForegroundColor Red
     Write-Host "  $ZipPath"
-    Write-Host "Download drivewell-platform-v5-clean.zip into Downloads first."
+    Write-Host "Download drivewell-platform-v5b-clean.zip into Downloads first."
     exit 1
 }
 
@@ -100,7 +100,7 @@ if (-not $Pending) {
 }
 
 Write-Host "[7/7] Committing and pushing..." -ForegroundColor Yellow
-git commit -m "Clean rebuild: DriveWell premium v5"
+git commit -m "Clean rebuild: DriveWell premium v5b grounding fix"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Commit failed." -ForegroundColor Red
     exit 1
@@ -116,11 +116,11 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Green
-Write-Host " DRIVEWELL V5 DEPLOYED" -ForegroundColor Green
+Write-Host " DRIVEWELL V5B DEPLOYED" -ForegroundColor Green
 Write-Host "====================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Live site:"
-Write-Host "https://glitchedduck.github.io/vehicle-health-check/?drivewell=v5"
+Write-Host "https://glitchedduck.github.io/vehicle-health-check/?drivewell=v5b"
 Write-Host ""
 Write-Host "This was a clean repository replacement; all old app files were deleted first."
 Write-Host ""
