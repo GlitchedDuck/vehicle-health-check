@@ -1,46 +1,33 @@
-# DriveWell Vehicle Health Platform — v5
+# DriveWell Vehicle Health Platform — v6
 
-DriveWell v5 is a **clean rebuild**.
+DriveWell v6 is a clean rebuild of the 3D experience.
 
-## v5 3D changes
+## What changed
 
-- Larger 3/4 vehicle view
-- HTML/CSS billboard hotspots rather than 3D ring markers
-- Hotspots stay crisp and circular regardless of camera angle
-- Front-left tyre and rear-right brake anchors derive from named GLB wheel geometry
-- Headlamp and wiper anchors derive from the vehicle bounding geometry
-- Other service items remain in the findings list and do not clutter the car
-- Selecting a visible fault:
-  1. fades other hotspots
-  2. highlights the affected area
-  3. glides the camera towards it
-  4. fades the vehicle into context
-  5. transitions into the exploded component
-- Exploded views include ghosted surrounding context to improve comprehension
-- Back to vehicle restores the overview
+- Restored the vehicle to a clean white finish
+- Kept the original free SUV GLB geometry
+- Removed the fake procedural tyre, brake, wiper, battery, filter, lamp and exhaust models
+- Removed the exploded-view pedestal that was causing components to visually intersect the ground
+- Component focus now uses cloned geometry from the actual vehicle GLB
+- Front-left tyre uses the actual `Wheel_FL` vehicle node
+- Rear-right brake focus uses the actual `Wheel_RR` vehicle node as real context
+- Body, glass, interior, details and wheels separate using the original vehicle geometry
+- Items that are not separate meshes in the GLB are highlighted in the real vehicle context instead of being represented by invented boxes/cylinders
+- All component scenes are automatically grounded above the floor
+- The overview vehicle is larger and sits clear of the floor
 
-## Platform
+## Important limitation
 
-- Manager dashboard
-- Simple technician structured-data capture
-- Customer vehicle health report
-- Approve / ask / defer
-- Communications and approvals
+The current free SUV GLB does not contain separate geometry for brake pads, battery, wiper blades, air filter, pollen filter, exhaust or headlamp internals.
+
+v6 deliberately does **not** fake those parts.
+
+A later asset pass can add licensed/CC0 component GLBs for true component-level exploded views.
 
 ## Clean deployment
 
-Use `deploy-clean.ps1`.
-
-It clones the repo, deletes everything except `.git`, copies v5 as a complete snapshot, stages deletions/additions and pushes `main`.
+`deploy-clean.ps1` deletes everything except `.git` before copying v6 into the repository and pushing `main`.
 
 ## Attribution
 
-The demo uses “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
-
-
-## v5b grounding fix
-
-- Vehicle overview lift corrected
-- Exploded modules auto-lifted above the presentation stage
-- Floor plane dropped slightly to prevent visual clipping
-- Camera reset height raised for cleaner framing
+Vehicle: “Lowpoly Generic SUV” by mk2design, CC BY 4.0.
