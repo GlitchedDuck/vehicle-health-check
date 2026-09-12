@@ -1,52 +1,38 @@
-# DriveWell Vehicle Health Platform — v4
+# DriveWell Vehicle Health Platform — v5
 
-DriveWell v4 is a **clean rebuild**, not a patch on v3.
+DriveWell v5 is a **clean rebuild**.
 
-## Main v4 change: premium 3D interaction
+## v5 3D changes
 
-The vehicle overview now uses a cleaner 3/4 presentation with only four subtle, component-anchored hotspots:
+- Larger 3/4 vehicle view
+- HTML/CSS billboard hotspots rather than 3D ring markers
+- Hotspots stay crisp and circular regardless of camera angle
+- Front-left tyre and rear-right brake anchors derive from named GLB wheel geometry
+- Headlamp and wiper anchors derive from the vehicle bounding geometry
+- Other service items remain in the findings list and do not clutter the car
+- Selecting a visible fault:
+  1. fades other hotspots
+  2. highlights the affected area
+  3. glides the camera towards it
+  4. fades the vehicle into context
+  5. transitions into the exploded component
+- Exploded views include ghosted surrounding context to improve comprehension
+- Back to vehicle restores the overview
 
-- front-left tyre
-- rear-right brakes
-- front-right headlamp
-- front wipers
-
-Battery, air filter, cabin filter and exhaust remain in the findings list but do not clutter the vehicle overview.
-
-Selecting an exterior hotspot now follows a progressive interaction:
-
-1. other hotspots fade
-2. camera glides toward the affected area
-3. a compact callout identifies the finding
-4. the experience transitions into the exploded component view
-5. Back to vehicle restores the overview
-
-The exploded component scenes have also been rebuilt for clearer part separation and context.
-
-## Platform flow
+## Platform
 
 - Manager dashboard
-- Simple technician data capture
+- Simple technician structured-data capture
 - Customer vehicle health report
-- 3D component education
 - Approve / ask / defer
-- Communications & approvals
+- Communications and approvals
 
-## Clean GitHub deployment
+## Clean deployment
 
-Run `deploy-clean.ps1` after placing both the script and `drivewell-platform-v4-clean.zip` in Downloads.
+Use `deploy-clean.ps1`.
 
-The script:
-
-1. clones `GlitchedDuck/vehicle-health-check`
-2. deletes everything except `.git`
-3. copies the complete v4 build
-4. stages all deletions and additions
-5. commits
-6. pushes `main`
-
-No old application files are retained.
+It clones the repo, deletes everything except `.git`, copies v5 as a complete snapshot, stages deletions/additions and pushes `main`.
 
 ## Attribution
 
-The vehicle demo uses “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
+The demo uses “Lowpoly Generic SUV” by mk2design under CC BY 4.0.

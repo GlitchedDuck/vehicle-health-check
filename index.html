@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="DriveWell connected vehicle health platform demo." />
   <title>DriveWell | Vehicle Health Platform</title>
-  <link rel="stylesheet" href="./styles.css?v=4" />
+  <link rel="stylesheet" href="./styles.css?v=5" />
   <script type="importmap">
   {
     "imports": {
@@ -17,154 +17,185 @@
   </script>
 </head>
 <body>
-  <div class="platform-shell">
-    <aside class="sidebar">
-      <div class="dw-brand">
-        <div class="dw-mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none">
-            <defs>
-              <linearGradient id="dwMarkGradient" x1="9" y1="7" x2="54" y2="57" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#60A4FF"/>
-                <stop offset="1" stop-color="#1461ED"/>
-              </linearGradient>
-            </defs>
-            <path d="M9 9h19.5c8.6 0 15.1 2 19.4 6.1C52.6 19.5 55 25.2 55 32.2c0 7.5-2.7 13.4-7.9 17.7C42.7 53.5 36.6 55 28.7 55H9V9Z" fill="url(#dwMarkGradient)"/>
-            <path d="M18.5 18.2h10.6c5.3 0 9.3 1.1 12.1 3.4 2.8 2.4 4.2 5.8 4.2 10.4 0 5-1.5 8.7-4.6 11.2-2.8 2.2-6.7 3.4-11.9 3.4H18.5V18.2Z" fill="#09172A"/>
-            <path d="M14 44.5c9.3-12.6 20.5-20 34.8-22.8-9.7 5-18.6 13-25.7 23.7H14v-.9Z" fill="#fff"/>
-            <path d="M23.8 41.2c5-6.5 10.8-11.6 17.2-15.1-4.7 4.3-8.9 9.2-12.6 14.9l-4.6.2Z" fill="#75B2FF"/>
-          </svg>
-        </div>
-        <div class="dw-wordmark">
-          <strong>Drive<span>Well</span></strong>
-          <small>Vehicle Health Platform</small>
-        </div>
+<div class="platform-shell">
+  <aside class="sidebar">
+    <div class="dw-brand">
+      <div class="dw-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="dwLogoGradient" x1="7" y1="7" x2="57" y2="57" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#69A8FF"/>
+              <stop offset="1" stop-color="#1764F2"/>
+            </linearGradient>
+          </defs>
+          <path d="M8 8h20.5c8.7 0 15.2 2.1 19.5 6.2 4.6 4.4 7 10.2 7 17.1 0 7.7-2.7 13.7-7.9 18-4.4 3.7-10.6 5.7-18.5 5.7H8V8Z" fill="url(#dwLogoGradient)"/>
+          <path d="M18 18h11.2c5.4 0 9.5 1.2 12.2 3.5 2.8 2.4 4.2 5.9 4.2 10.5 0 5-1.5 8.8-4.6 11.3-2.8 2.3-6.8 3.5-12 3.5H18V18Z" fill="#09172A"/>
+          <path d="M13.5 45C23 32.1 34.5 24.5 49.3 21.7 39.2 26.9 30.2 35 23 45.9l-9.5-.1V45Z" fill="#fff"/>
+          <path d="M24 41.2c5-6.6 10.9-11.7 17.5-15.2-4.8 4.3-9.1 9.4-12.9 15.1l-4.6.1Z" fill="#85BDFF"/>
+        </svg>
+      </div>
+      <div class="dw-wordmark">
+        <strong>Drive<span>Well</span></strong>
+        <small>Vehicle Health Platform</small>
+      </div>
+    </div>
+
+    <div class="dealer-card">
+      <span>DEALER WORKSPACE</span>
+      <strong>Demo Service Centre</strong>
+      <small><i></i>Connected</small>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-heading">WORKSPACE</span>
+      <button class="nav-button active" data-route="dashboard" type="button">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
+        <span><strong>Dashboard</strong><small>Workshop overview</small></span>
+      </button>
+      <button class="nav-button" data-route="inspection" type="button">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="m9.4 16.2-4.2-4.2 1.4-1.4 2.8 2.8 7-7L17.8 8l-8.4 8.2ZM5 21c-.6 0-1-.2-1.4-.6C3.2 20 3 19.6 3 19V5c0-.6.2-1 .6-1.4C4 3.2 4.4 3 5 3h10l6 6v10c0 .6-.2 1-.6 1.4-.4.4-.8.6-1.4.6H5Zm9-11h5l-5-5v5Z"/></svg></span>
+        <span><strong>Inspection</strong><small>Technician capture</small></span>
+      </button>
+      <button class="nav-button" data-route="report" type="button">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 4.5c-5 0-9.3 3.1-11 7.5 1.7 4.4 6 7.5 11 7.5s9.3-3.1 11-7.5c-1.7-4.4-6-7.5-11-7.5Zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></span>
+        <span><strong>Vehicle Health</strong><small>Customer report</small></span>
+      </button>
+      <button class="nav-button" data-route="communications" type="button">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 20V4h16v12H8l-4 4Zm2-4.8L7.2 14H18V6H6v9.2ZM8 9h8V7.5H8V9Zm0 3h6v-1.5H8V12Z"/></svg></span>
+        <span><strong>Approvals</strong><small>Customer decisions</small></span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div><span>Today</span><strong>28 inspections</strong></div>
+      <div><span>Approved</span><strong>£12.4k</strong></div>
+      <small>DriveWell demo · v5</small>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="page-heading"><span>DRIVEWELL PLATFORM</span><h1 id="pageTitle">Manager Dashboard</h1></div>
+      <div class="topbar-right">
+        <div class="connected-pill"><i></i>Connected experience</div>
+        <div class="vehicle-pill"><span>AB12 CDE</span><strong>2021 Example SUV</strong></div>
+        <div class="user-avatar">JD</div>
+      </div>
+    </header>
+
+    <section id="route-dashboard" class="route active">
+      <div class="section-intro">
+        <div><span class="eyebrow">TODAY</span><h2>Workshop at a glance</h2><p>Inspections, approvals and customer decisions connected to one vehicle record.</p></div>
+        <button class="button primary" data-route="inspection" type="button">Open technician capture</button>
       </div>
 
-      <div class="dealer-card">
-        <span>DEALER WORKSPACE</span>
-        <strong>Demo Service Centre</strong>
-        <small><i></i>Connected</small>
+      <div class="stat-grid">
+        <article class="stat-card"><span>Vehicles inspected</span><strong>28</strong><small class="positive">↑ 12% from last week</small></article>
+        <article class="stat-card"><span>Reports viewed</span><strong>24</strong><small class="positive">↑ 9% from last week</small></article>
+        <article class="stat-card"><span>Approved value</span><strong>£12,430</strong><small class="positive">↑ 18% from last week</small></article>
+        <article class="stat-card"><span>Deferred value</span><strong>£4,210</strong><small class="attention">7 items need follow-up</small></article>
       </div>
 
-      <nav class="sidebar-nav" aria-label="Primary navigation">
-        <span class="nav-heading">WORKSPACE</span>
-        <button class="nav-button active" data-route="dashboard" type="button">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
-          <span><strong>Dashboard</strong><small>Workshop overview</small></span>
-        </button>
-        <button class="nav-button" data-route="inspection" type="button">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="m9.4 16.2-4.2-4.2 1.4-1.4 2.8 2.8 7-7L17.8 8l-8.4 8.2ZM5 21c-.6 0-1-.2-1.4-.6C3.2 20 3 19.6 3 19V5c0-.6.2-1 .6-1.4C4 3.2 4.4 3 5 3h10l6 6v10c0 .6-.2 1-.6 1.4-.4.4-.8.6-1.4.6H5Zm9-11h5l-5-5v5Z"/></svg></span>
-          <span><strong>Inspection</strong><small>Technician capture</small></span>
-        </button>
-        <button class="nav-button" data-route="report" type="button">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 4.5c-5 0-9.3 3.1-11 7.5 1.7 4.4 6 7.5 11 7.5s9.3-3.1 11-7.5c-1.7-4.4-6-7.5-11-7.5Zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></span>
-          <span><strong>Vehicle Health</strong><small>Customer report</small></span>
-        </button>
-        <button class="nav-button" data-route="communications" type="button">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 20V4h16v12H8l-4 4Zm2-4.8L7.2 14H18V6H6v9.2ZM8 9h8V7.5H8V9Zm0 3h6v-1.5H8V12Z"/></svg></span>
-          <span><strong>Approvals</strong><small>Customer decisions</small></span>
-        </button>
-      </nav>
+      <div class="dashboard-grid">
+        <article class="panel performance-panel">
+          <div class="panel-head"><div><span class="eyebrow">WORKSHOP PERFORMANCE</span><h3>Inspection & approval trend</h3></div><span class="filter-pill">Last 7 days</span></div>
+          <div class="bar-chart">
+            <div><span style="height:55%"></span><i style="height:43%"></i><b>Mon</b></div><div><span style="height:69%"></span><i style="height:54%"></i><b>Tue</b></div><div><span style="height:61%"></span><i style="height:49%"></i><b>Wed</b></div><div><span style="height:78%"></span><i style="height:66%"></i><b>Thu</b></div><div><span style="height:72%"></span><i style="height:62%"></i><b>Fri</b></div><div><span style="height:89%"></span><i style="height:77%"></i><b>Sat</b></div><div><span style="height:70%"></span><i style="height:60%"></i><b>Sun</b></div>
+          </div>
+          <div class="chart-key"><span><i class="blue"></i>Inspections</span><span><i class="green"></i>Authorised</span></div>
+        </article>
 
-      <div class="sidebar-footer">
-        <div><span>Today</span><strong>28 inspections</strong></div>
-        <div><span>Approved</span><strong>£12.4k</strong></div>
-        <small>DriveWell demo · v4</small>
+        <article class="panel health-panel">
+          <div class="panel-head"><div><span class="eyebrow">CURRENT VEHICLE</span><h3>AB12 CDE · Vehicle health</h3></div><button class="text-button" data-route="report" type="button">Open report →</button></div>
+          <div class="health-body"><div class="health-ring"><div><strong>68</strong><span>Health score</span></div></div><div class="health-stats"><div><span><i class="red"></i>Urgent</span><strong id="urgentCount">1</strong></div><div><span><i class="amber"></i>Attention</span><strong id="attentionCount">7</strong></div><div><span><i class="green"></i>Healthy</span><strong>16</strong></div></div></div>
+          <div class="vehicle-meta"><div><span>Mileage</span><strong>41,280 miles</strong></div><div><span>Customer</span><strong>Alex Morgan</strong></div><div><span>Last visit</span><strong>12 Mar 2026</strong></div><div><span>Report</span><strong id="reportState">Awaiting decision</strong></div></div>
+        </article>
+
+        <article class="panel feed-panel">
+          <div class="panel-head"><div><span class="eyebrow">RECENT ACTIVITY</span><h3>Live dealer feed</h3></div></div>
+          <div class="activity-list">
+            <div class="activity-row"><span class="activity-icon good">✓</span><div><strong>Inspection completed</strong><small>AB12 CDE · 8 findings recorded</small></div><time>10 min</time></div>
+            <div class="activity-row"><span class="activity-icon info">↗</span><div><strong>Report viewed</strong><small>CD34 EFG · customer opened report</small></div><time>28 min</time></div>
+            <div class="activity-row"><span class="activity-icon good">£</span><div><strong>Work approved</strong><small>EF56 HIJ · £385 authorised</small></div><time>1 hr</time></div>
+            <div class="activity-row"><span class="activity-icon warn">?</span><div><strong>Customer question</strong><small>GH78 KLM · battery warranty</small></div><time>2 hr</time></div>
+          </div>
+        </article>
+
+        <article class="panel queue-panel">
+          <div class="panel-head"><div><span class="eyebrow">WORKSHOP QUEUE</span><h3>Today</h3></div><span class="live-dot"><i></i>Live</span></div>
+          <div class="queue-list"><div class="queue-row current"><b>01</b><div><strong>AB12 CDE</strong><small>Inspection · Bay 1</small></div><span>In progress</span></div><div class="queue-row"><b>02</b><div><strong>BL73 XPT</strong><small>Service + repairs · Bay 2</small></div><span>Waiting</span></div><div class="queue-row"><b>03</b><div><strong>KT24 FHV</strong><small>Diagnostic · Bay 3</small></div><span>In progress</span></div><div class="queue-row"><b>04</b><div><strong>MV73 LDE</strong><small>Tyres · Bay 4</small></div><span>Waiting</span></div></div>
+        </article>
       </div>
-    </aside>
+    </section>
 
-    <main class="main">
-      <header class="topbar">
-        <div class="page-heading"><span>DRIVEWELL PLATFORM</span><h1 id="pageTitle">Manager Dashboard</h1></div>
-        <div class="topbar-right">
-          <div class="connected-pill"><i></i>Connected experience</div>
-          <div class="vehicle-pill"><span>AB12 CDE</span><strong>2021 Example SUV</strong></div>
-          <div class="user-avatar">JD</div>
-        </div>
-      </header>
+    <section id="route-inspection" class="route">
+      <div class="section-intro">
+        <div><span class="eyebrow">TECHNICIAN CAPTURE</span><h2>Quick inspection · AB12 CDE</h2><p>Capture the facts. DriveWell turns them into the customer explanation and visual experience.</p></div>
+        <div class="progress-card"><strong id="captureProgress">8 / 8</strong><span>items captured</span></div>
+      </div>
+      <div class="inspection-layout">
+        <aside class="panel inspection-list"><div class="inspection-list-head"><strong>Inspection items</strong><span>Select to update</span></div><div id="techComponentList"></div></aside>
+        <section class="panel capture-panel">
+          <div class="capture-head"><div><span id="techCategory" class="category-chip">Tyres</span><h3 id="techTitle">Front left tyre</h3><p id="techLocation">Nearside front</p></div><span id="techAutoSeverity" class="severity red">Urgent · automatic</span></div>
+          <div class="form-grid">
+            <label><span id="measurementFieldLabel">Tread depth</span><div class="measure-input"><input id="techMeasurement" type="number" step="0.1"><strong id="techUnit">mm</strong></div></label>
+            <label>Condition<select id="techCondition"><option>Normal</option><option>Worn</option><option>Uneven wear</option><option>Damaged</option><option>Reduced performance</option><option>Corroded</option></select></label>
+            <label>Recommendation<select id="techRecommendation"><option>Monitor</option><option>Replace soon</option><option>Replace</option><option>Repair</option><option>No action required</option></select></label>
+            <label class="span-all">Technician note<textarea id="techNote" rows="4"></textarea></label>
+            <label class="span-all evidence-drop"><input id="evidenceInput" type="file" accept="image/*,video/*"><span>＋</span><strong>Add photo or video</strong><small id="evidenceFileName">No additional evidence selected</small></label>
+          </div>
+          <div class="capture-mapping"><div><span>3D MAPPING</span><strong id="techModuleName">Tyre / wheel exploded view</strong></div><div><span>CUSTOMER WORDING</span><strong>Generated automatically from structured data</strong></div><div><span>DECISION FLOW</span><strong>Linked to adviser approval workflow</strong></div></div>
+          <div class="capture-actions"><span id="captureSaved"></span><button id="saveFinding" class="button primary" type="button">Save finding</button></div>
+        </section>
+      </div>
+      <div class="page-actions"><button class="button secondary" data-route="dashboard" type="button">Back to dashboard</button><button class="button primary" data-route="report" type="button">Preview customer report →</button></div>
+    </section>
 
-      <section id="route-dashboard" class="route active">
-        <div class="section-intro">
-          <div><span class="eyebrow">TODAY</span><h2>Workshop at a glance</h2><p>Inspections, approvals and customer decisions connected to the vehicle record.</p></div>
-          <button class="button primary" data-route="inspection" type="button">Open technician capture</button>
-        </div>
-        <div class="stat-grid">
-          <article class="stat-card"><span>Vehicles inspected</span><strong>28</strong><small class="positive">↑ 12% from last week</small></article>
-          <article class="stat-card"><span>Reports viewed</span><strong>24</strong><small class="positive">↑ 9% from last week</small></article>
-          <article class="stat-card"><span>Approved value</span><strong>£12,430</strong><small class="positive">↑ 18% from last week</small></article>
-          <article class="stat-card"><span>Deferred value</span><strong>£4,210</strong><small class="attention">7 items need follow-up</small></article>
-        </div>
-        <div class="dashboard-grid">
-          <article class="panel performance-panel">
-            <div class="panel-head"><div><span class="eyebrow">WORKSHOP PERFORMANCE</span><h3>Inspection & approval trend</h3></div><span class="filter-pill">Last 7 days</span></div>
-            <div class="bar-chart">
-              <div><span style="height:55%"></span><i style="height:43%"></i><b>Mon</b></div><div><span style="height:69%"></span><i style="height:54%"></i><b>Tue</b></div><div><span style="height:61%"></span><i style="height:49%"></i><b>Wed</b></div><div><span style="height:78%"></span><i style="height:66%"></i><b>Thu</b></div><div><span style="height:72%"></span><i style="height:62%"></i><b>Fri</b></div><div><span style="height:89%"></span><i style="height:77%"></i><b>Sat</b></div><div><span style="height:70%"></span><i style="height:60%"></i><b>Sun</b></div>
-            </div>
-            <div class="chart-key"><span><i class="blue"></i>Inspections</span><span><i class="green"></i>Authorised</span></div>
-          </article>
-          <article class="panel health-panel">
-            <div class="panel-head"><div><span class="eyebrow">CURRENT VEHICLE</span><h3>AB12 CDE · Vehicle health</h3></div><button class="text-button" data-route="report" type="button">Open report →</button></div>
-            <div class="health-body"><div class="health-ring"><div><strong>68</strong><span>Health score</span></div></div><div class="health-stats"><div><span><i class="red"></i>Urgent</span><strong id="urgentCount">1</strong></div><div><span><i class="amber"></i>Attention</span><strong id="attentionCount">7</strong></div><div><span><i class="green"></i>Healthy</span><strong>16</strong></div></div></div>
-            <div class="vehicle-meta"><div><span>Mileage</span><strong>41,280 miles</strong></div><div><span>Customer</span><strong>Alex Morgan</strong></div><div><span>Last visit</span><strong>12 Mar 2026</strong></div><div><span>Report</span><strong id="reportState">Awaiting decision</strong></div></div>
-          </article>
-          <article class="panel feed-panel"><div class="panel-head"><div><span class="eyebrow">RECENT ACTIVITY</span><h3>Live dealer feed</h3></div></div><div class="activity-list"><div class="activity-row"><span class="activity-icon good">✓</span><div><strong>Inspection completed</strong><small>AB12 CDE · 8 findings recorded</small></div><time>10 min</time></div><div class="activity-row"><span class="activity-icon info">↗</span><div><strong>Report viewed</strong><small>CD34 EFG · customer opened report</small></div><time>28 min</time></div><div class="activity-row"><span class="activity-icon good">£</span><div><strong>Work approved</strong><small>EF56 HIJ · £385 authorised</small></div><time>1 hr</time></div><div class="activity-row"><span class="activity-icon warn">?</span><div><strong>Customer question</strong><small>GH78 KLM · battery warranty</small></div><time>2 hr</time></div></div></article>
-          <article class="panel queue-panel"><div class="panel-head"><div><span class="eyebrow">WORKSHOP QUEUE</span><h3>Today</h3></div><span class="live-dot"><i></i>Live</span></div><div class="queue-list"><div class="queue-row current"><b>01</b><div><strong>AB12 CDE</strong><small>Inspection · Bay 1</small></div><span>In progress</span></div><div class="queue-row"><b>02</b><div><strong>BL73 XPT</strong><small>Service + repairs · Bay 2</small></div><span>Waiting</span></div><div class="queue-row"><b>03</b><div><strong>KT24 FHV</strong><small>Diagnostic · Bay 3</small></div><span>In progress</span></div><div class="queue-row"><b>04</b><div><strong>MV73 LDE</strong><small>Tyres · Bay 4</small></div><span>Waiting</span></div></div></article>
-        </div>
+    <section id="route-report" class="route">
+      <div class="report-intro"><div><span class="eyebrow">CUSTOMER VEHICLE HEALTH</span><h2>Your Vehicle Health Report</h2><p>2021 Example SUV · AB12 CDE · 41,280 miles</p></div><div class="report-score"><span>HEALTH</span><strong>68</strong></div></div>
+
+      <div class="report-grid">
+        <section class="panel viewer-panel">
+          <div class="viewer-toolbar">
+            <div><span id="viewerModeLabel">VEHICLE OVERVIEW</span><strong id="viewerTitle">Choose a highlighted area</strong></div>
+            <div class="viewer-toolbar-actions"><button id="backToVehicle" class="viewer-button hidden" type="button">← Back to vehicle</button><button id="resetView" class="viewer-button" type="button">Reset view</button></div>
+          </div>
+          <div id="viewer" class="viewer">
+            <div id="viewerLoading" class="viewer-loading"><span class="spinner"></span><strong>Loading DriveWell 3D experience…</strong></div>
+            <div id="viewerError" class="viewer-loading hidden"><strong>3D view unavailable</strong><span>The rest of the report remains available.</span></div>
+            <div id="hotspotLayer" class="hotspot-layer"></div>
+            <div id="focusBanner" class="focus-banner hidden"><span>FOCUSING ON</span><strong id="focusBannerTitle"></strong><small id="focusBannerValue"></small></div>
+            <div id="explodedCaption" class="exploded-caption hidden"><span>EXPLODED COMPONENT</span><strong id="explodedCaptionTitle"></strong><small>Fault area highlighted · rotate to explore</small></div>
+            <div class="viewer-tip">Drag to rotate · pinch/scroll to zoom · select a hotspot</div>
+          </div>
+        </section>
+
+        <aside class="panel detail-panel">
+          <div class="detail-head"><div><span id="reportSeverity" class="severity red">Urgent</span><h3 id="reportTitle">Front left tyre</h3><p id="reportLocation">Nearside front</p></div><div class="price"><span>ESTIMATED</span><strong id="reportPrice">£145</strong></div></div>
+          <div class="measurement-card"><div><span id="reportMeasurementLabel">Tread depth</span><strong><b id="reportMeasurement">1.3</b> <small id="reportUnit">mm</small></strong></div><div class="meter"><i id="measurementMarker"></i></div><div class="meter-labels"><span>Replace</span><span>Monitor</span><span>Healthy</span></div></div>
+          <div class="explanation"><article><span>WHAT WE FOUND</span><p id="reportFound"></p></article><article><span>WHY IT MATTERS</span><p id="reportWhy"></p></article><article><span>RECOMMENDATION</span><p id="reportRecommendationText"></p></article></div>
+          <div class="evidence-card"><div class="mini-head"><span>TECHNICIAN EVIDENCE</span><strong id="reportEvidenceTitle">Sample workshop evidence</strong></div><div id="reportEvidenceVisual" class="evidence-visual"></div></div>
+          <div class="history-card"><div class="mini-head"><span>COMPONENT HEALTH HISTORY</span><strong id="historyDelta">−1.5 mm</strong></div><div id="historyChart" class="history-chart"></div></div>
+          <div class="decision-grid"><button id="approveBtn" class="approve-button" type="button">Approve <span id="approveAmount">£145</span></button><button id="askBtn" class="button secondary" type="button">Ask a question</button><button id="deferBtn" class="button secondary" type="button">Defer</button></div>
+          <div id="decisionStatus" class="decision-status"></div>
+        </aside>
+      </div>
+
+      <section class="panel findings-panel">
+        <div class="findings-head"><div><span class="eyebrow">INSPECTION FINDINGS</span><h3>Choose an item to explore</h3></div><span>Visible exterior items appear on the vehicle. Other findings open directly into the component view.</span></div>
+        <div id="customerFindings" class="finding-grid"></div>
       </section>
+    </section>
 
-      <section id="route-inspection" class="route">
-        <div class="section-intro"><div><span class="eyebrow">TECHNICIAN CAPTURE</span><h2>Quick inspection · AB12 CDE</h2><p>Capture the facts. DriveWell turns them into the customer explanation and 3D presentation.</p></div><div class="progress-card"><strong id="captureProgress">8 / 8</strong><span>items captured</span></div></div>
-        <div class="inspection-layout">
-          <aside class="panel inspection-list"><div class="inspection-list-head"><strong>Inspection items</strong><span>Select to update</span></div><div id="techComponentList"></div></aside>
-          <section class="panel capture-panel">
-            <div class="capture-head"><div><span id="techCategory" class="category-chip">Tyres</span><h3 id="techTitle">Front left tyre</h3><p id="techLocation">Nearside front</p></div><span id="techAutoSeverity" class="severity red">Urgent · automatic</span></div>
-            <div class="form-grid">
-              <label><span id="measurementFieldLabel">Tread depth</span><div class="measure-input"><input id="techMeasurement" type="number" step="0.1"><strong id="techUnit">mm</strong></div></label>
-              <label>Condition<select id="techCondition"><option>Normal</option><option>Worn</option><option>Uneven wear</option><option>Damaged</option><option>Reduced performance</option><option>Corroded</option></select></label>
-              <label>Recommendation<select id="techRecommendation"><option>Monitor</option><option>Replace soon</option><option>Replace</option><option>Repair</option><option>No action required</option></select></label>
-              <label class="span-all">Technician note<textarea id="techNote" rows="4"></textarea></label>
-              <label class="span-all evidence-drop"><input id="evidenceInput" type="file" accept="image/*,video/*"><span>＋</span><strong>Add photo or video</strong><small id="evidenceFileName">No additional evidence selected</small></label>
-            </div>
-            <div class="capture-mapping"><div><span>3D MAPPING</span><strong id="techModuleName">Tyre / wheel exploded view</strong></div><div><span>CUSTOMER WORDING</span><strong>Generated automatically from structured data</strong></div><div><span>DECISION FLOW</span><strong>Linked to adviser approval workflow</strong></div></div>
-            <div class="capture-actions"><span id="captureSaved"></span><button id="saveFinding" class="button primary" type="button">Save finding</button></div>
-          </section>
-        </div>
-        <div class="page-actions"><button class="button secondary" data-route="dashboard" type="button">Back to dashboard</button><button class="button primary" data-route="report" type="button">Preview customer report →</button></div>
-      </section>
+    <section id="route-communications" class="route">
+      <div class="section-intro"><div><span class="eyebrow">CUSTOMER DECISIONS</span><h2>Communications & approvals</h2><p>Every approval or question stays attached to the exact vehicle finding.</p></div><div class="decision-kpis"><div><span>Awaiting</span><strong id="commAwaiting">7</strong></div><div><span>Approved</span><strong id="commApproved">6</strong></div><div><span>Questions</span><strong id="commQuestions">2</strong></div></div></div>
+      <div class="communications-grid"><section class="panel conversation-list"><div class="conversation-tabs"><button class="active">All</button><button>Pending</button><button>Approved</button><button>Questions</button><button>Deferred</button></div><div id="conversationFeed"></div></section><aside class="panel conversation-detail"><span class="eyebrow">SELECTED CONVERSATION</span><h3>Alex Morgan · AB12 CDE</h3><div class="conversation-context"><span id="conversationFinding">Front left tyre</span><strong id="conversationPrice">£145</strong></div><div id="conversationMessages" class="message-thread"></div><label class="reply-label">Reply to customer<textarea id="replyText" rows="4"></textarea></label><button id="sendReply" class="button primary full" type="button">Send reply</button></aside></div>
+    </section>
+  </main>
+</div>
 
-      <section id="route-report" class="route">
-        <div class="report-intro"><div><span class="eyebrow">CUSTOMER VEHICLE HEALTH</span><h2>Your Vehicle Health Report</h2><p>2021 Example SUV · AB12 CDE · 41,280 miles</p></div><div class="report-score"><span>HEALTH</span><strong>68</strong></div></div>
-        <div class="report-grid">
-          <section class="panel viewer-panel">
-            <div class="viewer-toolbar"><div><span id="viewerModeLabel">VEHICLE OVERVIEW</span><strong id="viewerTitle">Tap an issue to explore it</strong></div><div class="viewer-toolbar-actions"><button id="backToVehicle" class="viewer-button hidden" type="button">← Back to vehicle</button><button id="resetView" class="viewer-button" type="button">Reset view</button></div></div>
-            <div id="viewer" class="viewer">
-              <div id="viewerLoading" class="viewer-loading"><span class="spinner"></span><strong>Loading DriveWell 3D experience…</strong></div>
-              <div id="viewerError" class="viewer-loading hidden"><strong>3D view unavailable</strong><span>The rest of the report remains available.</span></div>
-              <div id="hotspotCallout" class="hotspot-callout hidden"><span id="hotspotStatus"></span><strong id="hotspotTitle"></strong><small id="hotspotValue"></small></div>
-              <div id="explodedCaption" class="exploded-caption hidden"><span>AFFECTED COMPONENT</span><strong id="explodedCaptionTitle"></strong><small>Highlighted part shown in context</small></div>
-              <div class="viewer-tip">Drag to rotate · pinch/scroll to zoom · tap a hotspot</div>
-            </div>
-          </section>
-          <aside class="panel detail-panel">
-            <div class="detail-head"><div><span id="reportSeverity" class="severity red">Urgent</span><h3 id="reportTitle">Front left tyre</h3><p id="reportLocation">Nearside front</p></div><div class="price"><span>ESTIMATED</span><strong id="reportPrice">£145</strong></div></div>
-            <div class="measurement-card"><div><span id="reportMeasurementLabel">Tread depth</span><strong><b id="reportMeasurement">1.3</b> <small id="reportUnit">mm</small></strong></div><div class="meter"><i id="measurementMarker"></i></div><div class="meter-labels"><span>Replace</span><span>Monitor</span><span>Healthy</span></div></div>
-            <div class="explanation"><article><span>WHAT WE FOUND</span><p id="reportFound"></p></article><article><span>WHY IT MATTERS</span><p id="reportWhy"></p></article><article><span>RECOMMENDATION</span><p id="reportRecommendationText"></p></article></div>
-            <div class="evidence-card"><div class="mini-head"><span>TECHNICIAN EVIDENCE</span><strong id="reportEvidenceTitle">Sample workshop evidence</strong></div><div id="reportEvidenceVisual" class="evidence-visual"></div></div>
-            <div class="history-card"><div class="mini-head"><span>COMPONENT HEALTH HISTORY</span><strong id="historyDelta">−1.5 mm</strong></div><div id="historyChart" class="history-chart"></div></div>
-            <div class="decision-grid"><button id="approveBtn" class="approve-button" type="button">Approve <span id="approveAmount">£145</span></button><button id="askBtn" class="button secondary" type="button">Ask a question</button><button id="deferBtn" class="button secondary" type="button">Defer</button></div><div id="decisionStatus" class="decision-status"></div>
-          </aside>
-        </div>
-        <section class="panel findings-panel"><div class="findings-head"><div><span class="eyebrow">INSPECTION FINDINGS</span><h3>Choose an item to explore</h3></div><span>Four exterior issues are shown on the vehicle; all findings can open an exploded component view.</span></div><div id="customerFindings" class="finding-grid"></div></section>
-      </section>
-
-      <section id="route-communications" class="route">
-        <div class="section-intro"><div><span class="eyebrow">CUSTOMER DECISIONS</span><h2>Communications & approvals</h2><p>Every approval or question stays attached to the vehicle and exact finding.</p></div><div class="decision-kpis"><div><span>Awaiting</span><strong id="commAwaiting">7</strong></div><div><span>Approved</span><strong id="commApproved">6</strong></div><div><span>Questions</span><strong id="commQuestions">2</strong></div></div></div>
-        <div class="communications-grid"><section class="panel conversation-list"><div class="conversation-tabs"><button class="active">All</button><button>Pending</button><button>Approved</button><button>Questions</button><button>Deferred</button></div><div id="conversationFeed"></div></section><aside class="panel conversation-detail"><span class="eyebrow">SELECTED CONVERSATION</span><h3>Alex Morgan · AB12 CDE</h3><div class="conversation-context"><span id="conversationFinding">Front left tyre</span><strong id="conversationPrice">£145</strong></div><div id="conversationMessages" class="message-thread"></div><label class="reply-label">Reply to customer<textarea id="replyText" rows="4"></textarea></label><button id="sendReply" class="button primary full" type="button">Send reply</button></aside></div>
-      </section>
-    </main>
-  </div>
-  <div id="toast" class="toast"></div>
-  <footer class="footer">DriveWell is a working internal demo name. 3D vehicle: “Lowpoly Generic SUV” by mk2design, CC BY 4.0.</footer>
-  <script type="module" src="./app.js?v=4"></script>
+<div id="toast" class="toast"></div>
+<footer class="footer">DriveWell is a working internal demo name. 3D vehicle: “Lowpoly Generic SUV” by mk2design, CC BY 4.0.</footer>
+<script type="module" src="./app.js?v=5"></script>
 </body>
 </html>
