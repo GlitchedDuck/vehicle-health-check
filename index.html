@@ -1,48 +1,428 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a1220">
-  <meta name="description" content="Explore your vehicle inspection, understand each component and review your choices.">
-  <title>Vehicle Health Check · v16</title>
-  <link rel="stylesheet" href="./styles.css?v=16">
-  <script type="importmap">{"imports":{"three":"./vendor/three.module.js?v=16","three/addons/":"./vendor/"}}</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1422" />
+  <meta name="description" content="Working Vehicle Health Platform demo." />
+  <title>Vehicle Health Platform</title>
+  <link rel="stylesheet" href="./styles.css?v=1" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
-<main class="page">
-  <header class="brandbar"><div class="brand">VHC <span>Vehicle health check</span></div><span class="demo-tag">Demo report · v16</span></header>
-  <section class="report-heading"><div><p class="eyebrow">Inspection · 2 September 2026</p><h1>Your vehicle, explained.</h1><p>Example coupé <b>AB12 CDE</b> · 41,280 miles · Demo Service Centre</p></div><div class="status-row"><span class="severity red">1 urgent</span><span class="severity amber">3 attention</span></div></section>
-  <section class="workspace" aria-label="Vehicle inspection workspace">
-    <section class="viewer-card">
-      <div class="viewer-head"><div><p class="eyebrow" id="viewMode">Vehicle overview</p><h2 id="viewTitle">Explore your vehicle</h2></div><button id="backVehicle" type="button" hidden>← Back to vehicle</button></div>
-      <div id="viewer" aria-label="Interactive vehicle and exploded component viewer">
-        <div id="loading" class="viewer-message" role="status">Loading your vehicle…</div>
-        <div id="viewerError" class="viewer-message" role="status" hidden></div>
-        <div id="partLabels" aria-hidden="true"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">V</div>
+        <div>
+          <strong>Vehicle Health</strong>
+          <span>Platform</span>
+        </div>
       </div>
-      <div class="viewer-toolbar"><button id="resetView" type="button">Reset view</button><button id="toggleRotate" type="button" aria-pressed="false">Rotate</button><label id="explodeControl" hidden>Separate parts <input id="explodeRange" type="range" min="0" max="100" value="100" aria-label="Component separation"></label></div>
-      <div class="viewer-caption"><span id="viewHint">Choose a finding or a coloured marker. Drag to rotate; pinch to zoom.</span><span id="schematicNote" hidden>Illustrative components · not to scale</span></div>
-      <nav id="issueNav" aria-label="Choose a component"></nav>
-    </section>
-    <aside class="report-card" aria-label="Selected finding">
-      <div class="finding-heading"><div><span id="detailSeverity" class="severity"></span><h2 id="detailTitle"></h2><p id="detailLocation"></p></div><div class="price"><small>Estimate</small><strong id="detailPrice"></strong></div></div>
-      <p id="detailFound" class="finding-description"></p>
-      <section class="measurement"><div><h3 id="measureTitle"></h3><strong id="measureValue"></strong></div><div id="gauge" class="gauge" role="img"><i id="gaugePointer"></i></div><div id="gaugeLabels" class="gauge-labels"></div><p id="measureNote"></p></section>
-      <section class="evidence"><div><span class="eyebrow">Technician evidence</span><span class="sample-label">Sample record</span></div><h3 id="evidenceTitle"></h3><p id="evidenceText"></p><small>No technician photo or video attached to this demo.</small></section>
-      <section class="history"><div><h3>Vehicle health history</h3><span id="historyDelta"></span></div><svg id="historyChart" viewBox="0 0 360 85" role="img"></svg><div id="historyValues"></div><p>Illustrative readings from previous visits.</p></section>
-      <div class="actions"><button id="approve" class="primary" type="button">Approve this work</button><button id="ask" type="button">Ask a question</button><button id="defer" type="button">Defer for now</button></div>
-      <p id="decisionNote" role="status">Demo choices stay in this session; nothing is sent to the workshop.</p>
+
+      <nav class="nav" aria-label="Main navigation">
+        <button class="nav-item active" data-route="dashboard" type="button">
+          <span class="nav-icon">⌂</span><span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-route="inspection" type="button">
+          <span class="nav-icon">✓</span><span>Inspection</span>
+        </button>
+        <button class="nav-item" data-route="report" type="button">
+          <span class="nav-icon">◉</span><span>Customer report</span>
+        </button>
+        <button class="nav-item" data-route="communications" type="button">
+          <span class="nav-icon">✉</span><span>Communications</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="site-pill">
+          <span class="live-dot"></span>
+          Demo Service Centre
+        </div>
+        <small>Working demo · v1</small>
+      </div>
     </aside>
-  </section>
-  <section class="lower-grid"><section class="report-card findings-card"><div class="section-heading"><h2>All findings</h2><div class="filters" role="group" aria-label="Filter findings"><button data-filter="all" aria-pressed="true">All</button><button data-filter="red" aria-pressed="false">Urgent</button><button data-filter="amber" aria-pressed="false">Attention</button><button data-filter="approved" aria-pressed="false">Approved</button></div></div><div id="findings"></div></section>
-  <section class="report-card explanation"><h2>Understanding this finding</h2><h3>Why does it matter?</h3><p id="detailWhy"></p><h3>What if I leave it?</h3><p id="detailRisk"></p><h3>Our recommendation</h3><p id="detailRecommend"></p><details><summary>Technician notes</summary><p id="technical"></p></details></section></section>
-  <footer><p>Proof of concept. Vehicle, measurements, history, findings and prices are sample data.</p><p>Overview model: supplied Car_v2 OBJ, converted to GLB. Exploded components are generic illustrations.</p></footer>
-</main>
-<div class="quote-bar"><div><small>Your choices</small><strong id="approvedTotal">£0 approved</strong></div><button id="reviewApprovals" type="button">Review choices</button></div>
-<dialog id="questionDialog"><form id="questionForm"><h2>Ask about this finding</h2><p id="questionSubject"></p><label for="questionText">Your question</label><textarea id="questionText" required maxlength="1200" rows="4"></textarea><p>Demo only: your question is kept in this session, not sent.</p><div class="dialog-actions"><button type="button" id="cancelQuestion">Cancel</button><button type="submit" class="primary">Save question</button></div></form></dialog>
-<dialog id="reviewDialog"><h2>Your choices</h2><div id="reviewList"></div><p>Demo only. No booking, payment or workshop notification is made.</p><button id="closeReview" type="button">Close</button></dialog>
-<div id="toast" role="status"></div>
-<script type="module" src="./app.js?v=16"></script>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Dealer platform</p>
+          <h1 id="pageTitle">Manager Dashboard</h1>
+        </div>
+        <div class="top-actions">
+          <div class="vehicle-pill">
+            <span>AB12 CDE</span>
+            <strong>2021 Example SUV</strong>
+          </div>
+          <div class="avatar">JD</div>
+        </div>
+      </header>
+
+      <section id="route-dashboard" class="route active">
+        <div class="welcome-row">
+          <div>
+            <h2>Good morning</h2>
+            <p>Everything happening around today’s inspections, customer decisions and workshop value.</p>
+          </div>
+          <button class="primary-btn" data-route="inspection" type="button">Open technician inspection</button>
+        </div>
+
+        <div class="kpi-grid">
+          <article class="kpi-card">
+            <span>Inspections today</span>
+            <strong>28</strong>
+            <small class="up">↑ 12% vs last week</small>
+          </article>
+          <article class="kpi-card">
+            <span>Reports viewed</span>
+            <strong>24</strong>
+            <small class="up">↑ 9% vs last week</small>
+          </article>
+          <article class="kpi-card">
+            <span>Approved value</span>
+            <strong id="dashboardApproved">£12,430</strong>
+            <small class="up">↑ 18% vs last week</small>
+          </article>
+          <article class="kpi-card">
+            <span>Deferred work</span>
+            <strong>£4,210</strong>
+            <small class="warn">Needs follow-up</small>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel throughput-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow dark">Workshop performance</p>
+                <h3>Inspection & approval trend</h3>
+              </div>
+              <span class="subtle-pill">Last 7 days</span>
+            </div>
+            <div class="chart-bars" aria-label="Demo workshop chart">
+              <div class="chart-day"><span style="height:54%"></span><i style="height:43%"></i><b>Mon</b></div>
+              <div class="chart-day"><span style="height:68%"></span><i style="height:55%"></i><b>Tue</b></div>
+              <div class="chart-day"><span style="height:61%"></span><i style="height:48%"></i><b>Wed</b></div>
+              <div class="chart-day"><span style="height:78%"></span><i style="height:66%"></i><b>Thu</b></div>
+              <div class="chart-day"><span style="height:72%"></span><i style="height:63%"></i><b>Fri</b></div>
+              <div class="chart-day"><span style="height:88%"></span><i style="height:77%"></i><b>Sat</b></div>
+              <div class="chart-day"><span style="height:69%"></span><i style="height:61%"></i><b>Sun</b></div>
+            </div>
+            <div class="chart-legend">
+              <span><i class="legend-dot blue"></i>Inspections</span>
+              <span><i class="legend-dot green"></i>Authorised</span>
+            </div>
+          </article>
+
+          <article class="panel vehicle-overview-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow dark">Current vehicle</p>
+                <h3>AB12 CDE · Health snapshot</h3>
+              </div>
+              <button class="link-btn" data-route="report" type="button">Open report →</button>
+            </div>
+            <div class="health-snapshot">
+              <div class="score-ring"><strong>68</strong><span>Health score</span></div>
+              <div>
+                <div class="mini-stat"><span>Urgent</span><strong id="urgentCount">1</strong></div>
+                <div class="mini-stat"><span>Attention</span><strong id="attentionCount">7</strong></div>
+                <div class="mini-stat"><span>Healthy</span><strong>16</strong></div>
+              </div>
+            </div>
+            <div class="vehicle-summary-list">
+              <div><span>Mileage</span><strong>41,280 miles</strong></div>
+              <div><span>Last visit</span><strong>12 Mar 2026</strong></div>
+              <div><span>Customer</span><strong>Alex Morgan</strong></div>
+              <div><span>Report state</span><strong id="reportState">Awaiting decision</strong></div>
+            </div>
+          </article>
+
+          <article class="panel activity-panel">
+            <div class="panel-head">
+              <div><p class="eyebrow dark">Recent activity</p><h3>Live dealer feed</h3></div>
+            </div>
+            <div class="activity-list">
+              <div class="activity-row"><span class="activity-icon good">✓</span><div><strong>Inspection completed</strong><small>AB12 CDE · 8 findings recorded</small></div><time>10 min</time></div>
+              <div class="activity-row"><span class="activity-icon blue-bg">↗</span><div><strong>Report issued</strong><small>CD34 EFG · customer link sent</small></div><time>28 min</time></div>
+              <div class="activity-row"><span class="activity-icon good">£</span><div><strong>Work approved</strong><small>EF56 HIJ · £385 authorised</small></div><time>1 hr</time></div>
+              <div class="activity-row"><span class="activity-icon amber-bg">?</span><div><strong>Customer question</strong><small>GH78 KLM · battery warranty</small></div><time>2 hr</time></div>
+            </div>
+          </article>
+
+          <article class="panel queue-panel">
+            <div class="panel-head">
+              <div><p class="eyebrow dark">Workshop queue</p><h3>Today</h3></div>
+              <span class="live-label"><i></i>Live</span>
+            </div>
+            <div class="queue-list">
+              <div class="queue-row current"><b>1</b><div><strong>AB12 CDE</strong><small>Inspection · Bay 1</small></div><span>In progress</span></div>
+              <div class="queue-row"><b>2</b><div><strong>BL73 XPT</strong><small>Service + repairs · Bay 2</small></div><span>Waiting</span></div>
+              <div class="queue-row"><b>3</b><div><strong>KT24 FHV</strong><small>Diagnostic · Bay 3</small></div><span>In progress</span></div>
+              <div class="queue-row"><b>4</b><div><strong>MV73 LDE</strong><small>Tyres · Bay 4</small></div><span>Waiting</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="route-inspection" class="route">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow dark">Technician capture</p>
+            <h2>Quick inspection · AB12 CDE</h2>
+            <p>The technician records facts. The platform automatically turns them into the customer’s 3D explanation.</p>
+          </div>
+          <div class="capture-progress">
+            <strong id="captureProgress">8 / 8</strong>
+            <span>items captured</span>
+          </div>
+        </div>
+
+        <div class="technician-layout">
+          <aside class="component-list panel">
+            <div class="component-list-head">
+              <strong>Inspection items</strong>
+              <small>Tap one to update</small>
+            </div>
+            <div id="techComponentList"></div>
+          </aside>
+
+          <section class="capture-card panel">
+            <div class="capture-header">
+              <div>
+                <span id="techCategory" class="category-chip">Tyres</span>
+                <h3 id="techTitle">Front left tyre</h3>
+                <p id="techLocation">Nearside front</p>
+              </div>
+              <span id="techAutoSeverity" class="severity red">Urgent · automatic</span>
+            </div>
+
+            <div class="simple-form">
+              <label>
+                <span id="measurementFieldLabel">Tread depth</span>
+                <div class="measurement-input">
+                  <input id="techMeasurement" type="number" step="0.1" inputmode="decimal" />
+                  <strong id="techUnit">mm</strong>
+                </div>
+              </label>
+
+              <label>
+                Condition
+                <select id="techCondition">
+                  <option value="Normal">Normal</option>
+                  <option value="Worn">Worn</option>
+                  <option value="Uneven wear">Uneven wear</option>
+                  <option value="Damaged">Damaged</option>
+                  <option value="Reduced performance">Reduced performance</option>
+                  <option value="Corroded">Corroded</option>
+                </select>
+              </label>
+
+              <label>
+                Recommendation
+                <select id="techRecommendation">
+                  <option value="Monitor">Monitor</option>
+                  <option value="Replace soon">Replace soon</option>
+                  <option value="Replace">Replace</option>
+                  <option value="Repair">Repair</option>
+                  <option value="No action required">No action required</option>
+                </select>
+              </label>
+
+              <label class="wide-field">
+                Technician note
+                <textarea id="techNote" rows="4" placeholder="Short workshop note only — customer wording is generated automatically."></textarea>
+              </label>
+
+              <label class="wide-field evidence-drop">
+                <input id="evidenceInput" type="file" accept="image/*,video/*" />
+                <span class="evidence-plus">＋</span>
+                <strong>Add photo or video</strong>
+                <small id="evidenceFileName">No additional evidence selected</small>
+              </label>
+            </div>
+
+            <div class="auto-output">
+              <div>
+                <span>Customer mapping</span>
+                <strong id="techModuleName">Tyre / wheel exploded view</strong>
+              </div>
+              <div>
+                <span>Customer explanation</span>
+                <strong>Generated automatically from structured data</strong>
+              </div>
+              <div>
+                <span>Pricing</span>
+                <strong>Handled by service adviser</strong>
+              </div>
+            </div>
+
+            <div class="capture-actions">
+              <span id="captureSaved" class="save-status"></span>
+              <button id="saveFinding" class="primary-btn" type="button">Save finding</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="inspection-bottom-actions">
+          <button class="secondary-btn" data-route="dashboard" type="button">Back to dashboard</button>
+          <button class="primary-btn" data-route="report" type="button">Preview customer report →</button>
+        </div>
+      </section>
+
+      <section id="route-report" class="route">
+        <div class="customer-report-head">
+          <div>
+            <p class="eyebrow dark">Customer view</p>
+            <h2>Your Vehicle Health Report</h2>
+            <p>2021 Example SUV · AB12 CDE · 41,280 miles</p>
+          </div>
+          <div class="report-health">
+            <span>Health score</span>
+            <strong>68</strong>
+          </div>
+        </div>
+
+        <div class="customer-layout">
+          <section class="vehicle-view-card panel">
+            <div class="viewer-toolbar">
+              <div>
+                <span id="viewerModeLabel" class="viewer-mode">Vehicle overview</span>
+                <strong id="viewerTitle">Tap an issue to explore it</strong>
+              </div>
+              <div class="viewer-toolbar-actions">
+                <button id="backToVehicle" class="secondary-btn hidden" type="button">← Back to vehicle</button>
+                <button id="resetView" class="secondary-btn" type="button">Reset view</button>
+              </div>
+            </div>
+            <div id="viewer" class="viewer">
+              <div id="viewerLoading" class="viewer-loading">
+                <span class="spinner"></span>
+                <strong>Loading interactive vehicle…</strong>
+              </div>
+              <div id="viewerError" class="viewer-loading hidden">
+                <strong>3D view unavailable</strong>
+                <span>The rest of the demo remains usable.</span>
+              </div>
+              <div class="viewer-help">Drag to rotate · scroll/pinch to zoom · tap a marker</div>
+            </div>
+          </section>
+
+          <aside class="report-side panel">
+            <div class="selected-issue-head">
+              <div>
+                <span id="reportSeverity" class="severity red">Urgent</span>
+                <h3 id="reportTitle">Front left tyre</h3>
+                <p id="reportLocation">Nearside front</p>
+              </div>
+              <div class="issue-price">
+                <span>Estimated</span>
+                <strong id="reportPrice">£145</strong>
+              </div>
+            </div>
+
+            <div class="measurement-card">
+              <div>
+                <span id="reportMeasurementLabel">Tread depth</span>
+                <strong><b id="reportMeasurement">1.3</b> <small id="reportUnit">mm</small></strong>
+              </div>
+              <div class="meter"><span id="measurementFill" style="width:16%"></span><i id="measurementMarker" style="left:16%"></i></div>
+              <div class="meter-labels"><span>Replace</span><span>Monitor</span><span>Healthy</span></div>
+            </div>
+
+            <div class="plain-explanation">
+              <div><span>What we found</span><p id="reportFound"></p></div>
+              <div><span>Why it matters</span><p id="reportWhy"></p></div>
+              <div><span>Recommendation</span><p id="reportRecommendationText"></p></div>
+            </div>
+
+            <div class="evidence-card">
+              <div class="evidence-card-head"><span>Technician evidence</span><strong id="reportEvidenceTitle">Tread measurement</strong></div>
+              <div id="reportEvidenceVisual" class="evidence-visual"></div>
+            </div>
+
+            <div class="history-card">
+              <div class="history-card-head"><span>Component health history</span><strong id="historyDelta">−1.5 mm</strong></div>
+              <div id="historyChart" class="history-chart"></div>
+            </div>
+
+            <div class="decision-actions">
+              <button id="approveBtn" class="approve-btn" type="button">Approve <span id="approveAmount">£145</span></button>
+              <button id="askBtn" class="secondary-btn" type="button">Ask a question</button>
+              <button id="deferBtn" class="secondary-btn" type="button">Defer</button>
+            </div>
+            <div id="decisionStatus" class="decision-status"></div>
+          </aside>
+        </div>
+
+        <div class="findings-strip panel">
+          <div class="findings-strip-head">
+            <div><p class="eyebrow dark">Inspection findings</p><h3>Choose an item to explore</h3></div>
+            <span>3D exploded views generated from technician data</span>
+          </div>
+          <div id="customerFindings" class="finding-cards"></div>
+        </div>
+      </section>
+
+      <section id="route-communications" class="route">
+        <div class="communications-head">
+          <div>
+            <p class="eyebrow dark">Customer decisions</p>
+            <h2>Communications & approvals</h2>
+            <p>Customer choices flow straight back into the dealership with the vehicle and finding attached.</p>
+          </div>
+          <div class="comm-kpis">
+            <div><span>Awaiting</span><strong id="commAwaiting">7</strong></div>
+            <div><span>Approved</span><strong id="commApproved">6</strong></div>
+            <div><span>Questions</span><strong id="commQuestions">2</strong></div>
+          </div>
+        </div>
+
+        <div class="communications-layout">
+          <section class="panel conversation-list">
+            <div class="conversation-tabs">
+              <button class="active" type="button">All</button>
+              <button type="button">Pending</button>
+              <button type="button">Approved</button>
+              <button type="button">Questions</button>
+              <button type="button">Deferred</button>
+            </div>
+            <div id="conversationFeed"></div>
+          </section>
+
+          <aside class="panel conversation-detail">
+            <p class="eyebrow dark">Selected conversation</p>
+            <h3>Alex Morgan · AB12 CDE</h3>
+            <div class="conversation-context">
+              <span id="conversationFinding">Front left tyre</span>
+              <strong id="conversationPrice">£145</strong>
+            </div>
+            <div id="conversationMessages" class="message-thread"></div>
+            <label class="reply-box">
+              <span>Reply to customer</span>
+              <textarea id="replyText" rows="4" placeholder="Type a reply…"></textarea>
+            </label>
+            <button id="sendReply" class="primary-btn" type="button">Send reply</button>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <footer class="legal-footer">
+    3D vehicle model: “Lowpoly Generic SUV” by mk2design, used under CC BY 4.0. Demo content is illustrative.
+  </footer>
+
+  <script type="module" src="./app.js?v=1"></script>
 </body>
 </html>

@@ -1,314 +1,510 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js?v=15';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js?v=15';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-const ISSUES = [
+const $ = (id) => document.getElementById(id);
+const money = (v) => v === 0 ? 'No charge' : new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(v);
+
+const MODULE_LABELS = {
+  tyre:'Tyre / wheel exploded view',
+  brake:'Brake pad + disc exploded view',
+  battery:'12V battery exploded view',
+  lamp:'Headlamp exploded view',
+  wiper:'Wiper blade exploded view',
+  airFilter:'Engine air filter exploded view',
+  cabinFilter:'Cabin / pollen filter exploded view',
+  exhaust:'Exhaust system exploded view'
+};
+
+const DEFAULT_FINDINGS = [
   {
-    id:'tyre-fl', icon:'◉', component:'Wheel_FL', title:'Front left tyre', location:'Nearside front wheel',
-    severity:'red', severityLabel:'Urgent', price:145,
-    summary:'The tyre has worn past the legal tread limit.',
-    found:'The grooves in this tyre have worn down too far. We measured the tread at 1.3 mm.',
-    why:'Those grooves help the tyre grip the road and move water away from underneath it. When they become too shallow, the tyre cannot do that job as effectively.',
-    risk:'Grip can be reduced in wet weather and stopping distances can increase. Because the tyre is below the legal minimum, the vehicle should not be used normally until it has been replaced.',
-    recommend:'Replace this tyre before normal road use. We would also check the opposite tyre for uneven wear and confirm the tyre pressures.',
-    technical:'Technician note: NSF tyre measured at 1.3 mm across the principal grooves. Sample classification: urgent.',
-    evidenceTitle:'Tread depth measurement',
-    evidenceText:'In production, the technician photo would show the tread gauge so you can see the measurement.'
+    id:'tyre-fl', icon:'◉', category:'Tyres', module:'tyre', title:'Front left tyre', location:'Nearside front',
+    measurementLabel:'Tread depth', value:1.3, unit:'mm', min:0, max:8, red:1.6, amber:3,
+    direction:'lowBad', condition:'Uneven wear', recommendation:'Replace', price:145,
+    note:'NSF tyre measured at 1.3 mm across principal grooves.',
+    found:'The front left tyre has worn below the legal tread limit.',
+    why:'Tyre tread helps the vehicle grip the road and clear standing water. Low tread can reduce wet-weather grip and increase stopping distance.',
+    history:[5.6,4.2,2.8,1.3], historyDates:['Mar 25','Sep 25','Mar 26','Today']
   },
   {
-    id:'brake-rr', icon:'◌', component:'Wheel_RR', hotspot:'brake', title:'Rear right brake pads', location:'Offside rear wheel',
-    severity:'amber', severityLabel:'Attention', price:210,
-    summary:'The brake pads are getting low and will need replacing soon.',
-    found:'The rear brake pads still work, but there is much less friction material left than when they were new.',
-    why:'Brake pads are designed to wear down as they slow the car. Once they become thin, there is less material remaining before the metal backing reaches the brake disc.',
-    risk:'If they wear too far, braking performance can be affected and the brake discs can also be damaged. That can turn a routine pad replacement into a more expensive repair.',
-    recommend:'Plan to replace the rear brake pads soon. They are not shown as an immediate stop-driving issue in this sample.',
-    technical:'Technician note: OSR pad approximately 3 mm remaining. Rear axle inspection recommended.',
-    evidenceTitle:'Brake pad thickness',
-    evidenceText:'A close-up workshop photo could show the remaining pad material beside a reference scale.'
+    id:'brake-rr', icon:'◎', category:'Brakes', module:'brake', title:'Rear right brake pads', location:'Offside rear',
+    measurementLabel:'Pad thickness', value:3.0, unit:'mm', min:0, max:10, red:2, amber:4,
+    direction:'lowBad', condition:'Worn', recommendation:'Replace soon', price:210,
+    note:'OSR brake pad approximately 3 mm remaining.',
+    found:'The rear right brake pads are getting low.',
+    why:'Brake pads are designed to wear as they slow the vehicle. If they become too thin they can affect braking and damage the brake disc.',
+    history:[7.5,6.1,4.4,3.0], historyDates:['Mar 25','Sep 25','Mar 26','Today']
   },
   {
-    id:'lamp-fr', icon:'✦', hotspot:'lampFR', title:'Front right headlamp', location:'Offside front lamp',
-    severity:'amber', severityLabel:'Attention', price:65,
-    summary:'The lamp is working, but its light output is weaker than expected.',
-    found:'The front right lamp is producing less light than the other side.',
-    why:'Your headlamps help you see the road and help other road users see you. Both sides should provide a clear and balanced light output.',
-    risk:'Visibility may be reduced at night or in poor weather, and a lamp fault can become an MOT issue depending on the cause and severity.',
-    recommend:'Inspect the bulb, lens and electrical connection and repair the cause of the reduced output.',
-    technical:'Technician note: OSF headlamp output visually reduced compared with NSF. Confirm beam pattern during repair.',
-    evidenceTitle:'Lamp comparison',
-    evidenceText:'A photo showing both lamps switched on would make the difference easy to understand.'
+    id:'battery', icon:'⚡', category:'Battery', module:'battery', title:'12V battery', location:'Engine bay',
+    measurementLabel:'State of health', value:71, unit:'%', min:0, max:100, red:50, amber:75,
+    direction:'lowBad', condition:'Reduced performance', recommendation:'Monitor', price:189,
+    note:'Battery tester reports 71% state of health. Charging system normal.',
+    found:'The battery is still usable but its health is starting to decline.',
+    why:'The 12V battery powers the vehicle electronics and provides the energy needed to start the vehicle. A weakening battery can eventually lead to slow or failed starting.',
+    history:[94,87,79,71], historyDates:['Mar 25','Sep 25','Mar 26','Today']
   },
   {
-    id:'battery', icon:'⚡', hotspot:'battery', title:'12V battery', location:'Engine bay',
-    severity:'amber', severityLabel:'Attention', price:0,
-    summary:'The battery is still usable, but its health is starting to decline.',
-    found:'The battery health test returned 71%. It is currently starting the vehicle, but it is no longer at full strength.',
-    why:'The 12V battery powers the vehicle electronics and provides the energy needed to start the car. Batteries gradually lose capacity as they age.',
-    risk:'A weakening battery can eventually cause slow starting or leave the vehicle unable to start, especially during colder weather or after the car has been left standing.',
-    recommend:'No replacement is required today in this sample. Retest it at the next service or sooner if starting becomes slower.',
-    technical:'Technician note: battery state of health 71% in sample test. Charging system normal. Recommendation: monitor.',
-    evidenceTitle:'Battery health test',
-    evidenceText:'The production report could show a photo or screenshot of the workshop battery tester result.'
+    id:'lamp-fr', icon:'✦', category:'Lighting', module:'lamp', title:'Front right headlamp', location:'Offside front',
+    measurementLabel:'Relative light output', value:72, unit:'%', min:0, max:100, red:50, amber:80,
+    direction:'lowBad', condition:'Reduced performance', recommendation:'Repair', price:65,
+    note:'OSF headlamp output visually reduced compared with NSF.',
+    found:'The front right headlamp is producing less light than expected.',
+    why:'Headlamps help you see the road and help other road users see you. Reduced output can affect night-time visibility and may become an MOT issue.',
+    history:[100,94,83,72], historyDates:['Mar 25','Sep 25','Mar 26','Today']
+  },
+  {
+    id:'wiper-front', icon:'⌁', category:'Wipers', module:'wiper', title:'Front wiper blades', location:'Windscreen',
+    measurementLabel:'Blade condition', value:45, unit:'%', min:0, max:100, red:30, amber:60,
+    direction:'lowBad', condition:'Worn', recommendation:'Replace soon', price:42,
+    note:'Front blades leave visible streaks during wet test.',
+    found:'The front wiper blades are leaving streaks on the windscreen.',
+    why:'Wiper blades need to clear water cleanly so you can see properly in rain. Worn rubber can smear the screen instead.',
+    history:[100,82,65,45], historyDates:['Mar 25','Sep 25','Mar 26','Today']
+  },
+  {
+    id:'air-filter', icon:'▤', category:'Service', module:'airFilter', title:'Engine air filter', location:'Engine bay',
+    measurementLabel:'Filter condition', value:52, unit:'%', min:0, max:100, red:25, amber:60,
+    direction:'lowBad', condition:'Worn', recommendation:'Replace soon', price:58,
+    note:'Filter element visibly contaminated with dust and debris.',
+    found:'The engine air filter is becoming dirty and restricted.',
+    why:'The air filter helps keep dirt out of the engine. A heavily contaminated filter can restrict airflow and reduce efficiency.',
+    history:[100,88,70,52], historyDates:['Mar 25','Sep 25','Mar 26','Today']
+  },
+  {
+    id:'cabin-filter', icon:'▥', category:'Service', module:'cabinFilter', title:'Cabin pollen filter', location:'Passenger compartment',
+    measurementLabel:'Filter condition', value:40, unit:'%', min:0, max:100, red:25, amber:60,
+    direction:'lowBad', condition:'Worn', recommendation:'Replace soon', price:49,
+    note:'Pollen filter visibly dark with debris trapped in pleats.',
+    found:'The cabin pollen filter is dirty.',
+    why:'This filter cleans the air entering the cabin. When it becomes blocked it can reduce airflow and allow more dust and pollen through.',
+    history:[100,85,61,40], historyDates:['Mar 25','Sep 25','Mar 26','Today']
+  },
+  {
+    id:'exhaust', icon:'≈', category:'Exhaust', module:'exhaust', title:'Rear exhaust section', location:'Underbody',
+    measurementLabel:'Condition score', value:58, unit:'%', min:0, max:100, red:30, amber:65,
+    direction:'lowBad', condition:'Corroded', recommendation:'Monitor', price:260,
+    note:'Surface corrosion visible on rear silencer and joint. No major leak detected.',
+    found:'The rear exhaust section is showing corrosion.',
+    why:'The exhaust carries gases safely away from the vehicle. Corrosion can eventually lead to leaks, increased noise or an MOT failure.',
+    history:[100,88,72,58], historyDates:['Mar 25','Sep 25','Mar 26','Today']
   }
 ];
 
-// v14: session-only report state; no workshop submissions or forced scrolling.
-const $ = id => document.getElementById(id);
-const money = value => value === 0 ? 'No charge' : `£${value}`;
-const measurements = {
-  'tyre-fl': {label:'Tread depth',value:1.3,unit:'mm',max:8,stops:[20,37.5],labels:['Replace','Plan soon','Healthy'],note:'Illustrative tread bands: below 1.6 mm / 1.6–3 mm / above 3 mm.',history:[5.6,4.2,2.8,1.3],parts:['Tyre & worn tread','Wheel rim','Hub'],short:'Tyre'},
-  'brake-rr': {label:'Pad material remaining',value:3,unit:'mm',max:12,stops:[16.7,33.3],labels:['Replace','Plan soon','Healthy'],note:'Demo pad bands only; replacement limits depend on the vehicle.',history:[10,7,5,3],parts:['Wheel','Outer pad','Brake disc','Inner pad','Caliper'],short:'Brakes'},
-  battery: {label:'Battery state of health',value:71,unit:'%',max:100,stops:[50,75],labels:['Investigate','Monitor','Healthy'],note:'Sample health bands; interpret with the complete battery test.',history:[96,88,79,71],parts:['Battery cover','Cell pack','Battery case','Terminals'],short:'Battery'},
-  'lamp-fr': {label:'Relative lamp output',value:62,unit:'%',max:100,stops:[40,80],labels:['Investigate','Reduced','Reference'],note:'Illustrative output relative to the other lamp; not a calibrated beam test.',history:[100,94,80,62],parts:['Clear lens','Reflector','Bulb','Lamp housing'],short:'Headlamp'}
+const clone = (v) => JSON.parse(JSON.stringify(v));
+const saved = localStorage.getItem('vehicleHealthDemoState');
+const state = saved ? JSON.parse(saved) : {
+  findings:clone(DEFAULT_FINDINGS),
+  decisions:{},
+  messages:[
+    {id:'m1',person:'Sarah Mitchell',initials:'SM',vehicle:'2024 Example SUV',time:'2 min ago',type:'question',finding:'Front tyres',text:'Can you confirm if this tyre replacement includes alignment?'},
+    {id:'m2',person:'James Carter',initials:'JC',vehicle:'2022 Family SUV',time:'18 min ago',type:'approved',finding:'Front brake pads',text:'Approved front brake pads and wiper blades.'},
+    {id:'m3',person:'Priya Desai',initials:'PD',vehicle:'2023 Saloon',time:'1 hour ago',type:'question',finding:'12V battery',text:'Is the battery covered by a warranty?'}
+  ]
 };
-const decisions = new Map(), questions = new Map();
-let selectedId = ISSUES[0].id, currentFilter = 'all', viewMode = 'overview', engine = null;
-const currentIssue = () => ISSUES.find(issue => issue.id === selectedId);
-function toast(text){ $('toast').textContent=text; $('toast').classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>$('toast').classList.remove('show'),3000); }
-function renderFindings(){
-  $('findings').replaceChildren(); $('issueNav').replaceChildren();
-  ISSUES.forEach(issue=>{
-    const decision=decisions.get(issue.id);
-    const nav=document.createElement('button'); nav.type='button'; nav.textContent=measurements[issue.id].short;
-    nav.setAttribute('aria-label',`Inspect ${issue.title}`); nav.setAttribute('aria-pressed',String(viewMode==='focus'&&selectedId===issue.id));
-    nav.onclick=()=>selectIssue(issue.id); $('issueNav').append(nav);
-    if(currentFilter!=='all' && (currentFilter==='approved'?decision!=='approved':issue.severity!==currentFilter))return;
-    const button=document.createElement('button'); button.type='button';button.className='finding';button.setAttribute('aria-pressed',String(selectedId===issue.id));
-    button.innerHTML=`<span><strong>${issue.title}</strong><small>${money(issue.price)}${decision?` · ${decision==='approved'?'Approved':'Deferred'}`:''}${questions.has(issue.id)?' · Question saved':''}</small></span><span class="severity ${issue.severity}">${issue.severityLabel}</span>`;
-    button.onclick=()=>selectIssue(issue.id);$('findings').append(button);
-  });
-  if(!$('findings').children.length){const p=document.createElement('p');p.textContent='No findings match this filter.';$('findings').append(p);}
-}
-function renderDetail(){
-  const issue=currentIssue(), m=measurements[issue.id];
-  for(const [element,field] of Object.entries({detailTitle:'title',detailLocation:'location',detailFound:'found',detailWhy:'why',detailRisk:'risk',detailRecommend:'recommend',technical:'technical',evidenceTitle:'evidenceTitle'}))$(element).textContent=issue[field];
-  $('detailSeverity').className=`severity ${issue.severity}`;$('detailSeverity').textContent=issue.severityLabel;$('detailPrice').textContent=money(issue.price);
-  $('evidenceText').textContent=`Sample inspection: ${m.label.toLowerCase()} recorded as ${m.value}${m.unit==='%'?'':' '}${m.unit}. ${issue.evidenceText}`;
-  $('measureTitle').textContent=m.label;$('measureValue').textContent=`${m.value}${m.unit==='%'?'':' '}${m.unit}`;$('measureNote').textContent=m.note;
-  $('gauge').style.background=`linear-gradient(90deg,#db6473 0 ${m.stops[0]}%,#e4b457 ${m.stops[0]}% ${m.stops[1]}%,#63ae96 ${m.stops[1]}%)`;
-  $('gauge').setAttribute('aria-label',`${m.label}: ${m.value} ${m.unit}. ${m.note}`);$('gaugePointer').style.left=`${m.value/m.max*100}%`;
-  $('gaugeLabels').replaceChildren(...m.labels.map(label=>{const el=document.createElement('span');el.textContent=label;return el;}));
-  const points=m.history.map((v,i)=>`${16+i*109},${70-v/m.max*55}`);
-  $('historyChart').innerHTML=`<path d="M16 73H344" stroke="#dce3eb"/><polyline points="${points.join(' ')}" fill="none" stroke="#4971a7" stroke-width="2.5"/>${points.map((point,i)=>`<circle cx="${point.split(',')[0]}" cy="${point.split(',')[1]}" r="4" fill="${i===3?'#b77e31':'#4971a7'}"/>`).join('')}`;
-  $('historyChart').setAttribute('aria-label',`${m.label} history: ${m.history.join(', ')} ${m.unit}`);
-  $('historyValues').innerHTML=m.history.map((value,i)=>`<span><small>${['Mar 2024','Mar 2025','Mar 2026','Today'][i]}</small>${value}${m.unit==='%'?'':' '}${m.unit}</span>`).join('');
-  const delta=+(m.value-m.history[2]).toFixed(1);$('historyDelta').textContent=`${delta} ${m.unit==='%'?'points':m.unit} since last visit`;
-  const decision=decisions.get(issue.id);$('approve').textContent=decision==='approved'?'Approved ✓':'Approve this work';$('approve').setAttribute('aria-pressed',String(decision==='approved'));
-  $('defer').textContent=decision==='deferred'?'Deferred ✓':'Defer for now';$('defer').setAttribute('aria-pressed',String(decision==='deferred'));
-  $('ask').textContent=questions.has(issue.id)?'Edit question':'Ask a question';
-  $('decisionNote').textContent=`${decision?`${decision==='approved'?'Approved':'Deferred'} in this demo. `:''}${questions.has(issue.id)?'Question saved. ':''}Session only; nothing is sent to the workshop.`;
-  const approved=ISSUES.filter(i=>decisions.get(i.id)==='approved');$('approvedTotal').textContent=`£${approved.reduce((s,i)=>s+i.price,0)} approved · ${approved.length} item${approved.length===1?'':'s'}`;
-  renderFindings();
-}
-function renderMode(){
-  const focused=viewMode==='focus';$('backVehicle').hidden=!focused;$('explodeControl').hidden=!focused;$('schematicNote').hidden=!focused;
-  $('viewMode').textContent=focused?'Exploded part view':'Vehicle overview';$('viewTitle').textContent=focused?currentIssue().title:'Explore your vehicle';
-  $('viewHint').textContent=focused?'Drag to rotate. Use the slider to bring the parts together.':'Choose a finding or a coloured marker. Drag to rotate; pinch to zoom.';
-  $('viewer').setAttribute('aria-label',focused?`${currentIssue().title}: ${measurements[selectedId].parts.join(', ')}`:'Interactive full vehicle overview');
-}
-function selectIssue(id){selectedId=id;viewMode='focus';$('explodeRange').value='100';renderDetail();renderMode();engine?.focus(currentIssue());}
-function backToVehicle(){viewMode='overview';renderMode();renderFindings();engine?.overview();$('backVehicle').hidden=true;}
-$('backVehicle').onclick=()=>{backToVehicle();$('resetView').focus({preventScroll:true});};
-$('approve').onclick=()=>{decisions.set(selectedId,'approved');renderDetail();toast('Approval saved in this demo.');};
-$('defer').onclick=()=>{decisions.set(selectedId,'deferred');renderDetail();toast('Deferral saved in this demo.');};
-let questionIssueId=null;
-$('ask').onclick=()=>{questionIssueId=selectedId;$('questionSubject').textContent=currentIssue().title;$('questionText').value=questions.get(selectedId)||'';$('questionDialog').showModal();};
-$('cancelQuestion').onclick=()=>$('questionDialog').close();
-$('questionForm').onsubmit=e=>{e.preventDefault();const value=$('questionText').value.trim();if(!value){$('questionText').setCustomValidity('Please enter a question.');$('questionText').reportValidity();return;}questions.set(questionIssueId,value);$('questionDialog').close();renderDetail();toast('Question saved locally for this session.');};
-$('questionText').oninput=()=>$('questionText').setCustomValidity('');
-$('reviewApprovals').onclick=()=>{
-  $('reviewList').replaceChildren();
-  ISSUES.forEach(issue=>{const row=document.createElement('p');row.textContent=`${issue.title} · ${decisions.get(issue.id)||'No decision'} · ${money(issue.price)}${questions.has(issue.id)?` — Question: ${questions.get(issue.id)}`:''}`;$('reviewList').append(row);});
-  $('reviewDialog').showModal();
-};
-$('closeReview').onclick=()=>$('reviewDialog').close();
-document.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{currentFilter=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderFindings();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&viewMode==='focus')backToVehicle();});
-$('resetView').onclick=()=>engine?.reset();$('toggleRotate').onclick=()=>engine?.toggleRotate();$('explodeRange').oninput=e=>engine?.separate(Number(e.target.value)/100);
-renderDetail();renderMode();
+let evidenceUrls = {};
+let selectedFindingId = state.findings[0].id;
+let selectedTechId = state.findings[0].id;
+let currentRoute = 'dashboard';
+let selectedConversation = 0;
 
-function createViewer(){
-  const viewer=$('viewer'), scene=new THREE.Scene();scene.background=new THREE.Color(0x0a1220);
-  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;viewer.prepend(renderer.domElement);
-  const camera=new THREE.PerspectiveCamera(36,1,.05,100);camera.position.set(5,3.2,6);
-  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.enablePan=false;controls.target.set(0,.8,0);controls.minDistance=2;controls.maxDistance=10;controls.maxPolarAngle=Math.PI*.86;controls.autoRotateSpeed=.7;
-  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
-  scene.add(new THREE.HemisphereLight(0xd5eaff,0x303044,2.5));
-  for(const [position,color,power] of [[[4,6,4],0xfff1df,4],[[-4,3,-2],0xa4c6ff,3]]){const light=new THREE.DirectionalLight(color,power);light.position.set(...position);scene.add(light);}
-  const floor=new THREE.Mesh(new THREE.CircleGeometry(3.8,64),new THREE.MeshStandardMaterial({color:0x111e31,roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.y=.01;scene.add(floor);
-  let car=null, bounds=null, module=null, animation=null, carOpacity=1, separation=1, targetSeparation=1;
-  const overviewPosition=new THREE.Vector3(5,3.2,6),overviewTarget=new THREE.Vector3(0,.85,0),markers=[],clickables=[],carMaterials=[];
-  const markerGroup=new THREE.Group();scene.add(markerGroup);
-  function stopRotation(){controls.autoRotate=false;$('toggleRotate').textContent='Rotate';$('toggleRotate').setAttribute('aria-pressed','false');}
-  controls.addEventListener('start',()=>{stopRotation();if(animation)animation.cameraEnabled=false;});
-  function fadeCar(value){carOpacity=value;if(!car)return;car.visible=value>.015;carMaterials.forEach(({material,opacity,transparent,depthWrite})=>{material.opacity=opacity*value;material.transparent=value<.999||transparent;material.depthWrite=value<.999?false:depthWrite;});}
-  function clearModule(){if(!module)return;scene.remove(module.root);module.root.traverse(obj=>{if(obj.isMesh){if(!obj.userData.sharedGeometry)obj.geometry.dispose();if(obj.isInstancedMesh)obj.dispose();const mats=Array.isArray(obj.material)?obj.material:[obj.material];mats.forEach(m=>m.dispose());}});module=null;$('partLabels').replaceChildren();}
-  function transition(position,target,opacity,onEnd){animation={start:performance.now(),duration:reduceMotion.matches?0:950,from:camera.position.clone(),to:position.clone(),targetFrom:controls.target.clone(),targetTo:target.clone(),opacityFrom:carOpacity,opacityTo:opacity,cameraEnabled:true,onEnd};}
-  function pointFor(issue){
-    if(!car||!bounds)return new THREE.Vector3(0,.9,0);
-    const anchor=car.getObjectByName(`ANCHOR_${issue.id}`);
-    if(anchor){const origin=anchor.getWorldPosition(new THREE.Vector3()),direction=new THREE.Vector3(...anchor.userData.rayDirection).transformDirection(car.matrixWorld);const hit=new THREE.Raycaster(origin,direction).intersectObject(car.getObjectByName('Body')||car,true)[0];if(hit)return hit.point.clone().addScaledVector(direction,-.025);}
-    const wheel=issue.component&&car.getObjectByName(issue.component);
-    const size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
-    // Intersect the actual component surface, rather than a padded scene box.
-    // The imported Shadow plane is deliberately excluded from body anchoring.
-    let origin,direction,target;
-    if(wheel){
-      const box=new THREE.Box3().setFromObject(wheel),c=box.getCenter(new THREE.Vector3());
-      const side=Math.sign(c.x-center.x)||1;
-      origin=c.clone().add(new THREE.Vector3(side*size.x,0,0));direction=new THREE.Vector3(-side,0,0);target=wheel;
-    }else if(issue.id==='battery'){
-      origin=new THREE.Vector3(center.x,bounds.max.y+1,center.z+size.z*.28);direction=new THREE.Vector3(0,-1,0);target=car.getObjectByName('Body');
-    }else{
-      const rightWheel=car.getObjectByName('Wheel_FR');
-      const side=rightWheel?Math.sign(new THREE.Box3().setFromObject(rightWheel).getCenter(new THREE.Vector3()).x-center.x):-1;
-      origin=new THREE.Vector3(center.x+side*size.x*.32,bounds.min.y+size.y*.42,bounds.max.z+1);direction=new THREE.Vector3(0,0,-1);target=car.getObjectByName('Body');
-    }
-    const ray=new THREE.Raycaster(origin,direction);
-    const hit=target&&ray.intersectObject(target,true)[0];
-    if(hit)return hit.point.clone().addScaledVector(direction,-.025);
-    return wheel?new THREE.Box3().setFromObject(wheel).getCenter(new THREE.Vector3()):center;
+function persist(){ localStorage.setItem('vehicleHealthDemoState',JSON.stringify(state)); }
+function findingById(id){ return state.findings.find(x=>x.id===id); }
+function severityFor(f){
+  if(f.direction === 'lowBad'){
+    if(f.value <= f.red) return 'red';
+    if(f.value <= f.amber) return 'amber';
+    return 'green';
   }
-  function material(color,extra={}){return new THREE.MeshStandardMaterial({color,roughness:.48,metalness:.25,...extra});}
-  function makeModule(issue){
-    const root=new THREE.Group(),pieces=[],labels=[];root.position.set(0,1.05,0);scene.add(root);
-    function piece(name,geometry,mat,start,end){const mesh=new THREE.Mesh(geometry,mat);root.add(mesh);mesh.position.set(...start);const item={object:mesh,start:new THREE.Vector3(...start),end:new THREE.Vector3(...end)};pieces.push(item);if(name){const label=document.createElement('span');label.className='part-label';label.textContent=name;$('partLabels').append(label);labels.push({label,object:mesh});}return mesh;}
-    function flagLabel(object,title){const entry=labels.find(item=>item.object===object);if(!entry)return;entry.label.className=`part-label part-label--${issue.severity}`;if(title)entry.label.textContent=title;const status=document.createElement('small');status.className='part-label-status';status.textContent=issue.severityLabel;entry.label.append(status);}
-    const metal=()=>material(0xbac7d6,{metalness:.8,roughness:.3}), rubber=()=>material(0x242934,{roughness:.93,metalness:0}), amber=()=>material(0xe5aa43), red=()=>material(0xc65461);
-    const torus=(radius,tube)=>new THREE.TorusGeometry(radius,tube,16,64);
-    const cylinder=(radius,depth)=>{const geo=new THREE.CylinderGeometry(radius,radius,depth,64);geo.rotateX(Math.PI/2);return geo;};
-    const box=(x,y,z)=>new THREE.BoxGeometry(x,y,z);
-    // Original reusable parts: centimetre-scale details, no purchased meshes.
-    function ring(outer,inner,depth){const shape=new THREE.Shape();shape.absarc(0,0,outer,0,Math.PI*2,false);const hole=new THREE.Path();hole.absarc(0,0,inner,0,Math.PI*2,true);shape.holes.push(hole);const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false,curveSegments:48});geo.translate(0,0,-depth/2);return geo;}
-    function rounded(width,height,depth,radius=.035){const s=new THREE.Shape(),x=-width/2,y=-height/2,r=Math.min(radius,width/2,height/2);s.moveTo(x+r,y);s.lineTo(x+width-r,y);s.quadraticCurveTo(x+width,y,x+width,y+r);s.lineTo(x+width,y+height-r);s.quadraticCurveTo(x+width,y+height,x+width-r,y+height);s.lineTo(x+r,y+height);s.quadraticCurveTo(x,y+height,x,y+height-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);const geo=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.007,bevelThickness:.007,curveSegments:5});geo.translate(0,0,-depth/2);return geo;}
-    function attach(parent,geometry,mat,position=[0,0,0]){const mesh=new THREE.Mesh(geometry,mat);mesh.position.set(...position);parent.add(mesh);return mesh;}
-    function repeat(parent,geometry,mat,count,transform){const mesh=new THREE.InstancedMesh(geometry,mat,count),dummy=new THREE.Object3D();for(let i=0;i<count;i++){dummy.position.set(0,0,0);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);transform(dummy,i);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}mesh.instanceMatrix.needsUpdate=true;parent.add(mesh);return mesh;}
-    function circleBolts(parent,radius,z,count=5){repeat(parent,cylinder(.018,.025),metal(),count,(o,i)=>{const a=i/count*Math.PI*2;o.position.set(Math.cos(a)*radius,Math.sin(a)*radius,z);});}
-    function tyreGeometry(){const profile=[[.345,-.115],[.39,-.145],[.52,-.165],[.59,-.145],[.619,-.108],[.627,-.055],[.627,.055],[.619,.108],[.59,.145],[.52,.165],[.39,.145],[.345,.115],[.345,-.115]].map(([r,z])=>new THREE.Vector2(r,z));const geo=new THREE.LatheGeometry(profile,72);geo.rotateX(Math.PI/2);return geo;}
-    if(issue.id==='tyre-fl'){
-      const tyre=piece('Tyre · worn tread',tyreGeometry(),rubber(),[0,0,0],[0,0,.7]);
-      // Four staggered rows form a tread pattern with visible drainage channels.
-      repeat(tyre,box(.065,.014,.046),material(0x333a43,{roughness:.95,metalness:0}),192,(o,i)=>{const row=Math.floor(i/48),a=(i%48+(row%2)*.5)/48*Math.PI*2;o.position.set(Math.sin(a)*.626,Math.cos(a)*.626,(row-1.5)*.057);o.rotation.z=-a;});
-      for(const z of [-.149,.149]){attach(tyre,torus(.43,.004),material(0x525963,{roughness:.85}),[0,0,z]);attach(tyre,torus(.56,.003),rubber(),[0,0,z]);}
-      // Highlight only the inspected patch; the measurement stays in the report.
-      const patch=attach(tyre,new THREE.TorusGeometry(.634,.009,8,18,.48),red());patch.rotation.z=.9;
-      const rim=piece('Alloy wheel rim',ring(.346,.309,.235),metal(),[0,0,0],[0,0,-.09]);
-      attach(rim,torus(.332,.012),metal(),[0,0,.123]);attach(rim,cylinder(.087,.07),metal(),[0,0,.07]);
-      repeat(rim,rounded(.04,.245,.045,.012),metal(),10,(o,i)=>{const a=Math.floor(i/2)/5*Math.PI*2+(i%2===0?-.10:.10);o.position.set(Math.sin(a)*.19,Math.cos(a)*.19,.065);o.rotation.z=-a;});
-      circleBolts(rim,.061,.117);attach(rim,cylinder(.035,.016),material(0x586579),[0,0,.117]);
-      const valve=attach(rim,new THREE.CylinderGeometry(.008,.01,.055,12),rubber(),[.29,.08,.13]);valve.rotation.x=Math.PI/3;
-      const hub=piece('Wheel hub',cylinder(.105,.15),metal(),[0,0,-.18],[0,0,-.73]);circleBolts(hub,.072,.095);
-      tyre.userData.labelOffset=[0,.74,0];rim.userData.labelOffset=[-.5,-.48,0];hub.userData.labelOffset=[0,.24,0];
-      flagLabel(tyre);
-    }else if(issue.id==='brake-rr'){
-      let reused=false;const wheel=car?.getObjectByName('Wheel_RR');
-      if(wheel){
-        const clone=wheel.clone(true);wheel.updateWorldMatrix(true,true);wheel.matrixWorld.decompose(clone.position,clone.quaternion,clone.scale);
-        clone.traverse(obj=>{if(obj.isMesh){obj.userData.sharedGeometry=true;const copy=m=>{const result=m.clone(),original=carMaterials.find(entry=>entry.material===m);if(original){result.opacity=original.opacity;result.transparent=original.transparent;result.depthWrite=original.depthWrite;}return result;};obj.material=Array.isArray(obj.material)?obj.material.map(copy):copy(obj.material);}});
-        const wrap=new THREE.Group();wrap.add(clone);wrap.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(wrap),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3());clone.position.sub(c);wrap.scale.setScalar(1.1/Math.max(s.x,s.y,s.z));wrap.rotation.y=Math.PI/2;
-        const carrier=piece('Wheel',box(.01,.01,.01),metal(),[0,0,.2],[0,0,1.25]);carrier.add(wrap);reused=true;
-      }
-      if(!reused){const wheel=piece('Wheel',tyreGeometry(),rubber(),[0,0,.2],[0,0,1.25]);attach(wheel,ring(.346,.31,.2),metal());attach(wheel,cylinder(.085,.055),metal(),[0,0,.09]);repeat(wheel,rounded(.045,.25,.04,.012),metal(),5,(o,i)=>{const a=i/5*Math.PI*2;o.position.set(Math.sin(a)*.19,Math.cos(a)*.19,.08);o.rotation.z=-a;});circleBolts(wheel,.058,.13);wheel.userData.labelOffset=[0,.73,0];}
-      const disc=piece('Ventilated brake disc',ring(.4,.145,.016),metal(),[0,0,0],[0,0,-.15]);
-      attach(disc,ring(.4,.145,.016),metal(),[0,0,-.045]);
-      repeat(disc,box(.17,.009,.03),material(0x687687,{metalness:.7}),32,(o,i)=>{const a=i/32*Math.PI*2;o.position.set(Math.cos(a)*.27,Math.sin(a)*.27,-.0225);o.rotation.z=a;});
-      attach(disc,ring(.165,.052,.105),material(0x75808e,{metalness:.7}),[0,0,.018]);circleBolts(disc,.108,.084);
-      for(const radius of [.2,.27,.35,.388])attach(disc,torus(radius,.0016),material(0x8995a3,{metalness:.7,roughness:.5}),[0,0,.009]);
-      function pad(name,start,end){const backing=piece(name,rounded(.14,.3,.018,.052),material(0x526274),start,end);const friction=attach(backing,rounded(.12,.264,.021,.045),material(0xc39a57,{roughness:.92,metalness:0}),[0,0,.025]);attach(friction,box(.124,.009,.023),material(0x3b3a37),[0,0,0]);for(const y of [-.135,.135])attach(backing,box(.05,.025,.022),metal(),[0,y,0]);return backing;}
-      const outer=pad('Outer pad · 3 mm',[.29,0,.047],[.61,.17,.58]);
-      const inner=pad('Inner pad',[.29,0,-.092],[.61,.17,-.73]);inner.rotation.y=Math.PI;
-      const caliper=piece('Brake caliper',rounded(.1,.41,.10,.045),material(0x748397),[.46,0,-.02],[-.64,.13,-.28]);
-      for(const y of [-.155,.155])attach(caliper,rounded(.21,.082,.17,.025),material(0x748397),[-.10,y,0]);
-      attach(caliper,cylinder(.085,.04),material(0x445061),[-.12,0,-.09]);
-      repeat(caliper,box(.008,.22,.025),metal(),4,(o,i)=>o.position.set((i-1.5)*.02,0,.064));
-      disc.userData.labelOffset=[-.15,-.55,0];outer.userData.labelOffset=[.12,.35,0];inner.userData.labelOffset=[.2,-.34,0];caliper.userData.labelOffset=[-.1,.4,0];
-      flagLabel(outer);flagLabel(inner);
-    }else if(issue.id==='battery'){
-      // An open case, removable cover and six cells reveal the battery structure.
-      const base=piece('Battery case',rounded(1.08,.09,.68,.025),rubber(),[0,-.27,0],[0,-.49,0]);
-      for(const [size,pos] of [[[1.08,.46,.04],[0,.25,-.32]],[[.04,.46,.64],[-.52,.25,0]],[[.04,.46,.64],[.52,.25,0]]]){const wall=new THREE.Mesh(box(...size),rubber());wall.position.set(...pos);base.add(wall);}
-      // A low front wall exposes the illustrative lead-acid plate stacks.
-      attach(base,rounded(1.06,.12,.04,.015),rubber(),[0,.105,.32]);
-      repeat(base,box(.025,.36,.025),rubber(),9,(o,i)=>o.position.set((i-4)*.112,.22,-.346));
-      const cells=piece('Six-cell plate pack',box(.001,.001,.001),metal(),[0,0,0],[0,.04,.27]);
-      repeat(cells,box(.012,.345,.42),material(0x738899,{roughness:.73}),42,(o,i)=>{const cell=Math.floor(i/7),plate=i%7;o.position.set((cell-2.5)*.164+(plate-3)*.018,0,0);});
-      repeat(cells,box(.01,.35,.42),material(0xc3c4b2,{roughness:.95,metalness:0}),36,(o,i)=>{const cell=Math.floor(i/6),plate=i%6;o.position.set((cell-2.5)*.164+(plate-2.5)*.018,0,0);});
-      repeat(cells,box(.13,.025,.045),metal(),6,(o,i)=>o.position.set((i-2.5)*.164,.181,.13));
-      const cover=piece('Vented cover',rounded(1.12,.085,.7,.03),rubber(),[0,.28,0],[0,.68,0]);
-      repeat(cover,new THREE.CylinderGeometry(.033,.033,.018,16),material(0x576576),6,(o,i)=>o.position.set((i-2.5)*.164,.054,0));
-      const handle=attach(cover,rounded(.44,.11,.045,.035),material(0x536070),[0,.1,-.18]);attach(handle,rounded(.35,.055,.048,.02),rubber(),[0,-.019,0]);
-      const terminals=piece('Terminals + / −',box(.01,.01,.01),metal(),[0,.35,0],[0,.94,0]);
-      for(const x of [-.38,.38]){attach(terminals,new THREE.CylinderGeometry(.041,.052,.09,24),metal(),[x,0,.19]);attach(terminals,rounded(.12,.018,.12,.025),material(x<0?0xb64951:0x445061),[x,-.05,.19]);attach(terminals,box(.057,.01,.012),material(0xe4e9ef),[x,-.038,.24]);if(x<0)attach(terminals,box(.012,.01,.057),material(0xe4e9ef),[x,-.038,.24]);}
-      base.userData.labelOffset=[-.15,-.16,.1];cells.userData.labelOffset=[.12,-.05,.36];cover.userData.labelOffset=[-.63,.1,0];terminals.userData.labelOffset=[.3,.17,0];
-      flagLabel(base,'Battery · 71% health');
-    }else{
-      const housing=piece('Headlamp housing',rounded(1,.5,.14,.13),rubber(),[0,0,-.16],[0,0,-.72]);
-      attach(housing,cylinder(.145,.12),rubber(),[-.16,0,-.11]);attach(housing,rounded(.15,.1,.14,.02),material(0x536175),[.22,-.05,-.14]);
-      for(const x of [-.49,.49]){const tab=attach(housing,rounded(.14,.065,.045,.02),rubber(),[x,.20,0]);attach(tab,ring(.02,.01,.048),metal());}
-      const bowlProfile=[new THREE.Vector2(.055,-.1),new THREE.Vector2(.09,-.085),new THREE.Vector2(.14,-.04),new THREE.Vector2(.20,.035),new THREE.Vector2(.225,.095)];
-      const bowlGeo=new THREE.LatheGeometry(bowlProfile,48);bowlGeo.rotateX(Math.PI/2);
-      const reflector=piece('Reflector assembly',rounded(.93,.43,.035,.1),material(0x8598ad,{metalness:.8,roughness:.24}),[0,0,-.02],[0,0,-.26]);
-      attach(reflector,bowlGeo,material(0xdde5ef,{metalness:.85,roughness:.19,side:THREE.DoubleSide}),[-.18,0,.10]);
-      attach(reflector,ring(.228,.217,.013),metal(),[-.18,0,.015]);
-      const secondary=attach(reflector,bowlGeo.clone(),material(0xc6d5e6,{metalness:.85,side:THREE.DoubleSide}),[.26,0,.075]);secondary.scale.set(.65,.65,.65);
-      const bulb=piece('Bulb · reduced output',cylinder(.055,.10),metal(),[-.18,0,.04],[-.18,0,.39]);
-      attach(bulb,cylinder(.032,.115),material(0xe2e6e9,{transparent:true,opacity:.4,depthWrite:false}),[0,0,.095]);attach(bulb,new THREE.TorusGeometry(.013,.003,6,16),material(0xffdd8a,{emissive:0xffb237,emissiveIntensity:1.4}),[0,0,.11]);
-      repeat(bulb,box(.008,.012,.08),metal(),2,(o,i)=>o.position.set((i-.5)*.025,0,.045));
-      const lens=piece('Clear outer lens',rounded(.99,.49,.03,.13),material(0xc2dce9,{transparent:true,opacity:.2,metalness:0,roughness:.1,depthWrite:false}),[0,0,.19],[0,0,.96]);
-      repeat(lens,box(.005,.32,.009),material(0xdbeaf1,{transparent:true,opacity:.4}),9,(o,i)=>o.position.set(.22+i*.021,0,.021));
-      housing.userData.labelOffset=[-.4,.4,0];reflector.userData.labelOffset=[-.2,-.4,0];bulb.userData.labelOffset=[-.17,.28,0];lens.userData.labelOffset=[.25,-.4,0];
-      // Reduced output is a whole-lamp finding; its underlying cause is unconfirmed.
-      flagLabel(housing,'Headlamp · reduced output');
-    }
-    return {root,pieces,labels,origin:pointFor(issue),progress:0};
-  }
-  function focus(issue){stopRotation();clearModule();module=makeModule(issue);separation=targetSeparation=1;markerGroup.visible=false;controls.minDistance=1.7;
-    const target=new THREE.Vector3(0,1.05,0);const distance=viewer.clientWidth/viewer.clientHeight<1?5.1:4.25;
-    transition(target.clone().add(new THREE.Vector3(1.3,.68,1.85).normalize().multiplyScalar(distance)),target,0);
-  }
-  function overview(){stopRotation();markerGroup.visible=true;controls.minDistance=2.9;transition(overviewPosition,overviewTarget,1,clearModule);}
-  function reset(){stopRotation();if(viewMode==='focus'){const target=new THREE.Vector3(0,1.05,0),distance=viewer.clientWidth/viewer.clientHeight<1?5.1:4.25;transition(target.clone().add(new THREE.Vector3(1.3,.68,1.85).normalize().multiplyScalar(distance)),target,0);}else transition(overviewPosition,overviewTarget,1);}
-  function buildMarkers(){
-    ISSUES.forEach(issue=>{const marker=new THREE.Mesh(new THREE.SphereGeometry(.07,20,16),new THREE.MeshBasicMaterial({color:issue.severity==='red'?0xf77583:0xffc657}));marker.position.copy(pointFor(issue));marker.userData.issueId=issue.id;markerGroup.add(marker);markers.push(marker);clickables.push(marker);});
-    ISSUES.filter(issue=>issue.component).forEach(issue=>car.getObjectByName(issue.component)?.traverse(obj=>{if(obj.isMesh){obj.userData.issueId=issue.id;clickables.push(obj);}}));
-  }
-  new GLTFLoader().load('./assets/car_v2.glb?v=16',gltf=>{
-    car=gltf.scene;scene.add(car);car.updateMatrixWorld(true);
-    // Derive forward from the named axles instead of assuming exporter orientation.
-    const front=car.getObjectByName('Wheel_FL'),rear=car.getObjectByName('Wheel_RL');
-    if(front&&rear){const a=new THREE.Box3().setFromObject(front).getCenter(new THREE.Vector3()),b=new THREE.Box3().setFromObject(rear).getCenter(new THREE.Vector3());const delta=a.sub(b);const orient=new THREE.Group();scene.remove(car);orient.add(car);scene.add(orient);orient.rotation.y=-Math.atan2(delta.x,delta.z);car=orient;}
-    let b=new THREE.Box3().setFromObject(car),size=b.getSize(new THREE.Vector3());car.scale.multiplyScalar(4.3/Math.max(size.x,size.y,size.z));b=new THREE.Box3().setFromObject(car);const center=b.getCenter(new THREE.Vector3());car.position.x-=center.x;car.position.z-=center.z;car.position.y+=.07-b.min.y;car.updateMatrixWorld(true);bounds=new THREE.Box3().setFromObject(car);
-    car.traverse(obj=>{if(!obj.isMesh)return;const mats=(Array.isArray(obj.material)?obj.material:[obj.material]).map(original=>{const mat=original.clone();if(mat.name.toLowerCase()==='body'){mat.map=null;mat.color.set(0xaebacb);mat.metalness=.5;mat.roughness=.32;}carMaterials.push({material:mat,opacity:mat.opacity,transparent:mat.transparent,depthWrite:mat.depthWrite});return mat;});obj.material=Array.isArray(obj.material)?mats:mats[0];});
-    // Scene bounds include the baked ground shadow; use only the vehicle body
-    // to place non-wheel markers. Keep the existing overview framing unchanged.
-    const body=car.getObjectByName('Body');if(body)bounds=new THREE.Box3().setFromObject(body);
-    buildMarkers();$('loading').hidden=true;
-    if(viewMode==='focus')focus(currentIssue());else reset();
-  },undefined,error=>{console.error('Vehicle model loading failed',error);$('loading').hidden=true;$('viewerError').textContent='Vehicle unavailable. Choose a finding to explore its component illustration.';$('viewerError').hidden=viewMode==='focus';});
-  let down=null;const raycaster=new THREE.Raycaster();
-  renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,id:e.pointerId};});
-  renderer.domElement.addEventListener('pointercancel',()=>{down=null;});
-  renderer.domElement.addEventListener('pointerup',e=>{if(!down||down.id!==e.pointerId)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y);down=null;if(moved>7||viewMode!=='overview')return;const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const hit=raycaster.intersectObjects(clickables,false)[0];if(hit){const obstruction=car&&raycaster.intersectObject(car,true)[0];if(!obstruction||obstruction.distance>=hit.distance-.01)selectIssue(hit.object.userData.issueId);}});
-  function resize(){const w=viewer.clientWidth,h=viewer.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
-  new ResizeObserver(resize).observe(viewer);resize();
-  let last=performance.now();
-  renderer.setAnimationLoop(now=>{
-    const dt=Math.min((now-last)/1000,.05);last=now;
-    if(animation){const a=animation,p=a.duration?Math.min(1,(now-a.start)/a.duration):1,e=p*p*(3-2*p);if(a.cameraEnabled){camera.position.lerpVectors(a.from,a.to,e);controls.target.lerpVectors(a.targetFrom,a.targetTo,e);}fadeCar(THREE.MathUtils.lerp(a.opacityFrom,a.opacityTo,e));if(p===1){animation=null;a.onEnd?.();}}
-    separation=THREE.MathUtils.damp(separation,targetSeparation,12,dt);
-    if(module){
-      const goal=viewMode==='focus'?1:0;module.progress=reduceMotion.matches?goal:THREE.MathUtils.damp(module.progress,goal,6,dt);
-      module.root.position.lerpVectors(module.origin,new THREE.Vector3(0,1.05,0),module.progress);module.root.scale.setScalar(.18+.82*module.progress);
-      module.pieces.forEach(piece=>piece.object.position.lerpVectors(piece.start,piece.end,separation*module.progress));
-      module.root.updateMatrixWorld(true);
-      module.labels.forEach(({label,object},index)=>{const point=object.userData.labelOffset?new THREE.Vector3(...object.userData.labelOffset).applyMatrix4(object.matrixWorld):object.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,.18+(index%2)*.12,0));point.project(camera);label.style.left=`${Math.max(75,Math.min(viewer.clientWidth-75,(point.x*.5+.5)*viewer.clientWidth))}px`;label.style.top=`${Math.max(18,Math.min(viewer.clientHeight-18,(-point.y*.5+.5)*viewer.clientHeight))}px`;label.hidden=module.progress<.9||point.z>1||point.z< -1||separation<.25;});
-    }
-    controls.update();renderer.render(scene,camera);
-  });
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();$('viewerError').textContent='3D view interrupted. Reload the page to restore it. Findings remain available.';$('viewerError').hidden=false;});
-  return {focus:issue=>{$('viewerError').hidden=true;$('loading').hidden=true;focus(issue);},overview,reset,separate:value=>{targetSeparation=value;},toggleRotate:()=>{controls.autoRotate=!controls.autoRotate;$('toggleRotate').textContent=controls.autoRotate?'Pause rotation':'Rotate';$('toggleRotate').setAttribute('aria-pressed',String(controls.autoRotate));}};
+  if(f.value >= f.red) return 'red';
+  if(f.value >= f.amber) return 'amber';
+  return 'green';
 }
-try{engine=createViewer();}catch(error){console.error('3D viewer unavailable',error);$('loading').hidden=true;$('viewerError').textContent='3D is unavailable on this device. All findings, evidence records and choices remain available below.';$('viewerError').hidden=false;$('toggleRotate').disabled=true;$('resetView').disabled=true;$('explodeRange').disabled=true;}
+function severityLabel(sev){ return sev==='red'?'Urgent':sev==='amber'?'Attention':'Healthy'; }
+function recommendationText(f){
+  const sev=severityFor(f);
+  if(sev==='red') return `${f.recommendation}. This item needs dealing with before normal use.`;
+  if(sev==='amber') return `${f.recommendation}. It is not shown as an immediate stop-driving issue, but it should be planned.`;
+  return 'No action is currently required beyond routine monitoring.';
+}
+function toast(text){
+  const el=$('toast'); el.textContent=text; el.classList.add('show');
+  clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),2200);
+}
 
+function routeTo(route){
+  currentRoute=route;
+  document.querySelectorAll('.route').forEach(r=>r.classList.toggle('active',r.id===`route-${route}`));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.route===route));
+  const titles={dashboard:'Manager Dashboard',inspection:'Technician Inspection',report:'Customer Report',communications:'Communications & Approvals'};
+  $('pageTitle').textContent=titles[route]||'Vehicle Health Platform';
+  if(route==='dashboard') renderDashboard();
+  if(route==='inspection') renderTechnician();
+  if(route==='report'){ renderCustomer(); requestAnimationFrame(resizeViewer); }
+  if(route==='communications') renderCommunications();
+}
+document.querySelectorAll('[data-route]').forEach(btn=>btn.addEventListener('click',()=>routeTo(btn.dataset.route)));
+
+function renderDashboard(){
+  const urgent=state.findings.filter(f=>severityFor(f)==='red').length;
+  const attention=state.findings.filter(f=>severityFor(f)==='amber').length;
+  $('urgentCount').textContent=urgent;
+  $('attentionCount').textContent=attention;
+  const ownDecisions=Object.values(state.decisions);
+  const approved=ownDecisions.filter(x=>x.action==='approved').length;
+  $('reportState').textContent=approved ? `${approved} item${approved>1?'s':''} approved` : 'Awaiting decision';
+}
+function techComponentButton(f){
+  const sev=severityFor(f);
+  return `<button class="tech-component ${f.id===selectedTechId?'active':''}" data-tech-id="${f.id}" type="button">
+    <span class="tech-component-icon">${f.icon}</span>
+    <span><strong>${f.title}</strong><small>${f.value} ${f.unit} · ${f.condition}</small></span>
+    <span class="severity ${sev}">${severityLabel(sev)}</span>
+  </button>`;
+}
+function renderTechnician(){
+  $('techComponentList').innerHTML=state.findings.map(techComponentButton).join('');
+  document.querySelectorAll('[data-tech-id]').forEach(btn=>btn.addEventListener('click',()=>{selectedTechId=btn.dataset.techId;renderTechnician();}));
+  const f=findingById(selectedTechId);
+  const sev=severityFor(f);
+  $('techCategory').textContent=f.category;
+  $('techTitle').textContent=f.title;
+  $('techLocation').textContent=f.location;
+  $('techAutoSeverity').className=`severity ${sev}`;
+  $('techAutoSeverity').textContent=`${severityLabel(sev)} · automatic`;
+  $('measurementFieldLabel').textContent=f.measurementLabel;
+  $('techMeasurement').value=f.value;
+  $('techUnit').textContent=f.unit;
+  $('techCondition').value=[...$('techCondition').options].some(o=>o.value===f.condition)?f.condition:'Normal';
+  $('techRecommendation').value=[...$('techRecommendation').options].some(o=>o.value===f.recommendation)?f.recommendation:'Monitor';
+  $('techNote').value=f.note||'';
+  $('techModuleName').textContent=MODULE_LABELS[f.module];
+  $('evidenceFileName').textContent=f.evidenceName||'No additional evidence selected';
+  $('captureProgress').textContent=`${state.findings.length} / ${state.findings.length}`;
+  $('captureSaved').textContent='';
+}
+$('techMeasurement').addEventListener('input',()=>{
+  const f={...findingById(selectedTechId),value:Number($('techMeasurement').value)};
+  const sev=severityFor(f);
+  $('techAutoSeverity').className=`severity ${sev}`;
+  $('techAutoSeverity').textContent=`${severityLabel(sev)} · automatic`;
+});
+$('evidenceInput').addEventListener('change',(e)=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  evidenceUrls[selectedTechId]=URL.createObjectURL(file);
+  $('evidenceFileName').textContent=file.name;
+});
+$('saveFinding').addEventListener('click',()=>{
+  const f=findingById(selectedTechId);
+  f.value=Number($('techMeasurement').value);
+  f.condition=$('techCondition').value;
+  f.recommendation=$('techRecommendation').value;
+  f.note=$('techNote').value.trim();
+  const file=$('evidenceInput').files[0];
+  if(file) f.evidenceName=file.name;
+  persist();
+  $('captureSaved').textContent='Saved · customer 3D report updated';
+  toast(`${f.title} saved`);
+  renderTechnician();
+});
+
+function customerFindingCard(f){
+  const sev=severityFor(f);
+  return `<button class="finding-card ${f.id===selectedFindingId?'active':''}" data-finding-id="${f.id}" type="button">
+    <span class="finding-card-icon">${f.icon}</span>
+    <span><strong>${f.title}</strong><small>${f.value} ${f.unit} · ${severityLabel(sev)}</small></span>
+  </button>`;
+}
+function measurementPct(f){ return Math.max(0,Math.min(100,((f.value-f.min)/(f.max-f.min))*100)); }
+function historySvg(f){
+  const w=400,h=88,padX=22,padY=15;
+  const usableW=w-padX*2,usableH=h-padY*2-12;
+  const x=i=>padX+usableW*(i/(f.history.length-1));
+  const y=v=>padY+usableH*(1-(v-f.min)/(f.max-f.min));
+  const pts=f.history.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  const circles=f.history.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="${i===f.history.length-1?4.8:3.2}" fill="${i===f.history.length-1?(severityFor(f)==='red'?'#c43844':'#a96300'):'#3271dd'}" stroke="#fff" stroke-width="2"/>`).join('');
+  const labels=f.historyDates.map((d,i)=>`<text x="${x(i)}" y="${h-3}" text-anchor="middle" font-size="7" fill="#7b899b">${d}</text>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" aria-label="${f.title} history"><polyline points="${pts}" fill="none" stroke="#3271dd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${circles}${labels}</svg>`;
+}
+function evidenceSvg(f){
+  const sev=severityFor(f), col=sev==='red'?'#cf4450':sev==='amber'?'#d58a17':'#2b9c70';
+  const label=f.module==='tyre'?'TREAD':f.module==='brake'?'PAD':f.module==='battery'?'SOH':f.module==='lamp'?'OUTPUT':f.module==='wiper'?'WIPE':f.module==='airFilter'?'AIR':f.module==='cabinFilter'?'CABIN':'EXHAUST';
+  return `<svg viewBox="0 0 420 150" role="img" aria-label="Sample technician evidence">
+    <defs><linearGradient id="ev-${f.id}" x1="0" x2="1"><stop stop-color="#1b2735"/><stop offset="1" stop-color="#0a111a"/></linearGradient></defs>
+    <rect width="420" height="150" rx="12" fill="url(#ev-${f.id})"/>
+    <rect x="20" y="20" width="180" height="110" rx="10" fill="#263544"/>
+    <circle cx="110" cy="75" r="42" fill="none" stroke="#8796a6" stroke-width="14"/>
+    <path d="M76 76h68M110 42v68" stroke="#3c4d5f" stroke-width="7"/>
+    <rect x="226" y="30" width="158" height="32" rx="16" fill="${col}" opacity=".22"/>
+    <text x="305" y="51" fill="${col}" font-size="14" font-weight="800" text-anchor="middle">${label}</text>
+    <text x="226" y="89" fill="#f3f7fb" font-size="30" font-weight="900">${f.value} ${f.unit}</text>
+    <text x="226" y="112" fill="#a4b1c0" font-size="11">${f.condition}</text>
+  </svg>`;
+}
+function renderCustomer(){
+  $('customerFindings').innerHTML=state.findings.map(customerFindingCard).join('');
+  document.querySelectorAll('[data-finding-id]').forEach(btn=>btn.addEventListener('click',()=>selectFinding(btn.dataset.findingId,true)));
+  renderSelectedFinding(false);
+}
+function renderSelectedFinding(change3d=true){
+  const f=findingById(selectedFindingId);
+  const sev=severityFor(f);
+  $('reportSeverity').className=`severity ${sev}`;$('reportSeverity').textContent=severityLabel(sev);
+  $('reportTitle').textContent=f.title;$('reportLocation').textContent=f.location;$('reportPrice').textContent=money(f.price);
+  $('reportMeasurementLabel').textContent=f.measurementLabel;$('reportMeasurement').textContent=Number.isInteger(f.value)?f.value:f.value.toFixed(1);$('reportUnit').textContent=f.unit;
+  const pct=measurementPct(f);$('measurementMarker').style.left=`${pct}%`;
+  $('reportFound').textContent=f.found;$('reportWhy').textContent=f.why;$('reportRecommendationText').textContent=recommendationText(f);
+  $('reportEvidenceTitle').textContent=f.evidenceName||'Sample workshop evidence';
+  const evidenceUrl=evidenceUrls[f.id];
+  $('reportEvidenceVisual').innerHTML=evidenceUrl ? `<img src="${evidenceUrl}" alt="Technician evidence" style="width:100%;height:100%;object-fit:cover">` : evidenceSvg(f);
+  const delta=f.history.at(-1)-f.history.at(-2);
+  $('historyDelta').textContent=`${delta>0?'+':''}${delta.toFixed(1)} ${f.unit}`;
+  $('historyChart').innerHTML=historySvg(f);
+  $('approveAmount').textContent=money(f.price);
+  const decision=state.decisions[f.id];
+  $('decisionStatus').textContent=decision ? decision.action==='approved'?'Approved by customer':decision.action==='deferred'?'Deferred by customer':'Customer asked a question' : '';
+  document.querySelectorAll('.finding-card').forEach(c=>c.classList.toggle('active',c.dataset.findingId===f.id));
+  if(change3d) showExplodedModule(f);
+}
+function selectFinding(id,show3d=true){ selectedFindingId=id; renderSelectedFinding(show3d); }
+
+function makeDecision(action){
+  const f=findingById(selectedFindingId);
+  state.decisions[f.id]={action,time:new Date().toISOString()};
+  if(action==='question'){
+    state.messages.unshift({id:`own-${Date.now()}`,person:'Alex Morgan',initials:'AM',vehicle:'2021 Example SUV',time:'just now',type:'question',finding:f.title,text:`I have a question about the ${f.title.toLowerCase()} recommendation.`});
+  }
+  persist(); renderSelectedFinding(false); renderDashboard();
+  toast(action==='approved'?'Work approved':action==='deferred'?'Item deferred':'Question sent to dealership');
+}
+$('approveBtn').addEventListener('click',()=>makeDecision('approved'));
+$('askBtn').addEventListener('click',()=>makeDecision('question'));
+$('deferBtn').addEventListener('click',()=>makeDecision('deferred'));
+
+function renderCommunications(){
+  const own = Object.entries(state.decisions).map(([id,d])=>{
+    const f=findingById(id);
+    return {id:`decision-${id}`,person:'Alex Morgan',initials:'AM',vehicle:'AB12 CDE',time:'just now',type:d.action,finding:f.title,text:d.action==='approved'?`Approved ${f.title}.`:d.action==='deferred'?`Deferred ${f.title} for now.`:`Asked a question about ${f.title}.`};
+  });
+  const feed=[...own,...state.messages];
+  $('conversationFeed').innerHTML=feed.map((m,i)=>`<button class="conversation-row ${i===selectedConversation?'active':''}" data-conv="${i}" type="button">
+    <span class="person-avatar">${m.initials}</span>
+    <span><strong>${m.person}</strong><small>${m.vehicle} · ${m.finding}</small><p>${m.text}</p></span>
+    <time>${m.time}</time>
+  </button>`).join('');
+  document.querySelectorAll('[data-conv]').forEach(b=>b.addEventListener('click',()=>{selectedConversation=Number(b.dataset.conv);renderCommunications();}));
+  const current=feed[selectedConversation]||feed[0];
+  if(current){
+    $('conversationFinding').textContent=current.finding;
+    const ownF=state.findings.find(f=>f.title===current.finding);
+    $('conversationPrice').textContent=ownF?money(ownF.price):'';
+    $('conversationMessages').innerHTML=`<div class="message customer">${current.text}<small>${current.time}</small></div>`;
+  } else $('conversationMessages').innerHTML='<div class="message customer">No customer messages yet.</div>';
+  const decisions=Object.values(state.decisions);
+  $('commApproved').textContent=6+decisions.filter(d=>d.action==='approved').length;
+  $('commQuestions').textContent=2+decisions.filter(d=>d.action==='question').length;
+  $('commAwaiting').textContent=Math.max(0,7-decisions.length);
+}
+$('sendReply').addEventListener('click',()=>{
+  const text=$('replyText').value.trim(); if(!text) return;
+  const msg=document.createElement('div');msg.className='message dealer';msg.innerHTML=`${text}<small>just now</small>`;
+  $('conversationMessages').appendChild(msg);$('replyText').value='';toast('Reply added to demo conversation');
+});
+
+// ---------------- 3D VIEWER ----------------
+const viewer=$('viewer');
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x08111c);
+scene.fog=new THREE.Fog(0x08111c,9,24);
+const camera=new THREE.PerspectiveCamera(35,1,.05,100);
+camera.position.set(5,2.4,6);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
+viewer.appendChild(renderer.domElement);
+
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=2.5;controls.maxDistance=10;controls.maxPolarAngle=Math.PI/1.92;controls.target.set(0,.8,0);
+scene.add(new THREE.HemisphereLight(0xe9f3ff,0x101722,1.6));
+const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(5,7,5);key.castShadow=true;scene.add(key);
+const fill=new THREE.DirectionalLight(0x7fa8ff,1.3);fill.position.set(-5,3,-3);scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffffff,1.1);rim.position.set(-3,4,6);scene.add(rim);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(4.5,80),new THREE.MeshStandardMaterial({color:0x111d2b,roughness:.96,metalness:.02}));
+floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+
+const vehicleRoot=new THREE.Group();scene.add(vehicleRoot);
+const moduleRoot=new THREE.Group();moduleRoot.visible=false;scene.add(moduleRoot);
+const markers=[];
+let vehicleModel=null;
+let vehicleBounds=null;
+let activeModuleParts=[];
+let moduleAnimationStart=0;
+let moduleExploded=false;
+let pointerDown={x:0,y:0};
+
+function mat(col,metal=.25,rough=.45){return new THREE.MeshStandardMaterial({color:col,metalness:metal,roughness:rough});}
+function mesh(geo,material,x=0,y=0,z=0){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;return m;}
+function part(obj,explode={x:0,y:0,z:0},highlight=false){
+  obj.userData.base=obj.position.clone();obj.userData.explode=new THREE.Vector3(explode.x,explode.y,explode.z);obj.userData.highlight=highlight;
+  activeModuleParts.push(obj);moduleRoot.add(obj);return obj;
+}
+function clearModule(){
+  activeModuleParts=[];while(moduleRoot.children.length){const c=moduleRoot.children.pop();c.traverse?.(o=>{if(o.geometry)o.geometry.dispose?.();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(x=>x.dispose?.());}});}
+}
+function addLabelSprite(text,color=0xffffff){
+  const c=document.createElement('canvas');c.width=512;c.height=128;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='rgba(8,17,28,.88)';ctx.roundRect(4,4,504,120,24);ctx.fill();ctx.fillStyle=`#${color.toString(16).padStart(6,'0')}`;ctx.font='700 42px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,64);
+  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));s.scale.set(2.6,.65,1);return s;
+}
+function buildTyre(){
+  const rubber=mat(0x15191f,.05,.78), alloy=mat(0x9da6b0,.75,.28), issue=mat(0xc83c48,.2,.35);
+  const tyre=mesh(new THREE.TorusGeometry(1.18,.34,24,64),rubber,0,1.15,0);tyre.rotation.y=Math.PI/2;part(tyre,{x:-1.0});
+  const rim=mesh(new THREE.CylinderGeometry(.78,.78,.34,48),alloy,0,1.15,0);rim.rotation.z=Math.PI/2;part(rim,{x:.1});
+  const hub=mesh(new THREE.CylinderGeometry(.23,.23,.52,32),alloy,0,1.15,0);hub.rotation.z=Math.PI/2;part(hub,{x:.55});
+  const tread=mesh(new THREE.TorusGeometry(1.19,.12,12,48),issue,0,1.15,0);tread.rotation.y=Math.PI/2;part(tread,{x:-1.22},true);
+  const s=addLabelSprite('TYRE TREAD',0xffa9b0);s.position.set(0,2.75,0);moduleRoot.add(s);
+}
+function buildBrake(){
+  const steel=mat(0xaab0b8,.72,.3), dark=mat(0x2c333c,.25,.5), issue=mat(0xd04a52,.35,.34);
+  const disc=mesh(new THREE.CylinderGeometry(1.05,1.05,.22,64),steel,0,1.12,0);disc.rotation.z=Math.PI/2;part(disc,{x:-.45});
+  const hub=mesh(new THREE.CylinderGeometry(.35,.35,.46,48),dark,0,1.12,0);hub.rotation.z=Math.PI/2;part(hub,{x:-.1});
+  const pad1=mesh(new THREE.BoxGeometry(.16,.9,.42),issue,.55,1.12,.38);part(pad1,{x:.85,z:.35},true);
+  const pad2=mesh(new THREE.BoxGeometry(.16,.9,.42),issue,.55,1.12,-.38);part(pad2,{x:.85,z:-.35},true);
+  const cal=mesh(new THREE.BoxGeometry(.55,1.5,1.02),mat(0x7e2530,.45,.35),.95,1.12,0);cal.rotation.z=.16;part(cal,{x:1.4});
+  const s=addLabelSprite('BRAKE PAD + DISC',0xffc3c7);s.position.set(0,2.65,0);moduleRoot.add(s);
+}
+function buildBattery(){
+  const body=mesh(new THREE.BoxGeometry(2.5,1.35,1.65),mat(0x26313b,.1,.55),0,1.0,0);part(body,{y:-.05});
+  const top=mesh(new THREE.BoxGeometry(2.35,.18,1.5),mat(0x131a22,.1,.5),0,1.74,0);part(top,{y:.42});
+  const terminal1=mesh(new THREE.CylinderGeometry(.14,.14,.32,24),mat(0xcc3e47,.5,.25),-.72,1.95,.36);part(terminal1,{x:-.35,y:.65},true);
+  const terminal2=mesh(new THREE.CylinderGeometry(.14,.14,.32,24),mat(0x9eaab6,.6,.25),.72,1.95,.36);part(terminal2,{x:.35,y:.65});
+  for(let i=-2;i<=2;i++){const plate=mesh(new THREE.BoxGeometry(.16,1.05,1.3),mat(0x667480,.55,.35),i*.33,1.05,0);part(plate,{x:i*.18,y:.05});}
+  const s=addLabelSprite('12V BATTERY',0xaed4ff);s.position.set(0,2.85,0);moduleRoot.add(s);
+}
+function buildLamp(){
+  const housing=mesh(new THREE.BoxGeometry(2.5,1.15,.72),mat(0x1e2833,.2,.4),0,1.25,0);housing.rotation.y=-.08;part(housing,{x:-.45});
+  const lens=mesh(new THREE.BoxGeometry(2.35,1.0,.12),new THREE.MeshPhysicalMaterial({color:0xbddcff,transparent:true,opacity:.62,roughness:.1,transmission:.2}),0,1.25,.42);part(lens,{z:.85});
+  for(let i=-1;i<=1;i++){const ref=mesh(new THREE.CylinderGeometry(.3,.5,.36,32),mat(0xbcc5cf,.8,.18),i*.72,1.25,.13);ref.rotation.x=Math.PI/2;part(ref,{z:.38});}
+  const bulb=mesh(new THREE.SphereGeometry(.19,24,18),mat(0xffb33a,.15,.2),.72,1.25,.34);part(bulb,{x:.5,z:.7},true);
+  const s=addLabelSprite('HEADLAMP ASSEMBLY',0xffd690);s.position.set(0,2.6,0);moduleRoot.add(s);
+}
+function buildWiper(){
+  const arm=mesh(new THREE.BoxGeometry(2.7,.12,.12),mat(0x2b3138,.25,.55),0,1.15,0);arm.rotation.z=.24;part(arm,{y:.25});
+  const blade=mesh(new THREE.BoxGeometry(3.15,.12,.24),mat(0x12171d,.05,.78),.32,.72,0);blade.rotation.z=-.04;part(blade,{y:-.55},true);
+  const rubber=mesh(new THREE.BoxGeometry(3.0,.05,.09),mat(0xc84650,.05,.7),.32,.64,.08);rubber.rotation.z=-.04;part(rubber,{y:-.7,z:.2},true);
+  const pivot=mesh(new THREE.CylinderGeometry(.22,.22,.22,24),mat(0x9aa4ae,.65,.3),-1.15,.83,0);pivot.rotation.x=Math.PI/2;part(pivot,{x:-.3});
+  const s=addLabelSprite('WIPER BLADE',0xffaab0);s.position.set(0,2.4,0);moduleRoot.add(s);
+}
+function pleatedFilter(width,height,depth,dirty=false){
+  const group=new THREE.Group();const frame=mesh(new THREE.BoxGeometry(width,height,depth),mat(0x2b333c,.15,.55));group.add(frame);
+  for(let i=0;i<12;i++){const p=mesh(new THREE.BoxGeometry(width*.78,.035,depth*1.03),mat(dirty?0x806d52:0xe8d6a9,.05,.8),0,-height*.38+i*(height*.76/11),0);group.add(p);}
+  return group;
+}
+function buildAirFilter(){
+  const box=mesh(new THREE.BoxGeometry(3.0,1.65,1.95),mat(0x242d36,.08,.62),0,1.05,0);part(box,{x:-.8});
+  const filter=pleatedFilter(2.5,1.25,.32,true);filter.position.set(.15,1.05,0);part(filter,{x:1.3},true);
+  const lid=mesh(new THREE.BoxGeometry(3.05,.16,1.98),mat(0x121921,.08,.62),0,1.95,0);part(lid,{y:.72});
+  const s=addLabelSprite('ENGINE AIR FILTER',0xffd28c);s.position.set(0,2.85,0);moduleRoot.add(s);
+}
+function buildCabinFilter(){
+  const housing=mesh(new THREE.BoxGeometry(3.0,1.75,1.2),mat(0x303943,.08,.58),0,1.05,0);part(housing,{x:-.9});
+  const filter=pleatedFilter(2.55,1.35,.35,true);filter.position.set(.1,1.05,0);part(filter,{x:1.45},true);
+  const cover=mesh(new THREE.BoxGeometry(.18,1.55,1.15),mat(0x141c24,.08,.58),1.6,1.05,0);part(cover,{x:1.0});
+  const s=addLabelSprite('CABIN / POLLEN FILTER',0xffd28c);s.position.set(0,2.75,0);moduleRoot.add(s);
+}
+function buildExhaust(){
+  const pipeMat=mat(0x9199a1,.65,.38), issue=mat(0xba6940,.35,.58);
+  const pipe=mesh(new THREE.CylinderGeometry(.18,.18,3.9,24),pipeMat,-.8,1.0,0);pipe.rotation.z=Math.PI/2;part(pipe,{x:-.8});
+  const cat=mesh(new THREE.CylinderGeometry(.48,.48,1.25,36),pipeMat,.6,1.0,0);cat.rotation.z=Math.PI/2;part(cat,{x:.35});
+  const muffler=mesh(new THREE.CylinderGeometry(.67,.67,1.55,36),issue,1.75,1.0,0);muffler.rotation.z=Math.PI/2;part(muffler,{x:1.15},true);
+  const tail=mesh(new THREE.CylinderGeometry(.16,.16,1.35,24),pipeMat,3.0,1.0,0);tail.rotation.z=Math.PI/2;part(tail,{x:1.65});
+  const s=addLabelSprite('EXHAUST SYSTEM',0xffbd95);s.position.set(.7,2.55,0);moduleRoot.add(s);
+}
+const moduleBuilders={tyre:buildTyre,brake:buildBrake,battery:buildBattery,lamp:buildLamp,wiper:buildWiper,airFilter:buildAirFilter,cabinFilter:buildCabinFilter,exhaust:buildExhaust};
+
+function buildMarker(f,pos){
+  const sev=severityFor(f), col=sev==='red'?0xd54854:sev==='amber'?0xd99722:0x2da878;
+  const g=new THREE.Group();const sphere=mesh(new THREE.SphereGeometry(.085,20,16),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.65}),0,0,0);
+  const ring=mesh(new THREE.TorusGeometry(.14,.022,10,30),mat(0xffffff,.1,.3),0,0,0);ring.rotation.x=Math.PI/2;g.add(sphere,ring);g.position.copy(pos);g.userData.findingId=f.id;vehicleRoot.add(g);markers.push(g);return g;
+}
+function rebuildMarkers(){
+  markers.splice(0).forEach(m=>vehicleRoot.remove(m));
+  const positions={
+    'tyre-fl':new THREE.Vector3(-1.15,.58,1.45),
+    'brake-rr':new THREE.Vector3(1.15,.58,-1.35),
+    'battery':new THREE.Vector3(-.3,1.75,.7),
+    'lamp-fr':new THREE.Vector3(1.25,1.1,1.52),
+    'wiper-front':new THREE.Vector3(.05,1.85,.7),
+    'air-filter':new THREE.Vector3(-.75,1.55,.45),
+    'cabin-filter':new THREE.Vector3(.4,1.45,-.15),
+    'exhaust':new THREE.Vector3(.1,.4,-1.45)
+  };
+  state.findings.forEach(f=>buildMarker(f,positions[f.id]||new THREE.Vector3()));
+}
+const loader=new GLTFLoader();
+loader.load('./assets/lowpoly_generic_suv.glb',(gltf)=>{
+  vehicleModel=gltf.scene;vehicleRoot.add(vehicleModel);
+  vehicleModel.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  vehicleBounds=new THREE.Box3().setFromObject(vehicleModel);
+  const size=vehicleBounds.getSize(new THREE.Vector3()),center=vehicleBounds.getCenter(new THREE.Vector3());
+  const scale=4.6/Math.max(size.x,size.z);vehicleModel.scale.setScalar(scale);
+  vehicleBounds.setFromObject(vehicleModel);const c=vehicleBounds.getCenter(new THREE.Vector3());
+  vehicleModel.position.sub(c);vehicleModel.position.y-=vehicleBounds.min.y;
+  rebuildMarkers();
+  resetVehicleView();
+  $('viewerLoading').classList.add('hidden');
+},undefined,()=>{$('viewerLoading').classList.add('hidden');$('viewerError').classList.remove('hidden');});
+
+function resetVehicleView(){
+  moduleRoot.visible=false;vehicleRoot.visible=true;$('backToVehicle').classList.add('hidden');$('viewerModeLabel').textContent='Vehicle overview';$('viewerTitle').textContent='Tap an issue to explore it';
+  camera.position.set(4.8,2.35,5.4);controls.target.set(0,.9,0);controls.update();
+}
+$('backToVehicle').addEventListener('click',resetVehicleView);
+$('resetView').addEventListener('click',()=>{ if(moduleRoot.visible){camera.position.set(4.3,2.4,5.4);controls.target.set(0,1.0,0);controls.update();} else resetVehicleView(); });
+
+function showExplodedModule(f){
+  clearModule();vehicleRoot.visible=false;moduleRoot.visible=true;$('backToVehicle').classList.remove('hidden');
+  $('viewerModeLabel').textContent='Exploded component view';$('viewerTitle').textContent=f.title;
+  moduleBuilders[f.module]?.();
+  moduleAnimationStart=performance.now();moduleExploded=true;
+  camera.position.set(4.3,2.4,5.4);controls.target.set(0,1.0,0);controls.update();
+}
+renderer.domElement.addEventListener('pointerdown',e=>{pointerDown={x:e.clientX,y:e.clientY};});
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(moduleRoot.visible) return;
+  if(Math.hypot(e.clientX-pointerDown.x,e.clientY-pointerDown.y)>8) return;
+  const rect=renderer.domElement.getBoundingClientRect();
+  const mouse=new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-((e.clientY-rect.top)/rect.height)*2+1);
+  const ray=new THREE.Raycaster();ray.setFromCamera(mouse,camera);
+  const hits=ray.intersectObjects(markers,true);
+  if(!hits.length) return;
+  let o=hits[0].object;while(o&&!o.userData.findingId)o=o.parent;
+  if(o?.userData.findingId){selectedFindingId=o.userData.findingId;renderSelectedFinding(true);}
+});
+function resizeViewer(){
+  const rect=viewer.getBoundingClientRect();if(!rect.width||!rect.height)return;
+  renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();
+}
+window.addEventListener('resize',resizeViewer);resizeViewer();
+
+function animate(t){
+  requestAnimationFrame(animate);
+  if(moduleRoot.visible && moduleExploded){
+    const p=Math.min(1,(t-moduleAnimationStart)/850);const eased=1-Math.pow(1-p,3);
+    activeModuleParts.forEach(o=>{const b=o.userData.base,e=o.userData.explode;o.position.set(b.x+e.x*eased,b.y+e.y*eased,b.z+e.z*eased);if(o.userData.highlight && o.material?.emissive){o.material.emissive.setHex(0x8b1d29);o.material.emissiveIntensity=.25+.18*Math.sin(t*.004);}});
+    if(p>=1) moduleExploded=false;
+  }
+  markers.forEach((m,i)=>{const pulse=1+Math.sin(t*.004+i)*.08;m.scale.setScalar(pulse);});
+  controls.update();renderer.render(scene,camera);
+}
+requestAnimationFrame(animate);
+
+// Initial route and data.
+routeTo('dashboard');
+renderTechnician();
+renderCustomer();
+renderCommunications();
