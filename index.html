@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1422" />
-  <meta name="description" content="Working Vehicle Health Platform demo." />
-  <title>Vehicle Health Platform</title>
-  <link rel="stylesheet" href="./styles.css?v=1" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="DriveWell premium vehicle health platform demo." />
+  <title>DriveWell | Vehicle Health Platform</title>
+  <link rel="stylesheet" href="./styles.css?v=3" />
   <script type="importmap">
   {
     "imports": {
@@ -17,48 +17,73 @@
   </script>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
+  <div class="shell">
+    <aside class="side">
       <div class="brand">
-        <div class="brand-mark">V</div>
-        <div>
-          <strong>Vehicle Health</strong>
-          <span>Platform</span>
+        <div class="brand-symbol" aria-hidden="true">
+          <svg viewBox="0 0 64 64">
+            <defs>
+              <linearGradient id="dwGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#66A7FF"/>
+                <stop offset="1" stop-color="#1764F2"/>
+              </linearGradient>
+            </defs>
+            <rect x="3" y="3" width="58" height="58" rx="18" fill="url(#dwGradient)"/>
+            <path d="M18 18h16.2c7.5 0 12.6 1.5 16.2 4.9 3.3 3 5.1 7.6 5.1 13.6 0 6.6-2.2 11.7-6.5 15-3.6 2.8-8.3 4.1-14.8 4.1H18V18Zm10 8.7v20.6h5.4c3.8 0 6.7-.8 8.8-2.4 2.2-1.7 3.3-4.4 3.3-8.2 0-3.4-1-5.9-3-7.5-2-1.7-5.1-2.5-9.2-2.5H28Z" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <strong>DriveWell</strong>
+          <span>Vehicle Health Platform</span>
         </div>
       </div>
 
-      <nav class="nav" aria-label="Main navigation">
-        <button class="nav-item active" data-route="dashboard" type="button">
-          <span class="nav-icon">⌂</span><span>Dashboard</span>
+      <div class="side-context">
+        <span class="side-context-label">DEALER</span>
+        <strong>Demo Service Centre</strong>
+        <small><i></i> Live workspace</small>
+      </div>
+
+      <nav class="side-nav" aria-label="DriveWell navigation">
+        <span class="side-nav-title">OPERATIONS</span>
+        <button class="side-nav-item active" data-route="dashboard" type="button">
+          <span class="side-nav-icon"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
+          <span><strong>Dashboard</strong><small>Workshop overview</small></span>
         </button>
-        <button class="nav-item" data-route="inspection" type="button">
-          <span class="nav-icon">✓</span><span>Inspection</span>
+        <button class="side-nav-item" data-route="inspection" type="button">
+          <span class="side-nav-icon"><svg viewBox="0 0 24 24"><path d="m9.4 16.2-4.2-4.2 1.4-1.4 2.8 2.8 7-7L17.8 8l-8.4 8.2ZM5 21c-.6 0-1-.2-1.4-.6C3.2 20 3 19.6 3 19V5c0-.6.2-1 .6-1.4C4 3.2 4.4 3 5 3h10l6 6v10c0 .6-.2 1-.6 1.4-.4.4-.8.6-1.4.6H5Zm9-11h5l-5-5v5Z"/></svg></span>
+          <span><strong>Inspection</strong><small>Technician capture</small></span>
         </button>
-        <button class="nav-item" data-route="report" type="button">
-          <span class="nav-icon">◉</span><span>Customer report</span>
+        <button class="side-nav-item" data-route="report" type="button">
+          <span class="side-nav-icon"><svg viewBox="0 0 24 24"><path d="M12 4.5c-5 0-9.3 3.1-11 7.5 1.7 4.4 6 7.5 11 7.5s9.3-3.1 11-7.5c-1.7-4.4-6-7.5-11-7.5Zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></span>
+          <span><strong>Vehicle Health</strong><small>Customer experience</small></span>
         </button>
-        <button class="nav-item" data-route="communications" type="button">
-          <span class="nav-icon">✉</span><span>Communications</span>
+        <button class="side-nav-item" data-route="communications" type="button">
+          <span class="side-nav-icon"><svg viewBox="0 0 24 24"><path d="M4 20V4h16v12H8l-4 4Zm2-4.8L7.2 14H18V6H6v9.2ZM8 9h8V7.5H8V9Zm0 3h6v-1.5H8V12Z"/></svg></span>
+          <span><strong>Approvals</strong><small>Customer decisions</small></span>
         </button>
       </nav>
 
-      <div class="sidebar-foot">
-        <div class="site-pill">
-          <span class="live-dot"></span>
-          Demo Service Centre
+      <div class="side-footer">
+        <div class="side-footer-row">
+          <span>Today</span><strong>28 inspections</strong>
         </div>
-        <small>Working demo · v1</small>
+        <div class="side-footer-row">
+          <span>Approved</span><strong>£12.4k</strong>
+        </div>
+        <div class="version-pill">DriveWell demo · v3</div>
       </div>
     </aside>
 
     <main class="main">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Dealer platform</p>
+      <header class="top">
+        <div class="top-title">
+          <p>DRIVEWELL PLATFORM</p>
           <h1 id="pageTitle">Manager Dashboard</h1>
         </div>
-        <div class="top-actions">
-          <div class="vehicle-pill">
+        <div class="top-meta">
+          <div class="connection"><i></i><span>Connected</span></div>
+          <div class="vehicle-id">
             <span>AB12 CDE</span>
             <strong>2021 Example SUV</strong>
           </div>
@@ -67,155 +92,140 @@
       </header>
 
       <section id="route-dashboard" class="route active">
-        <div class="welcome-row">
+        <div class="route-intro">
           <div>
-            <h2>Good morning</h2>
-            <p>Everything happening around today’s inspections, customer decisions and workshop value.</p>
+            <span class="kicker">TODAY</span>
+            <h2>Workshop at a glance</h2>
+            <p>Inspections, approvals and customer decisions flowing through one connected vehicle record.</p>
           </div>
-          <button class="primary-btn" data-route="inspection" type="button">Open technician inspection</button>
+          <button class="btn primary" data-route="inspection" type="button">Open technician capture</button>
         </div>
 
-        <div class="kpi-grid">
-          <article class="kpi-card">
-            <span>Inspections today</span>
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-label">Vehicles inspected</span>
             <strong>28</strong>
-            <small class="up">↑ 12% vs last week</small>
+            <small class="positive">↑ 12% from last week</small>
           </article>
-          <article class="kpi-card">
-            <span>Reports viewed</span>
+          <article class="stat-card">
+            <span class="stat-label">Customer reports viewed</span>
             <strong>24</strong>
-            <small class="up">↑ 9% vs last week</small>
+            <small class="positive">↑ 9% from last week</small>
           </article>
-          <article class="kpi-card">
-            <span>Approved value</span>
+          <article class="stat-card">
+            <span class="stat-label">Approved value</span>
             <strong id="dashboardApproved">£12,430</strong>
-            <small class="up">↑ 18% vs last week</small>
+            <small class="positive">↑ 18% from last week</small>
           </article>
-          <article class="kpi-card">
-            <span>Deferred work</span>
+          <article class="stat-card">
+            <span class="stat-label">Deferred value</span>
             <strong>£4,210</strong>
-            <small class="warn">Needs follow-up</small>
+            <small class="attention-copy">7 items need follow-up</small>
           </article>
         </div>
 
-        <div class="dashboard-grid">
-          <article class="panel throughput-panel">
-            <div class="panel-head">
+        <div class="dashboard-layout">
+          <article class="card performance-card">
+            <div class="card-head">
               <div>
-                <p class="eyebrow dark">Workshop performance</p>
-                <h3>Inspection & approval trend</h3>
+                <span class="kicker">WORKSHOP PERFORMANCE</span>
+                <h3>Inspection and approval trend</h3>
               </div>
-              <span class="subtle-pill">Last 7 days</span>
+              <span class="filter-pill">Last 7 days</span>
             </div>
-            <div class="chart-bars" aria-label="Demo workshop chart">
-              <div class="chart-day"><span style="height:54%"></span><i style="height:43%"></i><b>Mon</b></div>
-              <div class="chart-day"><span style="height:68%"></span><i style="height:55%"></i><b>Tue</b></div>
-              <div class="chart-day"><span style="height:61%"></span><i style="height:48%"></i><b>Wed</b></div>
-              <div class="chart-day"><span style="height:78%"></span><i style="height:66%"></i><b>Thu</b></div>
-              <div class="chart-day"><span style="height:72%"></span><i style="height:63%"></i><b>Fri</b></div>
-              <div class="chart-day"><span style="height:88%"></span><i style="height:77%"></i><b>Sat</b></div>
-              <div class="chart-day"><span style="height:69%"></span><i style="height:61%"></i><b>Sun</b></div>
+            <div class="performance-plot" aria-label="Demo workshop performance chart">
+              <div class="plot-day"><div><span style="height:55%"></span><i style="height:43%"></i></div><small>Mon</small></div>
+              <div class="plot-day"><div><span style="height:69%"></span><i style="height:54%"></i></div><small>Tue</small></div>
+              <div class="plot-day"><div><span style="height:61%"></span><i style="height:49%"></i></div><small>Wed</small></div>
+              <div class="plot-day"><div><span style="height:78%"></span><i style="height:66%"></i></div><small>Thu</small></div>
+              <div class="plot-day"><div><span style="height:72%"></span><i style="height:62%"></i></div><small>Fri</small></div>
+              <div class="plot-day"><div><span style="height:89%"></span><i style="height:77%"></i></div><small>Sat</small></div>
+              <div class="plot-day"><div><span style="height:70%"></span><i style="height:60%"></i></div><small>Sun</small></div>
             </div>
-            <div class="chart-legend">
-              <span><i class="legend-dot blue"></i>Inspections</span>
-              <span><i class="legend-dot green"></i>Authorised</span>
-            </div>
+            <div class="chart-key"><span><i class="key-blue"></i>Inspections</span><span><i class="key-green"></i>Authorised</span></div>
           </article>
 
-          <article class="panel vehicle-overview-panel">
-            <div class="panel-head">
+          <article class="card health-card">
+            <div class="card-head">
               <div>
-                <p class="eyebrow dark">Current vehicle</p>
-                <h3>AB12 CDE · Health snapshot</h3>
+                <span class="kicker">CURRENT VEHICLE</span>
+                <h3>AB12 CDE · Vehicle health</h3>
               </div>
-              <button class="link-btn" data-route="report" type="button">Open report →</button>
+              <button class="text-btn" data-route="report" type="button">Open report →</button>
             </div>
-            <div class="health-snapshot">
-              <div class="score-ring"><strong>68</strong><span>Health score</span></div>
-              <div>
-                <div class="mini-stat"><span>Urgent</span><strong id="urgentCount">1</strong></div>
-                <div class="mini-stat"><span>Attention</span><strong id="attentionCount">7</strong></div>
-                <div class="mini-stat"><span>Healthy</span><strong>16</strong></div>
+            <div class="health-card-body">
+              <div class="health-ring"><div><strong>68</strong><span>Health score</span></div></div>
+              <div class="health-list">
+                <div><span><i class="dot red"></i>Urgent</span><strong id="urgentCount">1</strong></div>
+                <div><span><i class="dot amber"></i>Attention</span><strong id="attentionCount">7</strong></div>
+                <div><span><i class="dot green"></i>Healthy</span><strong>16</strong></div>
               </div>
             </div>
-            <div class="vehicle-summary-list">
+            <div class="vehicle-meta-grid">
               <div><span>Mileage</span><strong>41,280 miles</strong></div>
-              <div><span>Last visit</span><strong>12 Mar 2026</strong></div>
               <div><span>Customer</span><strong>Alex Morgan</strong></div>
-              <div><span>Report state</span><strong id="reportState">Awaiting decision</strong></div>
+              <div><span>Last visit</span><strong>12 Mar 2026</strong></div>
+              <div><span>Report</span><strong id="reportState">Awaiting decision</strong></div>
             </div>
           </article>
 
-          <article class="panel activity-panel">
-            <div class="panel-head">
-              <div><p class="eyebrow dark">Recent activity</p><h3>Live dealer feed</h3></div>
-            </div>
-            <div class="activity-list">
-              <div class="activity-row"><span class="activity-icon good">✓</span><div><strong>Inspection completed</strong><small>AB12 CDE · 8 findings recorded</small></div><time>10 min</time></div>
-              <div class="activity-row"><span class="activity-icon blue-bg">↗</span><div><strong>Report issued</strong><small>CD34 EFG · customer link sent</small></div><time>28 min</time></div>
-              <div class="activity-row"><span class="activity-icon good">£</span><div><strong>Work approved</strong><small>EF56 HIJ · £385 authorised</small></div><time>1 hr</time></div>
-              <div class="activity-row"><span class="activity-icon amber-bg">?</span><div><strong>Customer question</strong><small>GH78 KLM · battery warranty</small></div><time>2 hr</time></div>
+          <article class="card feed-card">
+            <div class="card-head"><div><span class="kicker">RECENT ACTIVITY</span><h3>Live dealer feed</h3></div></div>
+            <div class="activity">
+              <div class="activity-row"><span class="activity-symbol success">✓</span><div><strong>Inspection completed</strong><small>AB12 CDE · 8 findings recorded</small></div><time>10 min</time></div>
+              <div class="activity-row"><span class="activity-symbol info">↗</span><div><strong>Report viewed</strong><small>CD34 EFG · customer opened report</small></div><time>28 min</time></div>
+              <div class="activity-row"><span class="activity-symbol success">£</span><div><strong>Work approved</strong><small>EF56 HIJ · £385 authorised</small></div><time>1 hr</time></div>
+              <div class="activity-row"><span class="activity-symbol warn">?</span><div><strong>Customer question</strong><small>GH78 KLM · battery warranty</small></div><time>2 hr</time></div>
             </div>
           </article>
 
-          <article class="panel queue-panel">
-            <div class="panel-head">
-              <div><p class="eyebrow dark">Workshop queue</p><h3>Today</h3></div>
-              <span class="live-label"><i></i>Live</span>
+          <article class="card queue-card">
+            <div class="card-head">
+              <div><span class="kicker">WORKSHOP QUEUE</span><h3>Today</h3></div>
+              <span class="live"><i></i>Live</span>
             </div>
-            <div class="queue-list">
-              <div class="queue-row current"><b>1</b><div><strong>AB12 CDE</strong><small>Inspection · Bay 1</small></div><span>In progress</span></div>
-              <div class="queue-row"><b>2</b><div><strong>BL73 XPT</strong><small>Service + repairs · Bay 2</small></div><span>Waiting</span></div>
-              <div class="queue-row"><b>3</b><div><strong>KT24 FHV</strong><small>Diagnostic · Bay 3</small></div><span>In progress</span></div>
-              <div class="queue-row"><b>4</b><div><strong>MV73 LDE</strong><small>Tyres · Bay 4</small></div><span>Waiting</span></div>
+            <div class="queue">
+              <div class="queue-row selected"><b>01</b><div><strong>AB12 CDE</strong><small>Inspection · Bay 1</small></div><span>In progress</span></div>
+              <div class="queue-row"><b>02</b><div><strong>BL73 XPT</strong><small>Service + repairs · Bay 2</small></div><span>Waiting</span></div>
+              <div class="queue-row"><b>03</b><div><strong>KT24 FHV</strong><small>Diagnostic · Bay 3</small></div><span>In progress</span></div>
+              <div class="queue-row"><b>04</b><div><strong>MV73 LDE</strong><small>Tyres · Bay 4</small></div><span>Waiting</span></div>
             </div>
           </article>
         </div>
       </section>
 
       <section id="route-inspection" class="route">
-        <div class="workspace-heading">
+        <div class="route-intro">
           <div>
-            <p class="eyebrow dark">Technician capture</p>
+            <span class="kicker">TECHNICIAN CAPTURE</span>
             <h2>Quick inspection · AB12 CDE</h2>
-            <p>The technician records facts. The platform automatically turns them into the customer’s 3D explanation.</p>
+            <p>Capture the facts. DriveWell handles the customer explanation and 3D presentation.</p>
           </div>
-          <div class="capture-progress">
-            <strong id="captureProgress">8 / 8</strong>
-            <span>items captured</span>
-          </div>
+          <div class="progress-card"><strong id="captureProgress">8 / 8</strong><span>items captured</span></div>
         </div>
 
-        <div class="technician-layout">
-          <aside class="component-list panel">
-            <div class="component-list-head">
-              <strong>Inspection items</strong>
-              <small>Tap one to update</small>
-            </div>
+        <div class="inspection-layout">
+          <aside class="card inspection-list">
+            <div class="list-title"><strong>Inspection items</strong><span>Select to update</span></div>
             <div id="techComponentList"></div>
           </aside>
 
-          <section class="capture-card panel">
-            <div class="capture-header">
+          <section class="card capture">
+            <div class="capture-head">
               <div>
-                <span id="techCategory" class="category-chip">Tyres</span>
+                <span id="techCategory" class="category">Tyres</span>
                 <h3 id="techTitle">Front left tyre</h3>
                 <p id="techLocation">Nearside front</p>
               </div>
               <span id="techAutoSeverity" class="severity red">Urgent · automatic</span>
             </div>
 
-            <div class="simple-form">
+            <div class="form-grid">
               <label>
                 <span id="measurementFieldLabel">Tread depth</span>
-                <div class="measurement-input">
-                  <input id="techMeasurement" type="number" step="0.1" inputmode="decimal" />
-                  <strong id="techUnit">mm</strong>
-                </div>
+                <div class="measure-input"><input id="techMeasurement" type="number" step="0.1" inputmode="decimal"><strong id="techUnit">mm</strong></div>
               </label>
-
-              <label>
-                Condition
+              <label>Condition
                 <select id="techCondition">
                   <option value="Normal">Normal</option>
                   <option value="Worn">Worn</option>
@@ -225,9 +235,7 @@
                   <option value="Corroded">Corroded</option>
                 </select>
               </label>
-
-              <label>
-                Recommendation
+              <label>Recommendation
                 <select id="techRecommendation">
                   <option value="Monitor">Monitor</option>
                   <option value="Replace soon">Replace soon</option>
@@ -236,150 +244,115 @@
                   <option value="No action required">No action required</option>
                 </select>
               </label>
-
-              <label class="wide-field">
-                Technician note
-                <textarea id="techNote" rows="4" placeholder="Short workshop note only — customer wording is generated automatically."></textarea>
+              <label class="span-all">Technician note
+                <textarea id="techNote" rows="4" placeholder="Short workshop note only."></textarea>
               </label>
-
-              <label class="wide-field evidence-drop">
-                <input id="evidenceInput" type="file" accept="image/*,video/*" />
-                <span class="evidence-plus">＋</span>
-                <strong>Add photo or video</strong>
-                <small id="evidenceFileName">No additional evidence selected</small>
+              <label class="span-all evidence-drop">
+                <input id="evidenceInput" type="file" accept="image/*,video/*">
+                <span>＋</span><strong>Add photo or video</strong><small id="evidenceFileName">No additional evidence selected</small>
               </label>
             </div>
 
-            <div class="auto-output">
-              <div>
-                <span>Customer mapping</span>
-                <strong id="techModuleName">Tyre / wheel exploded view</strong>
-              </div>
-              <div>
-                <span>Customer explanation</span>
-                <strong>Generated automatically from structured data</strong>
-              </div>
-              <div>
-                <span>Pricing</span>
-                <strong>Handled by service adviser</strong>
-              </div>
+            <div class="capture-output">
+              <div><span>3D mapping</span><strong id="techModuleName">Tyre / wheel exploded view</strong></div>
+              <div><span>Customer wording</span><strong>Generated automatically from structured data</strong></div>
+              <div><span>Decision flow</span><strong>Linked to adviser approval workflow</strong></div>
             </div>
 
-            <div class="capture-actions">
-              <span id="captureSaved" class="save-status"></span>
-              <button id="saveFinding" class="primary-btn" type="button">Save finding</button>
-            </div>
+            <div class="capture-actions"><span id="captureSaved"></span><button id="saveFinding" class="btn primary" type="button">Save finding</button></div>
           </section>
         </div>
 
-        <div class="inspection-bottom-actions">
-          <button class="secondary-btn" data-route="dashboard" type="button">Back to dashboard</button>
-          <button class="primary-btn" data-route="report" type="button">Preview customer report →</button>
-        </div>
+        <div class="bottom-actions"><button class="btn secondary" data-route="dashboard" type="button">Back to dashboard</button><button class="btn primary" data-route="report" type="button">Preview customer report →</button></div>
       </section>
 
       <section id="route-report" class="route">
-        <div class="customer-report-head">
+        <div class="report-head">
           <div>
-            <p class="eyebrow dark">Customer view</p>
+            <span class="kicker">CUSTOMER VEHICLE HEALTH</span>
             <h2>Your Vehicle Health Report</h2>
             <p>2021 Example SUV · AB12 CDE · 41,280 miles</p>
           </div>
-          <div class="report-health">
-            <span>Health score</span>
-            <strong>68</strong>
-          </div>
+          <div class="report-score"><span>HEALTH</span><strong>68</strong></div>
         </div>
 
-        <div class="customer-layout">
-          <section class="vehicle-view-card panel">
-            <div class="viewer-toolbar">
+        <div class="report-layout">
+          <section class="card viewer-card">
+            <div class="viewer-head">
               <div>
-                <span id="viewerModeLabel" class="viewer-mode">Vehicle overview</span>
+                <span id="viewerModeLabel">VEHICLE OVERVIEW</span>
                 <strong id="viewerTitle">Tap an issue to explore it</strong>
               </div>
-              <div class="viewer-toolbar-actions">
-                <button id="backToVehicle" class="secondary-btn hidden" type="button">← Back to vehicle</button>
-                <button id="resetView" class="secondary-btn" type="button">Reset view</button>
+              <div class="viewer-actions">
+                <button id="backToVehicle" class="viewer-btn hidden" type="button">← Back to vehicle</button>
+                <button id="resetView" class="viewer-btn" type="button">Reset view</button>
               </div>
             </div>
             <div id="viewer" class="viewer">
-              <div id="viewerLoading" class="viewer-loading">
-                <span class="spinner"></span>
-                <strong>Loading interactive vehicle…</strong>
-              </div>
-              <div id="viewerError" class="viewer-loading hidden">
-                <strong>3D view unavailable</strong>
-                <span>The rest of the demo remains usable.</span>
-              </div>
-              <div class="viewer-help">Drag to rotate · scroll/pinch to zoom · tap a marker</div>
+              <div id="viewerLoading" class="viewer-loading"><span class="loader"></span><strong>Loading DriveWell 3D experience…</strong></div>
+              <div id="viewerError" class="viewer-loading hidden"><strong>3D view unavailable</strong><span>The rest of the report is still available.</span></div>
+              <div class="viewer-tip">Drag to rotate · pinch/scroll to zoom · tap a numbered marker</div>
             </div>
           </section>
 
-          <aside class="report-side panel">
-            <div class="selected-issue-head">
+          <aside class="card detail-card">
+            <div class="detail-head">
               <div>
                 <span id="reportSeverity" class="severity red">Urgent</span>
                 <h3 id="reportTitle">Front left tyre</h3>
                 <p id="reportLocation">Nearside front</p>
               </div>
-              <div class="issue-price">
-                <span>Estimated</span>
-                <strong id="reportPrice">£145</strong>
-              </div>
+              <div class="price"><span>ESTIMATED</span><strong id="reportPrice">£145</strong></div>
             </div>
 
-            <div class="measurement-card">
-              <div>
-                <span id="reportMeasurementLabel">Tread depth</span>
-                <strong><b id="reportMeasurement">1.3</b> <small id="reportUnit">mm</small></strong>
-              </div>
-              <div class="meter"><span id="measurementFill" style="width:16%"></span><i id="measurementMarker" style="left:16%"></i></div>
+            <div class="measurement">
+              <div><span id="reportMeasurementLabel">Tread depth</span><strong><b id="reportMeasurement">1.3</b> <small id="reportUnit">mm</small></strong></div>
+              <div class="meter"><i id="measurementMarker" style="left:16%"></i></div>
               <div class="meter-labels"><span>Replace</span><span>Monitor</span><span>Healthy</span></div>
             </div>
 
-            <div class="plain-explanation">
-              <div><span>What we found</span><p id="reportFound"></p></div>
-              <div><span>Why it matters</span><p id="reportWhy"></p></div>
-              <div><span>Recommendation</span><p id="reportRecommendationText"></p></div>
+            <div class="explanation">
+              <article><span>WHAT WE FOUND</span><p id="reportFound"></p></article>
+              <article><span>WHY IT MATTERS</span><p id="reportWhy"></p></article>
+              <article><span>RECOMMENDATION</span><p id="reportRecommendationText"></p></article>
             </div>
 
-            <div class="evidence-card">
-              <div class="evidence-card-head"><span>Technician evidence</span><strong id="reportEvidenceTitle">Tread measurement</strong></div>
+            <div class="evidence">
+              <div class="mini-head"><span>TECHNICIAN EVIDENCE</span><strong id="reportEvidenceTitle">Sample workshop evidence</strong></div>
               <div id="reportEvidenceVisual" class="evidence-visual"></div>
             </div>
 
-            <div class="history-card">
-              <div class="history-card-head"><span>Component health history</span><strong id="historyDelta">−1.5 mm</strong></div>
+            <div class="history">
+              <div class="mini-head"><span>COMPONENT HEALTH HISTORY</span><strong id="historyDelta">−1.5 mm</strong></div>
               <div id="historyChart" class="history-chart"></div>
             </div>
 
-            <div class="decision-actions">
-              <button id="approveBtn" class="approve-btn" type="button">Approve <span id="approveAmount">£145</span></button>
-              <button id="askBtn" class="secondary-btn" type="button">Ask a question</button>
-              <button id="deferBtn" class="secondary-btn" type="button">Defer</button>
+            <div class="decision-grid">
+              <button id="approveBtn" class="approve" type="button">Approve <span id="approveAmount">£145</span></button>
+              <button id="askBtn" class="btn secondary" type="button">Ask a question</button>
+              <button id="deferBtn" class="btn secondary" type="button">Defer</button>
             </div>
             <div id="decisionStatus" class="decision-status"></div>
           </aside>
         </div>
 
-        <div class="findings-strip panel">
-          <div class="findings-strip-head">
-            <div><p class="eyebrow dark">Inspection findings</p><h3>Choose an item to explore</h3></div>
-            <span>3D exploded views generated from technician data</span>
+        <section class="card findings">
+          <div class="findings-head">
+            <div><span class="kicker">INSPECTION FINDINGS</span><h3>Choose an item to explore</h3></div>
+            <span>DriveWell maps technician facts into the 3D experience</span>
           </div>
-          <div id="customerFindings" class="finding-cards"></div>
-        </div>
+          <div id="customerFindings" class="finding-grid"></div>
+        </section>
       </section>
 
       <section id="route-communications" class="route">
-        <div class="communications-head">
+        <div class="route-intro">
           <div>
-            <p class="eyebrow dark">Customer decisions</p>
+            <span class="kicker">CUSTOMER DECISIONS</span>
             <h2>Communications & approvals</h2>
-            <p>Customer choices flow straight back into the dealership with the vehicle and finding attached.</p>
+            <p>Every approval or question stays attached to the vehicle and the exact finding.</p>
           </div>
-          <div class="comm-kpis">
+          <div class="decision-kpis">
             <div><span>Awaiting</span><strong id="commAwaiting">7</strong></div>
             <div><span>Approved</span><strong id="commApproved">6</strong></div>
             <div><span>Questions</span><strong id="commQuestions">2</strong></div>
@@ -387,7 +360,7 @@
         </div>
 
         <div class="communications-layout">
-          <section class="panel conversation-list">
+          <section class="card conversation-list">
             <div class="conversation-tabs">
               <button class="active" type="button">All</button>
               <button type="button">Pending</button>
@@ -398,31 +371,21 @@
             <div id="conversationFeed"></div>
           </section>
 
-          <aside class="panel conversation-detail">
-            <p class="eyebrow dark">Selected conversation</p>
+          <aside class="card conversation-detail">
+            <span class="kicker">SELECTED CONVERSATION</span>
             <h3>Alex Morgan · AB12 CDE</h3>
-            <div class="conversation-context">
-              <span id="conversationFinding">Front left tyre</span>
-              <strong id="conversationPrice">£145</strong>
-            </div>
+            <div class="conversation-context"><span id="conversationFinding">Front left tyre</span><strong id="conversationPrice">£145</strong></div>
             <div id="conversationMessages" class="message-thread"></div>
-            <label class="reply-box">
-              <span>Reply to customer</span>
-              <textarea id="replyText" rows="4" placeholder="Type a reply…"></textarea>
-            </label>
-            <button id="sendReply" class="primary-btn" type="button">Send reply</button>
+            <label class="reply">Reply to customer<textarea id="replyText" rows="4" placeholder="Type a reply…"></textarea></label>
+            <button id="sendReply" class="btn primary full" type="button">Send reply</button>
           </aside>
         </div>
       </section>
     </main>
   </div>
 
-  <div id="toast" class="toast" role="status"></div>
-
-  <footer class="legal-footer">
-    3D vehicle model: “Lowpoly Generic SUV” by mk2design, used under CC BY 4.0. Demo content is illustrative.
-  </footer>
-
-  <script type="module" src="./app.js?v=1"></script>
+  <div id="toast" class="toast"></div>
+  <footer class="footer">DriveWell is a working internal demo name. 3D vehicle: “Lowpoly Generic SUV” by mk2design, CC BY 4.0.</footer>
+  <script type="module" src="./app.js?v=3"></script>
 </body>
 </html>

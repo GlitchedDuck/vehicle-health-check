@@ -1,46 +1,44 @@
-# Vehicle Health Platform — Working Demo v1
+# DriveWell Vehicle Health Platform — v3
 
-A static working demo of a connected dealership vehicle-health platform.
+This is a **clean rebuild** of the DriveWell working demo.
 
-## Included flows
+Nothing from v1/v2 is required by the v3 source other than the existing licensed SUV GLB asset.
 
-- Manager dashboard
-- Simple technician capture workflow
-- Structured inspection data with automatic severity classification
-- Customer interactive 3D vehicle report
-- Working exploded component views for:
-  - tyre / wheel
-  - brake pads + disc
-  - 12V battery
-  - headlamp
-  - wiper blade
-  - engine air filter
-  - cabin / pollen filter
-  - exhaust
-- Measurement, evidence, explanation and component history
-- Approve / ask / defer customer actions
-- Communications / approval feed back into the dealer portal
-- Mobile responsive layout
-- No forced page scrolling from issue selection
+## v3 goals
 
-## Run
+- Premium DriveWell branding
+- Product-style navigation rather than a generic admin sidebar
+- Cleaner customer report layout
+- Neutral graphite vehicle presentation
+- Smaller, anchored, numbered issue markers
+- No floating ring markers
+- Rebuilt exploded component scenes
+- Improved tyre, brake, battery, headlamp, wiper, filter and exhaust component views
+- Customer approve / ask / defer flow
+- Dealer communications flow
+- Simple technician structured-data capture
+- No forced scrolling
 
-This is a static site. Serve the folder from any HTTP server, or deploy the root to GitHub Pages.
+## Clean deployment rule
 
-Example:
+Use `deploy-clean.ps1`.
 
-```bash
+The deployment script clones the repository and then removes **everything except `.git`** before copying the new build into place.
+
+This means each release is a clean repository snapshot rather than another layer of edits on top of the previous release.
+
+## Run locally
+
+```powershell
 python -m http.server 8000
 ```
 
-Then open `http://localhost:8000`.
+Then browse to:
 
-## Important
+```text
+http://localhost:8000
+```
 
-The 3D component modules are procedural customer-education models, not engineering CAD and not make/model-specific.
-
-The technician does **not** interact with 3D. The technician only captures structured facts; the customer visualisation is generated from that data.
-
-## Model attribution
+## Asset attribution
 
 The demo uses “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
