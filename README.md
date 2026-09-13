@@ -1,25 +1,28 @@
-# DriveWell Vehicle Health Platform — v8
+# DriveWell Vehicle Health Platform — v9
 
-v8 replaces the ghost-car component view with service assemblies.
+v9 fixes the component-scene problems visible in v8.
 
-## 3D changes
+## v9 fixes
 
-- White vehicle retained
-- No giant focus sphere in the final component scene
-- Tyre view uses the actual vehicle wheel geometry
-- Brake, battery, headlamp, air-filter and exhaust views use generic CC0 service-component GLB assets at runtime
-- Front-wiper and cabin-filter views use more detailed DriveWell service assemblies
-- A small ghost vehicle is used only as location/scale context
-- Components animate apart into a readable service layout
-- Every assembly is centred and grounded from calculated bounds
-- Camera framing is calculated from the assembly bounds
+- No generic fallback assembly is reused for unrelated findings.
+- Front-left tyre has its own dedicated wheel asset.
+- Rear-right brake uses dedicated brake disc, caliper and wheel assets.
+- 12V battery uses dedicated battery, tray and terminal-clamp assets.
+- Front-right headlamp uses a dedicated headlamp asset.
+- Engine air filter uses a dedicated air-filter asset.
+- Rear exhaust uses a dedicated exhaust-silencer asset.
+- Front wipers have their own detailed DriveWell assembly.
+- Cabin/pollen filter has its own detailed DriveWell assembly.
+- Every scene is independently scaled, centred, grounded and camera-fitted.
+- The small ghost vehicle is reduced to subtle location context only.
+- Asset load failure now shows an error instead of silently substituting the wrong component.
 
-## External assets
+## Service assets
 
-Several generic service components are loaded from the CC0 Survivor Vehicle Maintenance pack on 3DAssets.dev.
+The generic service parts use individual CC0 assets from the Survivor Vehicle Maintenance pack on 3DAssets.dev.
 
-The SUV remains “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
+The vehicle remains “Lowpoly Generic SUV” by mk2design, CC BY 4.0.
 
 ## Clean deployment
 
-`deploy-clean.ps1` deletes every old application file except `.git`, copies v8 as a complete snapshot, commits and pushes `main`.
+`deploy-clean.ps1` clones the repository, removes every existing working-tree file except `.git`, copies the complete v9 release, commits and pushes `main`.
