@@ -306,15 +306,151 @@ function contextCar(group){
   clone.scale.setScalar(.26);clone.rotation.y=.68;clone.position.set(-2.8,.13,-1.1);group.add(clone);
 }
 
+
+function cloneNodeWithWorldTransform(source){
+  source.updateWorldMatrix(true,false);
+  const clone=source.clone(true);
+  clone.traverse(o=>{
+    if(o.isMesh){
+      o.material=cloneMaterialDeep(o.material);
+      o.castShadow=true;
+      o.receiveShadow=true;
+    }
+  });
+  const pos=new THREE.Vector3(),quat=new THREE.Quaternion(),scale=new THREE.Vector3();
+  source.matrixWorld.decompose(pos,quat,scale);
+  clone.position.copy(pos);
+  clone.quaternion.copy(quat);
+  clone.scale.copy(scale);
+  return clone;
+}
+
+function materialLooksLikeRubber(material,name=''){
+  const n=((material?.name||'')+' '+name).toLowerCase();
+  return n.includes('tyre')||n.includes('tire')||n.includes('rubber');
+}
+
+function polishRealWheel(root){
+  root.traverse(o=>{
+    if(!o.isMesh)return;
+    const original=Array.isArray(o.material)?o.material[0]:o.material;
+    const name=(o.name||'').toLowerCase();
+    if(materialLooksLikeRubber(original,name)){
+      o.material=new THREE.MeshPhysicalMaterial({
+        color:0x101317,
+        roughness:.78,
+        metalness:.02,
+        clearcoat:.08,
+        clearcoatRoughness:.65
+      });
+    }else{
+      o.material=new THREE.MeshPhysicalMaterial({
+        color:0x8794a3,
+        roughness:.22,
+        metalness:.82,
+        clearcoat:.52,
+        clearcoatRoughness:.12
+      });
+    }
+  });
+}
+
+function makeTyreWearBand(wheelBox){
+  const size=wheelBox.getSize(new THREE.Vector3());
+  const radius=Math.max(size.y,size.z)*.505;
+  const tube=Math.max(.025,radius*.022);
+  const band=new THREE.Mesh(
+    new THREE.TorusGeometry(radius,tube,16,96),
+    new THREE.MeshStandardMaterial({
+      color:0xe04b59,
+      emissive:0x7a121d,
+      emissiveIntensity:.55,
+      roughness:.40,
+      metalness:.04
+    })
+  );
+  band.rotation.y=Math.PI/2;
+  band.userData.pulse=true;
+  return band;
+}
+
+function makeTyreDatumRing(radius){
+  const ring=new THREE.Mesh(
+    new THREE.TorusGeometry(radius,.015,10,96),
+    new THREE.MeshBasicMaterial({
+      color:0x6aa7ff,
+      transparent:true,
+      opacity:.38
+    })
+  );
+  ring.rotation.x=Math.PI/2;
+  return ring;
+}
+
+function buildFrontLeftTyreAssembly(){
+  explodedItems=[];
+  const group=new THREE.Group();
+
+  // Small vehicle locator only.
+  contextCar(group);
+
+  const source=findNodeLike(vehicleModel,'Wheel_FL');
+  if(!source)throw new Error('Wheel_FL was not found in the vehicle GLB.');
+
+  const wheel=cloneNodeWithWorldTransform(source);
+  polishRealWheel(wheel);
+
+  // Normalise the extracted real wheel independently from the vehicle.
+  const initialBox=boundsOf(wheel);
+  const centre=initialBox.getCenter(new THREE.Vector3());
+  wheel.position.sub(centre);
+  wheel.updateMatrixWorld(true);
+
+  scaleToMax(wheel,3.15);
+  centreAndGround(wheel,.20);
+
+  // Present the actual wheel as the hero component.
+  wheel.rotation.y+=.18;
+  group.add(wheel);
+
+  const wheelBox=boundsOf(wheel);
+  const wheelCentre=wheelBox.getCenter(new THREE.Vector3());
+  const wheelSize=wheelBox.getSize(new THREE.Vector3());
+
+  // Worn-tread highlight is only an overlay; it is not fake component geometry.
+  const wear=makeTyreWearBand(wheelBox);
+  wear.position.copy(wheelCentre);
+  wear.position.x-=wheelSize.x*.50;
+  group.add(wear);
+
+  // Subtle technical datum ring below assembly.
+  const datum=makeTyreDatumRing(Math.max(wheelSize.x,wheelSize.z)*.63);
+  datum.position.set(wheelCentre.x,.035,wheelCentre.z);
+  group.add(datum);
+
+  // Explode motion is wheel-only for this first tyre pass.
+  const from=wheel.position.clone();
+  const to=from.clone().add(new THREE.Vector3(-.30,.12,.18));
+  wheel.userData.from=from;
+  wheel.userData.to=to;
+  explodedItems.push(wheel);
+
+  wear.userData.from=wear.position.clone();
+  wear.userData.to=wear.position.clone().add(new THREE.Vector3(-.34,.12,.20));
+  explodedItems.push(wear);
+
+  return group;
+}
+
+
 async function buildAssembly(f){
   clearComponentScene();
   const g=new THREE.Group();
   contextCar(g);
 
   if(f.id==='tyre-fl'){
-    const wheel=await loadAsset('wheel');recolourAsset(wheel,'neutral');scaleToMax(wheel,2.6);g.add(wheel);addExploded(wheel,new THREE.Vector3(-.6,1.35,0),new THREE.Vector3(-1.15,1.4,.15));
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(.92,.045,12,72),new THREE.MeshStandardMaterial({color:0xcd4551,emissive:0x4b1118,emissiveIntensity:.18,roughness:.48}));
-    ring.rotation.y=Math.PI/2;ring.position.set(-1.15,1.4,.16);ring.userData.pulse=true;g.add(ring);
+    const tyreAssembly=buildFrontLeftTyreAssembly();
+    while(tyreAssembly.children.length)g.add(tyreAssembly.children[0]);
   }else if(f.id==='brake-rr'){
     const disc=await loadAsset('brakeDisc');recolourAsset(disc,'neutral');scaleToMax(disc,2.25);g.add(disc);addExploded(disc,new THREE.Vector3(-.25,1.35,0),new THREE.Vector3(-.55,1.35,0));
     const cal=await loadAsset('brakeCaliper');recolourAsset(cal,'issue');scaleToMax(cal,1.75);g.add(cal);addExploded(cal,new THREE.Vector3(.55,1.4,.05),new THREE.Vector3(1.15,1.55,.35));
@@ -373,15 +509,18 @@ async function showComponentScene(f){
 
   vehicleRoot.visible=false;componentRoot.visible=true;hotspotLayer.style.display='none';
   $('focusBanner').classList.add('hidden');$('explodedCaption').classList.remove('hidden');$('explodedCaptionTitle').textContent=f.title;
-  $('explodedCaptionSub').textContent='Dedicated service assembly · rotate to explore';
+  $('explodedCaptionSub').textContent=f.id==='tyre-fl'
+    ?'Actual Wheel_FL geometry from the vehicle · worn tread highlighted'
+    :'Dedicated service assembly · rotate to explore';
+  $('tyreAssemblyPanel').classList.toggle('hidden',f.id!=='tyre-fl');
   $('backToVehicle').classList.remove('hidden');$('viewerModeLabel').textContent='SERVICE ASSEMBLY';$('viewerTitle').textContent=f.title;
-  controls.enabled=true;fitCameraToObject(componentScene,1.22,.82);
+  controls.enabled=true;fitCameraToObject(componentScene,f.id==='tyre-fl'?1.08:1.22,f.id==='tyre-fl'?.90:.82);
 }
 
 function resetVehicleView(){
   pendingComponent=null;cameraTween=null;componentRoot.visible=false;vehicleRoot.visible=true;setVehicleFade(1);setHotspotSelection();
   $('viewerError').classList.add('hidden');$('focusBanner').classList.add('hidden');$('explodedCaption').classList.add('hidden');$('backToVehicle').classList.add('hidden');
-  $('viewerModeLabel').textContent='VEHICLE OVERVIEW';$('viewerTitle').textContent='Choose a highlighted area';
+  $('viewerModeLabel').textContent='VEHICLE OVERVIEW';$('viewerTitle').textContent='Choose a highlighted area';$('tyreAssemblyPanel').classList.add('hidden');
   controls.enabled=true;camera.position.set(5.7,2.9,5.9);controls.target.set(0,1.05,0);controls.update();
   if(focusGlow){focusRoot.remove(focusGlow);focusGlow=null}
 }
