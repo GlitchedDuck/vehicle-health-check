@@ -55,7 +55,7 @@ $('approveBtn').addEventListener('click',()=>decide('approved'));$('askBtn').add
 function renderCommunications(){const own=Object.entries(state.decisions).map(([id,d])=>{const f=findingById(id);return{id:`d-${id}`,person:'Alex Morgan',initials:'AM',vehicle:'AB12 CDE',time:'just now',finding:f.title,text:d.action==='approved'?`Approved ${f.title}.`:d.action==='deferred'?`Deferred ${f.title} for now.`:`Asked a question about ${f.title}.`}}),feed=[...own,...state.messages];$('conversationFeed').innerHTML=feed.map((m,i)=>`<button class="conversation-row ${i===selectedConversation?'active':''}" data-conv="${i}"><span class="person-avatar">${m.initials}</span><span><strong>${m.person}</strong><small>${m.vehicle} · ${m.finding}</small><p>${m.text}</p></span><time>${m.time}</time></button>`).join('');document.querySelectorAll('[data-conv]').forEach(b=>b.addEventListener('click',()=>{selectedConversation=Number(b.dataset.conv);renderCommunications()}));const current=feed[selectedConversation]||feed[0];if(current){$('conversationFinding').textContent=current.finding;const f=state.findings.find(x=>x.title===current.finding);$('conversationPrice').textContent=f?money(f.price):'';$('conversationMessages').innerHTML=`<div class="message customer">${current.text}<small>${current.time}</small></div>`}const ds=Object.values(state.decisions);$('commApproved').textContent=6+ds.filter(d=>d.action==='approved').length;$('commQuestions').textContent=2+ds.filter(d=>d.action==='question').length;$('commAwaiting').textContent=Math.max(0,7-ds.length)}
 $('sendReply').addEventListener('click',()=>{const text=$('replyText').value.trim();if(!text)return;const msg=document.createElement('div');msg.className='message dealer';msg.innerHTML=`${text}<small>just now</small>`;$('conversationMessages').appendChild(msg);$('replyText').value='';toast('Reply added')});
 
-// ---------- PREMIUM 3D V7: FULL-HIERARCHY VEHICLE FOCUS ----------
+// ---------- PREMIUM 3D V8: ASSET-BACKED SERVICE ASSEMBLIES ----------
 const viewer=$('viewer'),hotspotLayer=$('hotspotLayer'),scene=new THREE.Scene();
 scene.background=new THREE.Color(0x08111b);
 scene.fog=new THREE.Fog(0x08111b,12,34);
@@ -67,7 +67,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-per
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.05;
+renderer.toneMappingExposure=1.06;
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 viewer.appendChild(renderer.domElement);
@@ -75,26 +75,23 @@ viewer.appendChild(renderer.domElement);
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
 controls.dampingFactor=.075;
-controls.minDistance=2.4;
+controls.minDistance=2.3;
 controls.maxDistance=11;
 controls.maxPolarAngle=Math.PI/1.95;
-controls.target.set(0,1.05,0);
+controls.target.set(0,1.0,0);
 
 scene.add(new THREE.HemisphereLight(0xeaf2ff,0x09101a,1.55));
-const key=new THREE.DirectionalLight(0xfffbf3,3.0);key.position.set(4.8,7,5.4);key.castShadow=true;key.shadow.mapSize.set(2048,2048);scene.add(key);
-const fill=new THREE.DirectionalLight(0x7fa8ff,1.1);fill.position.set(-5,3,-3.2);scene.add(fill);
-const rim=new THREE.DirectionalLight(0xffffff,1.2);rim.position.set(-3,4.6,5.5);scene.add(rim);
+const key=new THREE.DirectionalLight(0xfffbf3,3.05);key.position.set(4.8,7,5.4);key.castShadow=true;key.shadow.mapSize.set(2048,2048);scene.add(key);
+const fill=new THREE.DirectionalLight(0x7fa8ff,1.15);fill.position.set(-5,3,-3.2);scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffffff,1.25);rim.position.set(-3,4.6,5.5);scene.add(rim);
 
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(22,22),new THREE.MeshStandardMaterial({color:0x101a28,roughness:.98}));
-floor.rotation.x=-Math.PI/2;floor.position.y=-.10;floor.receiveShadow=true;scene.add(floor);
+floor.rotation.x=-Math.PI/2;floor.position.y=-.11;floor.receiveShadow=true;scene.add(floor);
 
 const studioRing=new THREE.Mesh(new THREE.RingGeometry(3.85,3.87,96),new THREE.MeshBasicMaterial({color:0x315483,transparent:true,opacity:.42,side:THREE.DoubleSide}));
-studioRing.rotation.x=-Math.PI/2;studioRing.position.y=-.085;scene.add(studioRing);
+studioRing.rotation.x=-Math.PI/2;studioRing.position.y=-.09;scene.add(studioRing);
 
-const vehicleRoot=new THREE.Group();
-const carGroup=new THREE.Group();
-const focusRoot=new THREE.Group();
-const componentRoot=new THREE.Group();
+const vehicleRoot=new THREE.Group(),carGroup=new THREE.Group(),focusRoot=new THREE.Group(),componentRoot=new THREE.Group();
 vehicleRoot.add(carGroup,focusRoot);
 scene.add(vehicleRoot,componentRoot);
 componentRoot.visible=false;
@@ -107,509 +104,334 @@ let cameraTween=null;
 let pendingComponent=null;
 let focusGlow=null;
 let componentScene=null;
-let selectedComponentNode=null;
-let ghostOriginNode=null;
 let componentAnimStart=0;
 let componentAnimating=false;
-let selectedVisualId=null;
+let explodedItems=[];
+let maintenancePack=null;
+let maintenancePackPromise=null;
 
 const WHITE_BODY=0xf4f6f8, ISSUE_RED=0xd34e5a, ISSUE_AMBER=0xd89725;
+const SERVICE_PACK_URL='https://cdn.3dassets.dev/assets/26684/v1/model.glb';
 
 function cloneMaterialDeep(material){
   if(!material)return material;
   if(Array.isArray(material))return material.map(m=>m.clone());
   return material.clone();
 }
+function whitePaint(){return new THREE.MeshPhysicalMaterial({color:WHITE_BODY,metalness:.30,roughness:.24,clearcoat:.85,clearcoatRoughness:.09})}
+function glassMaterial(){return new THREE.MeshPhysicalMaterial({color:0x172638,transparent:true,opacity:.62,roughness:.05,metalness:.02,clearcoat:.85,clearcoatRoughness:.07})}
 
-function whitePaint(){
-  return new THREE.MeshPhysicalMaterial({
-    color:WHITE_BODY,metalness:.30,roughness:.24,
-    clearcoat:.85,clearcoatRoughness:.09
-  });
-}
-
-function glassMaterial(){
-  return new THREE.MeshPhysicalMaterial({
-    color:0x172638,transparent:true,opacity:.62,
-    roughness:.05,metalness:.02,clearcoat:.85,clearcoatRoughness:.07
-  });
-}
-
-function boundsOf(root){
-  root.updateMatrixWorld(true);
-  return new THREE.Box3().setFromObject(root);
-}
-
-function centreAndGround(root,clearance=.10){
+function boundsOf(root){root.updateMatrixWorld(true);return new THREE.Box3().setFromObject(root)}
+function centreAndGround(root,clearance=.14){
   root.updateMatrixWorld(true);
   let box=boundsOf(root);
   const centre=box.getCenter(new THREE.Vector3());
-  root.position.x-=centre.x;
-  root.position.z-=centre.z;
+  root.position.x-=centre.x;root.position.z-=centre.z;
   root.updateMatrixWorld(true);
   box=boundsOf(root);
   root.position.y+=(-box.min.y)+clearance;
   root.updateMatrixWorld(true);
 }
-
-function fitCameraToObject(root,padding=1.35,angle=.68){
+function fitCameraToObject(root,padding=1.35,angle=.72){
   root.updateMatrixWorld(true);
-  const box=boundsOf(root);
-  const size=box.getSize(new THREE.Vector3());
-  const centre=box.getCenter(new THREE.Vector3());
+  const box=boundsOf(root),size=box.getSize(new THREE.Vector3()),centre=box.getCenter(new THREE.Vector3());
   const maxDim=Math.max(size.x,size.y,size.z);
   const fov=THREE.MathUtils.degToRad(camera.fov);
   const distance=(maxDim*.5/Math.tan(fov*.5))*padding;
-  const dir=new THREE.Vector3(Math.sin(angle),.34,Math.cos(angle)).normalize();
+  const dir=new THREE.Vector3(Math.sin(angle),.36,Math.cos(angle)).normalize();
   camera.position.copy(centre).add(dir.multiplyScalar(distance));
   controls.target.copy(centre);
   controls.update();
 }
 
+function normalName(value){return (value||'').toLowerCase().replace(/[_-]+/g,' ')}
 function findNodeLike(root,...names){
-  let found=null;
-  root?.traverse(o=>{
-    if(found)return;
-    const n=(o.name||'').toLowerCase();
-    if(names.some(x=>n===x.toLowerCase()||n.includes(x.toLowerCase())))found=o;
-  });
+  let found=null;const terms=names.map(normalName);
+  root?.traverse(o=>{if(found)return;const n=normalName(o.name);if(terms.some(t=>n===t||n.includes(t)))found=o});
   return found;
 }
-
-function nodeWorldCentre(node){
-  return new THREE.Box3().setFromObject(node).getCenter(new THREE.Vector3());
+function findNodeTokens(root,tokens){
+  let found=null;
+  root?.traverse(o=>{if(found)return;const n=normalName(o.name);if(tokens.every(t=>n.includes(t.toLowerCase())))found=o});
+  return found;
 }
+function nodeWorldCentre(node){return new THREE.Box3().setFromObject(node).getCenter(new THREE.Vector3())}
 
 function makeAnchor(id,world){
-  const a=new THREE.Object3D();
-  a.position.copy(vehicleRoot.worldToLocal(world.clone()));
-  vehicleRoot.add(a);
-  hotspotAnchors.set(id,a);
+  const a=new THREE.Object3D();a.position.copy(vehicleRoot.worldToLocal(world.clone()));vehicleRoot.add(a);hotspotAnchors.set(id,a);
 }
-
 function deriveAnchors(){
-  hotspotAnchors.forEach(a=>vehicleRoot.remove(a));
-  hotspotAnchors.clear();
-
-  const fl=findNodeLike(vehicleModel,'Wheel_FL');
-  const rr=findNodeLike(vehicleModel,'Wheel_RR');
+  hotspotAnchors.forEach(a=>vehicleRoot.remove(a));hotspotAnchors.clear();
+  const fl=findNodeLike(vehicleModel,'Wheel_FL'),rr=findNodeLike(vehicleModel,'Wheel_RR');
   if(fl)makeAnchor('tyre-fl',nodeWorldCentre(fl));
   if(rr)makeAnchor('brake-rr',nodeWorldCentre(rr));
-
-  const box=boundsOf(vehicleModel);
-  const min=box.min,max=box.max,size=box.getSize(new THREE.Vector3()),c=box.getCenter(new THREE.Vector3());
-
-  makeAnchor('lamp-fr',new THREE.Vector3(max.x-size.x*.13,c.y+size.y*.04,max.z-size.z*.05));
-  makeAnchor('wiper-front',new THREE.Vector3(c.x,c.y+size.y*.28,max.z-size.z*.27));
+  const box=boundsOf(vehicleModel),size=box.getSize(new THREE.Vector3()),c=box.getCenter(new THREE.Vector3());
+  makeAnchor('lamp-fr',new THREE.Vector3(box.max.x-size.x*.13,c.y+size.y*.04,box.max.z-size.z*.05));
+  makeAnchor('wiper-front',new THREE.Vector3(c.x,c.y+size.y*.28,box.max.z-size.z*.27));
 }
 
-function hotspotColour(f){
-  const s=severityFor(f);
-  return s==='red'?'#d34e5a':s==='amber'?'#d89725':'#2ca273';
-}
-
+function hotspotColour(f){const s=severityFor(f);return s==='red'?'#d34e5a':s==='amber'?'#d89725':'#2ca273'}
 function buildHotspotButtons(){
-  hotspotLayer.innerHTML='';
-  hotspotButtons.clear();
+  hotspotLayer.innerHTML='';hotspotButtons.clear();
   state.findings.filter(f=>VISIBLE_IDS.has(f.id)).forEach(f=>{
     const b=document.createElement('button');
-    b.className='vehicle-hotspot';
-    b.type='button';
-    b.dataset.id=f.id;
+    b.className='vehicle-hotspot';b.type='button';b.dataset.id=f.id;
     b.style.setProperty('--hotspot-colour',hotspotColour(f));
     b.innerHTML=`<span class="hotspot-label"><span>${severityLabel(severityFor(f)).toUpperCase()}</span><strong>${f.title}</strong><small>${f.value} ${f.unit} · select to explore</small></span>`;
-    b.addEventListener('click',e=>{
-      e.stopPropagation();
-      selectedFindingId=f.id;
-      renderSelected(true);
-    });
-    hotspotLayer.appendChild(b);
-    hotspotButtons.set(f.id,b);
+    b.addEventListener('click',e=>{e.stopPropagation();selectedFindingId=f.id;renderSelected(true)});
+    hotspotLayer.appendChild(b);hotspotButtons.set(f.id,b);
   });
 }
-
 function updateHotspots(){
-  if(!vehicleRoot.visible||componentRoot.visible){
-    hotspotLayer.style.display='none';
-    return;
-  }
+  if(!vehicleRoot.visible||componentRoot.visible){hotspotLayer.style.display='none';return}
   hotspotLayer.style.display='block';
   const rect=viewer.getBoundingClientRect();
   hotspotAnchors.forEach((anchor,id)=>{
     const b=hotspotButtons.get(id);if(!b)return;
     const world=new THREE.Vector3();anchor.getWorldPosition(world);
-    const p=world.clone().project(camera);
-    const x=(p.x*.5+.5)*rect.width;
-    const y=(-p.y*.5+.5)*rect.height;
+    const p=world.clone().project(camera),x=(p.x*.5+.5)*rect.width,y=(-p.y*.5+.5)*rect.height;
     const hidden=p.z>1||p.z<-1||x<-30||x>rect.width+30||y<-30||y>rect.height+30;
-    b.classList.toggle('occluded',hidden);
-    b.style.left=`${x}px`;b.style.top=`${y}px`;
+    b.classList.toggle('occluded',hidden);b.style.left=`${x}px`;b.style.top=`${y}px`;
   });
 }
-
-function setHotspotSelection(id=null){
-  hotspotButtons.forEach((b,key)=>{
-    b.classList.toggle('selected',key===id);
-    b.classList.toggle('dim',!!id&&key!==id);
-  });
-}
-
-function setVehicleFade(opacity){
-  vehicleMaterials.forEach(({mat,baseOpacity,baseTransparent})=>{
-    mat.transparent=opacity<.99?true:baseTransparent;
-    mat.opacity=baseOpacity*opacity;
-    mat.needsUpdate=true;
-  });
-}
-
+function setHotspotSelection(id=null){hotspotButtons.forEach((b,key)=>{b.classList.toggle('selected',key===id);b.classList.toggle('dim',!!id&&key!==id)})}
+function setVehicleFade(opacity){vehicleMaterials.forEach(({mat,baseOpacity,baseTransparent})=>{mat.transparent=opacity<.99?true:baseTransparent;mat.opacity=baseOpacity*opacity;mat.needsUpdate=true})}
 function createFocusGlow(world,colour){
   if(focusGlow){focusRoot.remove(focusGlow);focusGlow.geometry?.dispose();focusGlow.material?.dispose()}
-  focusGlow=new THREE.Mesh(
-    new THREE.SphereGeometry(.28,28,20),
-    new THREE.MeshBasicMaterial({color:colour,transparent:true,opacity:.24,depthWrite:false,blending:THREE.AdditiveBlending})
-  );
-  focusGlow.position.copy(vehicleRoot.worldToLocal(world.clone()));
-  focusRoot.add(focusGlow);
+  focusGlow=new THREE.Mesh(new THREE.SphereGeometry(.20,28,20),new THREE.MeshBasicMaterial({color:colour,transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending}));
+  focusGlow.position.copy(vehicleRoot.worldToLocal(world.clone()));focusRoot.add(focusGlow);
+}
+function startCameraTween(endPos,endTarget,duration=700,onDone){cameraTween={start:performance.now(),duration,startPos:camera.position.clone(),startTarget:controls.target.clone(),endPos:endPos.clone(),endTarget:endTarget.clone(),onDone}}
+
+function loadServicePack(){
+  if(maintenancePack)return Promise.resolve(maintenancePack);
+  if(maintenancePackPromise)return maintenancePackPromise;
+  maintenancePackPromise=new Promise((resolve,reject)=>{
+    new GLTFLoader().load(SERVICE_PACK_URL,gltf=>{
+      maintenancePack=gltf.scene;
+      maintenancePack.traverse(o=>{if(o.isMesh){o.material=cloneMaterialDeep(o.material);o.castShadow=true;o.receiveShadow=true}});
+      resolve(maintenancePack);
+    },undefined,reject);
+  });
+  return maintenancePackPromise;
+}
+function cleanAssetMaterials(root,accent=false){
+  root.traverse(o=>{
+    if(!o.isMesh)return;
+    const old=Array.isArray(o.material)?o.material[0]:o.material;
+    const name=((o.name||'')+' '+(old?.name||'')).toLowerCase();
+    let colour=0x8d98a6,metal=.45,rough=.34;
+    if(name.includes('rubber')||name.includes('tyre')||name.includes('hose')){colour=0x151a20;metal=.02;rough=.82}
+    if(name.includes('plastic')||name.includes('battery')||name.includes('housing')){colour=0x293543;metal=.08;rough=.48}
+    if(name.includes('lens')||name.includes('glass')){o.material=glassMaterial();return}
+    if(accent){colour=0xcd4551;metal=.18;rough=.38}
+    o.material=new THREE.MeshStandardMaterial({color:colour,metalness:metal,roughness:rough});
+  });
+}
+function clonePackAsset(tokens){
+  const n=findNodeTokens(maintenancePack,tokens);
+  if(!n)return null;
+  const c=n.clone(true);
+  c.traverse(o=>{if(o.isMesh)o.material=cloneMaterialDeep(o.material)});
+  return c;
 }
 
-function startCameraTween(endPos,endTarget,duration=720,onDone){
-  cameraTween={start:performance.now(),duration,startPos:camera.position.clone(),startTarget:controls.target.clone(),endPos:endPos.clone(),endTarget:endTarget.clone(),onDone};
+function createRoundedRectShape(w,h,r){
+  const s=new THREE.Shape(),x=-w/2,y=-h/2;
+  s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);
+  s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);
+  s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);
+  return s;
+}
+function extrudedRounded(w,h,d,r,material){
+  const g=new THREE.ExtrudeGeometry(createRoundedRectShape(w,h,r),{depth:d,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:Math.min(r*.45,.025),bevelThickness:Math.min(d*.18,.02)});
+  g.center();const m=new THREE.Mesh(g,material);m.castShadow=true;m.receiveShadow=true;return m;
+}
+
+function buildPremiumWiper(){
+  const g=new THREE.Group();
+  const dark=new THREE.MeshPhysicalMaterial({color:0x161c23,metalness:.42,roughness:.32,clearcoat:.38,clearcoatRoughness:.2});
+  const rubber=new THREE.MeshStandardMaterial({color:0x080b0f,metalness:.01,roughness:.92});
+  const metal=new THREE.MeshStandardMaterial({color:0x8d99a7,metalness:.82,roughness:.24});
+  const red=new THREE.MeshStandardMaterial({color:0xcd4551,metalness:.08,roughness:.5});
+  const glass=extrudedRounded(4.1,2.05,.05,.16,new THREE.MeshPhysicalMaterial({color:0x284563,transparent:true,opacity:.22,roughness:.05,metalness:.02,clearcoat:.9}));
+  glass.rotation.x=-.35;glass.position.set(0,1.7,-.48);g.add(glass);
+
+  function bladeAssembly(y,z,scale=.95){
+    const bg=new THREE.Group();
+    const armCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-1.65,0,0),new THREE.Vector3(-1.0,.18,.02),new THREE.Vector3(-.25,.12,.02),new THREE.Vector3(.55,.02,0)]);
+    const arm=new THREE.Mesh(new THREE.TubeGeometry(armCurve,48,.055,10,false),dark);arm.castShadow=true;bg.add(arm);
+    const pivot=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.20,32),metal);pivot.rotation.x=Math.PI/2;pivot.position.set(-1.65,0,0);pivot.castShadow=true;bg.add(pivot);
+    const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.18,28),metal);hinge.rotation.x=Math.PI/2;hinge.position.set(.52,.02,0);bg.add(hinge);
+    const carrier=extrudedRounded(2.65,.12,.12,.05,dark);carrier.position.set(1.68,.01,0);carrier.rotation.z=-.04;bg.add(carrier);
+    const insert=extrudedRounded(2.82,.045,.055,.018,rubber);insert.position.set(1.72,-.09,.02);insert.rotation.z=-.04;bg.add(insert);
+    for(const x of [.72,1.35,2.02,2.60]){const clip=new THREE.Mesh(new THREE.TorusGeometry(.10,.027,10,26,Math.PI),metal);clip.rotation.z=Math.PI/2;clip.position.set(x,.02,.01);bg.add(clip)}
+    bg.position.set(-.10,y,z);bg.scale.setScalar(scale);return bg;
+  }
+
+  const left=bladeAssembly(1.22,.12,1.0),right=bladeAssembly(.78,.38,.82);
+  left.userData.explodeFrom=left.position.clone();left.userData.explodeTo=left.position.clone().add(new THREE.Vector3(-.25,.72,.55));
+  right.userData.explodeFrom=right.position.clone();right.userData.explodeTo=right.position.clone().add(new THREE.Vector3(.30,.22,1.0));
+  g.add(left,right);
+
+  const worn=extrudedRounded(1.3,.045,.058,.018,red);worn.position.set(1.5,2.27,.76);worn.rotation.z=-.04;worn.userData.pulse=true;g.add(worn);
+  return g;
+}
+function buildPremiumCabinFilter(){
+  const g=new THREE.Group();
+  const frameMat=new THREE.MeshPhysicalMaterial({color:0x263442,metalness:.08,roughness:.48,clearcoat:.2});
+  const paperMat=new THREE.MeshStandardMaterial({color:0xd5c6a7,metalness:.01,roughness:.82});
+  const issueMat=new THREE.MeshStandardMaterial({color:0xb67a43,metalness:.01,roughness:.88});
+  const housing=extrudedRounded(3.4,1.85,.65,.14,frameMat);housing.position.set(-.55,1.25,0);housing.userData.explodeFrom=housing.position.clone();housing.userData.explodeTo=housing.position.clone().add(new THREE.Vector3(-1.0,0,0));g.add(housing);
+  const filter=new THREE.Group();filter.position.set(.55,1.25,0);
+  const outer=extrudedRounded(2.75,1.35,.26,.08,frameMat);filter.add(outer);
+  for(let i=0;i<22;i++){const x=-1.12+i*(2.24/21);const p=new THREE.Mesh(new THREE.BoxGeometry(.045,1.12,.30),i>15?issueMat:paperMat);p.position.set(x,0,0);p.rotation.z=(i%2?.08:-.08);filter.add(p)}
+  filter.userData.explodeFrom=filter.position.clone();filter.userData.explodeTo=filter.position.clone().add(new THREE.Vector3(1.3,.15,.25));g.add(filter);
+  return g;
 }
 
 function clearComponentScene(){
   if(!componentScene)return;
   componentRoot.remove(componentScene);
-  componentScene.traverse(o=>{
-    if(o.material){
-      (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose?.());
-    }
-    // Geometry is shared with the source GLB clone. Do not dispose it here.
-  });
-  componentScene=null;selectedComponentNode=null;ghostOriginNode=null;
+  componentScene.traverse(o=>{if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose?.())});
+  componentScene=null;explodedItems=[];
 }
-
-function cloneFullVehicle(){
+function addExplodeItem(obj,from,to){obj.userData.explodeFrom=from.clone();obj.userData.explodeTo=to.clone();obj.position.copy(from);explodedItems.push(obj)}
+function addContextCar(group,opacity=.07){
   const clone=vehicleModel.clone(true);
-  clone.traverse(o=>{
-    if(o.isMesh){
-      o.material=cloneMaterialDeep(o.material);
-      o.castShadow=true;o.receiveShadow=true;
-      o.userData.originalMaterial=cloneMaterialDeep(o.material);
-    }
-  });
-  return clone;
+  clone.traverse(o=>{if(!o.isMesh)return;o.material=cloneMaterialDeep(o.material);const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{if(m.color)m.color.setHex(0x7c8b9d);m.transparent=true;m.opacity=opacity;m.depthWrite=false})});
+  clone.scale.setScalar(.44);clone.rotation.y=.68;clone.position.set(-2.5,.18,-.7);group.add(clone);
 }
 
-function ghostVehicle(root,opacity=.13){
-  root.traverse(o=>{
-    if(!o.isMesh)return;
-    const mats=Array.isArray(o.material)?o.material:[o.material];
-    mats.forEach(m=>{
-      if(m.color)m.color.setHex(0x8190a3);
-      m.transparent=true;
-      m.opacity=opacity;
-      m.depthWrite=false;
-      if(m.emissive){m.emissive.setHex(0x0a1018);m.emissiveIntensity=0}
-    });
-  });
-}
-
-function restoreAndHighlight(root,colour){
-  root.traverse(o=>{
-    if(!o.isMesh)return;
-    const original=o.userData.originalMaterial;
-    if(original)o.material=cloneMaterialDeep(original);
-    const mats=Array.isArray(o.material)?o.material:[o.material];
-    mats.forEach(m=>{
-      m.transparent=false;m.opacity=1;m.depthWrite=true;
-      if(m.emissive){m.emissive.setHex(colour);m.emissiveIntensity=.08}
-    });
-  });
-}
-
-function duplicateGhost(node){
-  const g=node.clone(true);
-  g.traverse(o=>{
-    if(!o.isMesh)return;
-    o.material=cloneMaterialDeep(o.material);
-    const mats=Array.isArray(o.material)?o.material:[o.material];
-    mats.forEach(m=>{
-      if(m.color)m.color.setHex(0x7590b2);
-      m.transparent=true;m.opacity=.12;m.depthWrite=false;
-    });
-  });
-  return g;
-}
-
-function addAreaGlow(group,point,colour){
-  const glow=new THREE.Mesh(
-    new THREE.SphereGeometry(.30,28,20),
-    new THREE.MeshBasicMaterial({color:colour,transparent:true,opacity:.34,depthWrite:false,blending:THREE.AdditiveBlending})
-  );
-  glow.position.copy(point);
-  glow.userData.pulse=true;
-  group.add(glow);
-}
-
-function buildComponentScene(f){
+async function buildAssembly(f){
   clearComponentScene();
+  const group=new THREE.Group();
+  addContextCar(group,.07);
 
-  // Clone the WHOLE normalised/scaled vehicle root so every child keeps its
-  // inherited transforms. This is the fix for the blank v6 component scene.
-  const full=cloneFullVehicle();
-  const wrapper=new THREE.Group();
-  wrapper.rotation.y=carGroup.rotation.y;
-  wrapper.add(full);
-  ghostVehicle(full,.13);
+  let usedPack=false;
+  try{await loadServicePack();usedPack=true}catch{}
 
-  const colour=severityFor(f)==='red'?ISSUE_RED:ISSUE_AMBER;
-  let sourceNodeName=null;
-
-  if(f.id==='tyre-fl')sourceNodeName='Wheel_FL';
-  if(f.id==='brake-rr')sourceNodeName='Wheel_RR';
-
-  if(sourceNodeName){
-    const selected=findNodeLike(full,sourceNodeName);
-    if(selected){
-      // Keep a ghost of the original position, then move the real wheel outward.
-      const parent=selected.parent;
-      const origin=duplicateGhost(selected);
-      origin.position.copy(selected.position);
-      origin.quaternion.copy(selected.quaternion);
-      origin.scale.copy(selected.scale);
-      parent.add(origin);
-      ghostOriginNode=origin;
-
-      restoreAndHighlight(selected,colour);
-      selected.userData.startPosition=selected.position.clone();
-
-      // Vehicle local x is lateral in this asset. Move away from the body.
-      const sign=Math.sign(selected.position.x)||1;
-      selected.userData.endPosition=selected.position.clone().add(new THREE.Vector3(sign*1.15,.08,.18));
-      selectedComponentNode=selected;
+  if(f.id==='tyre-fl'){
+    const source=findNodeLike(vehicleModel,'Wheel_FL');
+    if(source){
+      const wheel=source.clone(true);wheel.traverse(o=>{if(o.isMesh)o.material=cloneMaterialDeep(o.material)});cleanAssetMaterials(wheel,false);wheel.scale.setScalar(1.65);group.add(wheel);addExplodeItem(wheel,new THREE.Vector3(-.35,1.25,.1),new THREE.Vector3(-1.05,1.35,.25));
+      const hub=usedPack?clonePackAsset(['brake','disc','hub']):null;
+      if(hub){cleanAssetMaterials(hub,true);hub.scale.setScalar(2.2);group.add(hub);addExplodeItem(hub,new THREE.Vector3(.40,1.25,.1),new THREE.Vector3(.82,1.25,.2))}
     }
-  }else{
-    // This GLB has no separate wiper/headlamp/battery/filter/exhaust meshes.
-    // Use real vehicle geometry and a precise focus volume rather than fake primitives.
-    const b=boundsOf(full);
-    const size=b.getSize(new THREE.Vector3());
-    const c=b.getCenter(new THREE.Vector3());
-    const points={
-      'lamp-fr':new THREE.Vector3(c.x-size.x*.31,c.y+size.y*.02,b.max.z-size.z*.10),
-      'wiper-front':new THREE.Vector3(c.x,c.y+size.y*.25,b.max.z-size.z*.28),
-      'battery':new THREE.Vector3(c.x-size.x*.12,c.y+size.y*.12,c.z+size.z*.12),
-      'air-filter':new THREE.Vector3(c.x+size.x*.14,c.y+size.y*.14,c.z+size.z*.10),
-      'cabin-filter':new THREE.Vector3(c.x,c.y+size.y*.16,c.z-size.z*.03),
-      'exhaust':new THREE.Vector3(c.x+size.x*.15,b.min.y+size.y*.16,c.z-size.z*.30)
-    };
-    if(points[f.id])addAreaGlow(wrapper,points[f.id],colour);
+  }else if(f.id==='brake-rr'){
+    const disc=usedPack?clonePackAsset(['brake','disc','hub']):null;
+    const caliper=usedPack?clonePackAsset(['brake','caliper']):null;
+    const wheel=usedPack?clonePackAsset(['offroad','wheel']):null;
+    if(wheel){cleanAssetMaterials(wheel,false);wheel.scale.setScalar(2.15);group.add(wheel);addExplodeItem(wheel,new THREE.Vector3(-.8,1.25,0),new THREE.Vector3(-1.55,1.3,0))}
+    if(disc){cleanAssetMaterials(disc,false);disc.scale.setScalar(2.4);group.add(disc);addExplodeItem(disc,new THREE.Vector3(.05,1.25,0),new THREE.Vector3(.0,1.25,0))}
+    if(caliper){cleanAssetMaterials(caliper,true);caliper.scale.setScalar(2.6);group.add(caliper);addExplodeItem(caliper,new THREE.Vector3(.55,1.28,.12),new THREE.Vector3(1.35,1.45,.35))}
+  }else if(f.id==='battery'){
+    const battery=usedPack?clonePackAsset(['vehicle','battery']):null;
+    const tray=usedPack?clonePackAsset(['battery','tray']):null;
+    const clamp=usedPack?clonePackAsset(['battery','terminal','clamp']):null;
+    if(battery){cleanAssetMaterials(battery,false);battery.scale.setScalar(5.0);group.add(battery);addExplodeItem(battery,new THREE.Vector3(0,1.15,0),new THREE.Vector3(0,1.25,0))}
+    if(tray){cleanAssetMaterials(tray,false);tray.scale.setScalar(5.0);group.add(tray);addExplodeItem(tray,new THREE.Vector3(0,.65,0),new THREE.Vector3(0,.38,0))}
+    if(clamp){cleanAssetMaterials(clamp,true);clamp.scale.setScalar(5.0);group.add(clamp);addExplodeItem(clamp,new THREE.Vector3(.55,1.85,.15),new THREE.Vector3(1.25,2.15,.35))}
+  }else if(f.id==='lamp-fr'){
+    const lamp=usedPack?clonePackAsset(['headlight','housing']):null;
+    if(lamp){cleanAssetMaterials(lamp,true);lamp.scale.setScalar(4.2);group.add(lamp);addExplodeItem(lamp,new THREE.Vector3(0,1.25,0),new THREE.Vector3(.35,1.45,.5))}
+  }else if(f.id==='air-filter'){
+    const af=usedPack?clonePackAsset(['air','filter','housing']):null;
+    if(af){cleanAssetMaterials(af,true);af.scale.setScalar(4.0);group.add(af);addExplodeItem(af,new THREE.Vector3(0,1.15,0),new THREE.Vector3(.55,1.35,.35))}
+  }else if(f.id==='exhaust'){
+    const ex=usedPack?clonePackAsset(['exhaust','silencer']):null;
+    if(ex){cleanAssetMaterials(ex,true);ex.scale.setScalar(3.6);group.add(ex);addExplodeItem(ex,new THREE.Vector3(0,1.1,0),new THREE.Vector3(.65,1.25,.45))}
+  }else if(f.id==='wiper-front'){
+    const w=buildPremiumWiper();group.add(w);w.children.forEach(c=>{if(c.userData.explodeFrom)explodedItems.push(c)});
+  }else if(f.id==='cabin-filter'){
+    const cf=buildPremiumCabinFilter();group.add(cf);cf.children.forEach(c=>{if(c.userData.explodeFrom)explodedItems.push(c)});
   }
 
-  componentRoot.add(wrapper);
-  componentScene=wrapper;
+  if(group.children.length<=1){
+    const fallback=buildPremiumWiper();fallback.scale.setScalar(.8);group.add(fallback);
+  }
 
-  // Ground using the actual clone bounds and then centre on X/Z.
-  centreAndGround(wrapper,.12);
-
-  componentAnimStart=performance.now();
-  componentAnimating=!!selectedComponentNode;
-
-  return wrapper;
+  componentRoot.add(group);componentScene=group;centreAndGround(group,.16);
+  componentAnimStart=performance.now();componentAnimating=true;
+  return group;
 }
 
 function focusFinding(f){
-  selectedVisualId=f.id;
-
-  if(!VISIBLE_IDS.has(f.id)||!hotspotAnchors.has(f.id)){
-    showComponentScene(f);
-    return;
-  }
-
-  const anchor=hotspotAnchors.get(f.id);
-  const world=new THREE.Vector3();anchor.getWorldPosition(world);
-
-  setHotspotSelection(f.id);
-  createFocusGlow(world,severityFor(f)==='red'?ISSUE_RED:ISSUE_AMBER);
-
-  $('focusBannerTitle').textContent=f.title;
-  $('focusBannerValue').textContent=`${f.value} ${f.unit} · ${severityLabel(severityFor(f))}`;
-  $('focusBanner').classList.remove('hidden');
-  $('viewerModeLabel').textContent='COMPONENT FOCUS';
-  $('viewerTitle').textContent=f.title;
-  $('backToVehicle').classList.remove('hidden');
-
+  if(!VISIBLE_IDS.has(f.id)||!hotspotAnchors.has(f.id)){showComponentScene(f);return}
+  const anchor=hotspotAnchors.get(f.id),world=new THREE.Vector3();anchor.getWorldPosition(world);
+  setHotspotSelection(f.id);createFocusGlow(world,severityFor(f)==='red'?ISSUE_RED:ISSUE_AMBER);
+  $('focusBannerTitle').textContent=f.title;$('focusBannerValue').textContent=`${f.value} ${f.unit} · ${severityLabel(severityFor(f))}`;
+  $('focusBanner').classList.remove('hidden');$('viewerModeLabel').textContent='COMPONENT FOCUS';$('viewerTitle').textContent=f.title;$('backToVehicle').classList.remove('hidden');
   controls.enabled=false;
-
-  const carCentre=new THREE.Vector3(0,1,0);
-  const outward=world.clone().sub(carCentre).normalize();
-  const side=new THREE.Vector3(outward.z,0,-outward.x).normalize().multiplyScalar(1.55);
+  const carCentre=new THREE.Vector3(0,1,0),outward=world.clone().sub(carCentre).normalize(),side=new THREE.Vector3(outward.z,0,-outward.x).normalize().multiplyScalar(1.55);
   const camPos=world.clone().add(side).add(new THREE.Vector3(0,1.0,0)).add(outward.multiplyScalar(2.35));
-
-  startCameraTween(camPos,world.clone().add(new THREE.Vector3(0,.12,0)),720,()=>{
-    setVehicleFade(.42);
-    pendingComponent={f,at:performance.now()+260};
-  });
+  startCameraTween(camPos,world.clone().add(new THREE.Vector3(0,.12,0)),700,()=>{setVehicleFade(.42);pendingComponent={f,at:performance.now()+230}});
 }
 
-function showComponentScene(f){
+async function showComponentScene(f){
   pendingComponent=null;cameraTween=null;
-
-  buildComponentScene(f);
-
-  vehicleRoot.visible=false;
-  componentRoot.visible=true;
-  hotspotLayer.style.display='none';
-
-  $('focusBanner').classList.add('hidden');
-  $('explodedCaption').classList.remove('hidden');
-  $('explodedCaptionTitle').textContent=f.title;
-  $('explodedCaptionSub').textContent=
-    (f.id==='tyre-fl'||f.id==='brake-rr')
-      ?'Actual vehicle wheel geometry separated from its original position'
-      :'Actual vehicle geometry with the affected area highlighted';
-
-  $('backToVehicle').classList.remove('hidden');
-  $('viewerModeLabel').textContent='COMPONENT FOCUS';
-  $('viewerTitle').textContent=f.title;
-
-  controls.enabled=true;
-  fitCameraToObject(componentScene,1.28,.78);
+  $('viewerLoading').classList.remove('hidden');
+  const loadingText=$('viewerLoading').querySelector('strong');if(loadingText)loadingText.textContent='Loading service assembly…';
+  try{await buildAssembly(f)}finally{$('viewerLoading').classList.add('hidden')}
+  vehicleRoot.visible=false;componentRoot.visible=true;hotspotLayer.style.display='none';
+  $('focusBanner').classList.add('hidden');$('explodedCaption').classList.remove('hidden');$('explodedCaptionTitle').textContent=f.title;
+  $('explodedCaptionSub').textContent=(f.id==='wiper-front'||f.id==='cabin-filter'?'Detailed DriveWell service assembly':'Asset-backed service component assembly')+' · rotate to explore';
+  $('backToVehicle').classList.remove('hidden');$('viewerModeLabel').textContent='SERVICE ASSEMBLY';$('viewerTitle').textContent=f.title;
+  controls.enabled=true;fitCameraToObject(componentScene,1.28,.80);
 }
 
 function resetVehicleView(){
-  pendingComponent=null;cameraTween=null;selectedVisualId=null;
-
-  componentRoot.visible=false;
-  vehicleRoot.visible=true;
-  setVehicleFade(1);
-  setHotspotSelection();
-
-  $('focusBanner').classList.add('hidden');
-  $('explodedCaption').classList.add('hidden');
-  $('backToVehicle').classList.add('hidden');
-  $('viewerModeLabel').textContent='VEHICLE OVERVIEW';
-  $('viewerTitle').textContent='Choose a highlighted area';
-
-  controls.enabled=true;
-  camera.position.set(5.7,2.9,5.9);
-  controls.target.set(0,1.05,0);
-  controls.update();
-
+  pendingComponent=null;cameraTween=null;componentRoot.visible=false;vehicleRoot.visible=true;setVehicleFade(1);setHotspotSelection();
+  $('focusBanner').classList.add('hidden');$('explodedCaption').classList.add('hidden');$('backToVehicle').classList.add('hidden');$('viewerModeLabel').textContent='VEHICLE OVERVIEW';$('viewerTitle').textContent='Choose a highlighted area';
+  controls.enabled=true;camera.position.set(5.7,2.9,5.9);controls.target.set(0,1.05,0);controls.update();
   if(focusGlow){focusRoot.remove(focusGlow);focusGlow=null}
 }
-
 $('backToVehicle').addEventListener('click',resetVehicleView);
-$('resetView').addEventListener('click',()=>{
-  if(componentRoot.visible&&componentScene)fitCameraToObject(componentScene,1.28,.78);
-  else resetVehicleView();
-});
+$('resetView').addEventListener('click',()=>{if(componentRoot.visible&&componentScene)fitCameraToObject(componentScene,1.28,.80);else resetVehicleView()});
 
 const loader=new GLTFLoader();
 loader.load('./assets/lowpoly_generic_suv.glb',gltf=>{
   vehicleModel=gltf.scene;
-
   vehicleModel.traverse(o=>{
-    if(!o.isMesh)return;
-    o.castShadow=true;o.receiveShadow=true;
-
+    if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;
     const name=(o.name||'').toLowerCase();
-    if(name.includes('body')){
-      o.material=whitePaint();
-    }else if(name.includes('glass')){
-      o.material=glassMaterial();
-    }else if(o.material){
-      o.material=cloneMaterialDeep(o.material);
-    }
-
-    (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{
-      vehicleMaterials.push({mat:m,baseOpacity:m.opacity??1,baseTransparent:!!m.transparent});
-    });
+    if(name.includes('body'))o.material=whitePaint();
+    else if(name.includes('glass'))o.material=glassMaterial();
+    else if(o.material)o.material=cloneMaterialDeep(o.material);
+    (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>vehicleMaterials.push({mat:m,baseOpacity:m.opacity??1,baseTransparent:!!m.transparent}));
   });
-
   carGroup.add(vehicleModel);
-
-  const raw=boundsOf(vehicleModel);
-  const size=raw.getSize(new THREE.Vector3());
-  const scale=6.0/Math.max(size.x,size.z);
-  vehicleModel.scale.setScalar(scale);
-
-  // Centre and ground the complete source model exactly once.
-  centreAndGround(vehicleModel,.12);
-
-  carGroup.rotation.y=.68;
-  vehicleRoot.updateMatrixWorld(true);
-
-  deriveAnchors();
-  buildHotspotButtons();
-  resetVehicleView();
-
-  $('viewerLoading').classList.add('hidden');
-},undefined,()=>{
-  $('viewerLoading').classList.add('hidden');
-  $('viewerError').classList.remove('hidden');
-});
+  const raw=boundsOf(vehicleModel),size=raw.getSize(new THREE.Vector3()),scale=6.0/Math.max(size.x,size.z);
+  vehicleModel.scale.setScalar(scale);centreAndGround(vehicleModel,.13);
+  carGroup.rotation.y=.68;vehicleRoot.updateMatrixWorld(true);
+  deriveAnchors();buildHotspotButtons();resetVehicleView();$('viewerLoading').classList.add('hidden');
+  loadServicePack().catch(()=>{});
+},undefined,()=>{$('viewerLoading').classList.add('hidden');$('viewerError').classList.remove('hidden')});
 
 function resizeViewer(){
-  const r=viewer.getBoundingClientRect();
-  if(!r.width||!r.height)return;
-  renderer.setSize(r.width,r.height,false);
-  camera.aspect=r.width/r.height;
-  camera.updateProjectionMatrix();
-  updateHotspots();
+  const r=viewer.getBoundingClientRect();if(!r.width||!r.height)return;
+  renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();updateHotspots();
 }
-window.addEventListener('resize',resizeViewer);
-resizeViewer();
+window.addEventListener('resize',resizeViewer);resizeViewer();
 
 function animate(now){
   requestAnimationFrame(animate);
-
   if(cameraTween){
-    const p=Math.min(1,(now-cameraTween.start)/cameraTween.duration);
-    const e=1-Math.pow(1-p,3);
-    camera.position.lerpVectors(cameraTween.startPos,cameraTween.endPos,e);
-    controls.target.lerpVectors(cameraTween.startTarget,cameraTween.endTarget,e);
+    const p=Math.min(1,(now-cameraTween.start)/cameraTween.duration),e=1-Math.pow(1-p,3);
+    camera.position.lerpVectors(cameraTween.startPos,cameraTween.endPos,e);controls.target.lerpVectors(cameraTween.startTarget,cameraTween.endTarget,e);
     if(p>=1){const done=cameraTween.onDone;cameraTween=null;done?.()}
   }
-
-  if(pendingComponent&&now>=pendingComponent.at)showComponentScene(pendingComponent.f);
-
-  if(componentRoot.visible&&componentAnimating&&selectedComponentNode){
-    const p=Math.min(1,(now-componentAnimStart)/850);
-    const e=1-Math.pow(1-p,3);
-    selectedComponentNode.position.lerpVectors(
-      selectedComponentNode.userData.startPosition,
-      selectedComponentNode.userData.endPosition,
-      e
-    );
+  if(pendingComponent&&now>=pendingComponent.at){const f=pendingComponent.f;pendingComponent=null;showComponentScene(f)}
+  if(componentRoot.visible&&componentAnimating&&componentScene){
+    const p=Math.min(1,(now-componentAnimStart)/900),e=1-Math.pow(1-p,3);
+    explodedItems.forEach(o=>{const a=o.userData.explodeFrom,b=o.userData.explodeTo;if(a&&b)o.position.lerpVectors(a,b,e)});
     if(p>=1)componentAnimating=false;
   }
-
-  componentScene?.traverse(o=>{
-    if(o.userData.pulse&&o.material){
-      const s=1+Math.sin(now*.005)*.10;
-      o.scale.setScalar(s);
-      o.material.opacity=.24+.08*Math.sin(now*.004);
-    }
-    if(o===selectedComponentNode&&o.material){
-      const mats=Array.isArray(o.material)?o.material:[o.material];
-      mats.forEach(m=>{if(m.emissive)m.emissiveIntensity=.07+.05*Math.sin(now*.004)});
-    }
-  });
-
-  if(focusGlow){
-    const s=1+Math.sin(now*.005)*.1;
-    focusGlow.scale.setScalar(s);
-    focusGlow.material.opacity=.20+.06*Math.sin(now*.004);
-  }
-
-  controls.update();
-  updateHotspots();
-  renderer.render(scene,camera);
+  componentScene?.traverse(o=>{if(o.userData.pulse&&o.material){const s=1+Math.sin(now*.005)*.07;o.scale.setScalar(s)}});
+  if(focusGlow){const s=1+Math.sin(now*.005)*.08;focusGlow.scale.setScalar(s);focusGlow.material.opacity=.14+.04*Math.sin(now*.004)}
+  controls.update();updateHotspots();renderer.render(scene,camera);
 }
-
 requestAnimationFrame(animate);
 
-routeTo('dashboard');
-renderTechnician();
-renderCustomer();
-renderCommunications();
+routeTo('dashboard');renderTechnician();renderCustomer();renderCommunications();

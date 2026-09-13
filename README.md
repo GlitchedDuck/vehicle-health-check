@@ -1,30 +1,25 @@
-# DriveWell Vehicle Health Platform — v7
+# DriveWell Vehicle Health Platform — v8
 
-v7 fixes the blank component-focus scene by preserving the complete GLB hierarchy.
+v8 replaces the ghost-car component view with service assemblies.
 
-## 3D fix
+## 3D changes
 
-The previous build cloned individual child nodes out of the source GLB. That discarded inherited parent transforms and could leave the component view empty.
+- White vehicle retained
+- No giant focus sphere in the final component scene
+- Tyre view uses the actual vehicle wheel geometry
+- Brake, battery, headlamp, air-filter and exhaust views use generic CC0 service-component GLB assets at runtime
+- Front-wiper and cabin-filter views use more detailed DriveWell service assemblies
+- A small ghost vehicle is used only as location/scale context
+- Components animate apart into a readable service layout
+- Every assembly is centred and grounded from calculated bounds
+- Camera framing is calculated from the assembly bounds
 
-v7 instead:
+## External assets
 
-- clones the complete, normalised vehicle scene
-- keeps the entire source hierarchy intact
-- ghosts the real car as component context
-- separates the actual `Wheel_FL` for the front-left tyre
-- separates the actual `Wheel_RR` for the rear-right brake context
-- leaves a ghost wheel in the original position to make the separation clear
-- camera-fits every component scene from its real calculated bounding box
-- grounds every component scene from its real calculated bounding box
-- keeps the requested white body finish
-- uses no fake procedural tyre, wiper, battery, filter, lamp or exhaust models
+Several generic service components are loaded from the CC0 Survivor Vehicle Maintenance pack on 3DAssets.dev.
 
-Where the free source GLB does not contain a component as a separate mesh, DriveWell highlights the correct area on the real vehicle rather than inventing low-quality geometry.
+The SUV remains “Lowpoly Generic SUV” by mk2design under CC BY 4.0.
 
 ## Clean deployment
 
-`deploy-clean.ps1` still deletes every existing application file from the repository working tree, preserving `.git` only, before copying v7 and pushing `main`.
-
-## Attribution
-
-Vehicle: “Lowpoly Generic SUV” by mk2design, CC BY 4.0.
+`deploy-clean.ps1` deletes every old application file except `.git`, copies v8 as a complete snapshot, commits and pushes `main`.
