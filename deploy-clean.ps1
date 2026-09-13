@@ -2,14 +2,14 @@ $ErrorActionPreference = "Continue"
 
 $RepoUrl  = "https://github.com/GlitchedDuck/vehicle-health-check.git"
 $Branch   = "main"
-$ZipPath  = "$env:USERPROFILE\Downloads\drivewell-platform-v10-tyre-clean.zip"
+$ZipPath  = "$env:USERPROFILE\Downloads\drivewell-platform-v10b-tyre-clean.zip"
 $Root     = "$env:TEMP\drivewell-v5-clean-deploy"
 $BuildDir = Join-Path $Root "build"
 $RepoDir  = Join-Path $Root "repo"
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host " DriveWell v10 TYRE - CLEAN GitHub Deployment" -ForegroundColor Cyan
+Write-Host " DriveWell v10b TYRE - CLEAN GitHub Deployment" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -21,7 +21,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 if (-not (Test-Path $ZipPath)) {
     Write-Host "ERROR: Cannot find:" -ForegroundColor Red
     Write-Host "  $ZipPath"
-    Write-Host "Download drivewell-platform-v10-tyre-clean.zip into Downloads first."
+    Write-Host "Download drivewell-platform-v10b-tyre-clean.zip into Downloads first."
     exit 1
 }
 
@@ -31,7 +31,7 @@ if (Test-Path $Root) {
 }
 New-Item -ItemType Directory -Path $BuildDir -Force | Out-Null
 
-Write-Host "[2/7] Extracting DriveWell v10 tyre..." -ForegroundColor Yellow
+Write-Host "[2/7] Extracting DriveWell v10b tyre..." -ForegroundColor Yellow
 try {
     Expand-Archive -Path $ZipPath -DestinationPath $BuildDir -Force
 }
@@ -82,7 +82,7 @@ if ($Remaining) {
 
 Write-Host "      Old repository working tree cleared." -ForegroundColor Green
 
-Write-Host "[5/7] Copying clean DriveWell v10 tyre snapshot..." -ForegroundColor Yellow
+Write-Host "[5/7] Copying clean DriveWell v10b tyre snapshot..." -ForegroundColor Yellow
 Get-ChildItem -LiteralPath $BuildDir -Force | ForEach-Object {
     Copy-Item $_.FullName -Destination $RepoDir -Recurse -Force
 }
@@ -100,7 +100,7 @@ if (-not $Pending) {
 }
 
 Write-Host "[7/7] Committing and pushing..." -ForegroundColor Yellow
-git commit -m "Clean rebuild: DriveWell v10 front-left tyre model"
+git commit -m "Clean rebuild: DriveWell v10b tyre model correction"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Commit failed." -ForegroundColor Red
     exit 1
@@ -116,11 +116,11 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Green
-Write-Host " DRIVEWELL V10 TYRE DEPLOYED" -ForegroundColor Green
+Write-Host " DRIVEWELL V10B TYRE DEPLOYED" -ForegroundColor Green
 Write-Host "====================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Live site:"
-Write-Host "https://glitchedduck.github.io/vehicle-health-check/?drivewell=v10-tyre"
+Write-Host "https://glitchedduck.github.io/vehicle-health-check/?drivewell=v10b-tyre"
 Write-Host ""
 Write-Host "This was a clean repository replacement; all old app files were deleted first."
 Write-Host ""

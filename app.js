@@ -387,61 +387,80 @@ function makeTyreDatumRing(radius){
   return ring;
 }
 
+function makeTyreWearArc(radius){
+  const arc=new THREE.Mesh(
+    new THREE.TorusGeometry(radius,.025,12,54,Math.PI*.42),
+    new THREE.MeshStandardMaterial({
+      color:0xe04b59,
+      emissive:0x6f111a,
+      emissiveIntensity:.42,
+      roughness:.42,
+      metalness:.02
+    })
+  );
+  // Wheel axle runs along X, so the tread circle sits in the Y/Z plane.
+  arc.rotation.y=Math.PI/2;
+  arc.rotation.x=Math.PI*.68;
+  arc.userData.pulse=true;
+  return arc;
+}
+
 function buildFrontLeftTyreAssembly(){
   explodedItems=[];
   const group=new THREE.Group();
 
-  // Small vehicle locator only.
-  contextCar(group);
-
   const source=findNodeLike(vehicleModel,'Wheel_FL');
   if(!source)throw new Error('Wheel_FL was not found in the vehicle GLB.');
 
-  const wheel=cloneNodeWithWorldTransform(source);
-  polishRealWheel(wheel);
+  // Clone the REAL wheel exactly as authored, including its original UV texture/material.
+  const wheel=source.clone(true);
+  wheel.traverse(o=>{
+    if(!o.isMesh)return;
+    o.material=cloneMaterialDeep(o.material);
+    o.castShadow=true;
+    o.receiveShadow=true;
+  });
 
-  // Normalise the extracted real wheel independently from the vehicle.
-  const initialBox=boundsOf(wheel);
-  const centre=initialBox.getCenter(new THREE.Vector3());
-  wheel.position.sub(centre);
+  // Isolate in local space. The wheel asset is a single combined tyre/rim mesh,
+  // so we do not pretend the tyre and rim are separate parts.
+  const box0=boundsOf(wheel);
+  const c0=box0.getCenter(new THREE.Vector3());
+  wheel.position.sub(c0);
   wheel.updateMatrixWorld(true);
-
-  scaleToMax(wheel,3.15);
-  centreAndGround(wheel,.20);
-
-  // Present the actual wheel as the hero component.
-  wheel.rotation.y+=.18;
+  scaleToMax(wheel,3.35);
+  centreAndGround(wheel,.22);
   group.add(wheel);
 
-  const wheelBox=boundsOf(wheel);
-  const wheelCentre=wheelBox.getCenter(new THREE.Vector3());
-  const wheelSize=wheelBox.getSize(new THREE.Vector3());
+  const box=boundsOf(wheel);
+  const c=box.getCenter(new THREE.Vector3());
+  const size=box.getSize(new THREE.Vector3());
+  const radius=Math.max(size.y,size.z)*.505;
 
-  // Worn-tread highlight is only an overlay; it is not fake component geometry.
-  const wear=makeTyreWearBand(wheelBox);
-  wear.position.copy(wheelCentre);
-  wear.position.x-=wheelSize.x*.50;
+  // Small tread-warning arc only; no giant ring and no fake component geometry.
+  const wear=makeTyreWearArc(radius);
+  wear.position.copy(c);
+  wear.position.x=box.min.x-.035;
   group.add(wear);
 
-  // Subtle technical datum ring below assembly.
-  const datum=makeTyreDatumRing(Math.max(wheelSize.x,wheelSize.z)*.63);
-  datum.position.set(wheelCentre.x,.035,wheelCentre.z);
+  // Very subtle floor datum, kept well below the tyre.
+  const datum=new THREE.Mesh(
+    new THREE.RingGeometry(radius*.78,radius*.79,96),
+    new THREE.MeshBasicMaterial({color:0x5d84b7,transparent:true,opacity:.22,side:THREE.DoubleSide})
+  );
+  datum.rotation.x=-Math.PI/2;
+  datum.position.set(c.x,.018,c.z);
   group.add(datum);
 
-  // Explode motion is wheel-only for this first tyre pass.
-  const from=wheel.position.clone();
-  const to=from.clone().add(new THREE.Vector3(-.30,.12,.18));
-  wheel.userData.from=from;
-  wheel.userData.to=to;
+  wheel.userData.from=wheel.position.clone();
+  wheel.userData.to=wheel.position.clone().add(new THREE.Vector3(0,.06,0));
   explodedItems.push(wheel);
 
   wear.userData.from=wear.position.clone();
-  wear.userData.to=wear.position.clone().add(new THREE.Vector3(-.34,.12,.20));
+  wear.userData.to=wear.position.clone().add(new THREE.Vector3(-.03,.06,0));
   explodedItems.push(wear);
 
   return group;
 }
-
 
 async function buildAssembly(f){
   clearComponentScene();
@@ -510,11 +529,11 @@ async function showComponentScene(f){
   vehicleRoot.visible=false;componentRoot.visible=true;hotspotLayer.style.display='none';
   $('focusBanner').classList.add('hidden');$('explodedCaption').classList.remove('hidden');$('explodedCaptionTitle').textContent=f.title;
   $('explodedCaptionSub').textContent=f.id==='tyre-fl'
-    ?'Actual Wheel_FL geometry from the vehicle · worn tread highlighted'
+    ?'Actual Wheel_FL model and original texture · worn tread highlighted'
     :'Dedicated service assembly · rotate to explore';
   $('tyreAssemblyPanel').classList.toggle('hidden',f.id!=='tyre-fl');
   $('backToVehicle').classList.remove('hidden');$('viewerModeLabel').textContent='SERVICE ASSEMBLY';$('viewerTitle').textContent=f.title;
-  controls.enabled=true;fitCameraToObject(componentScene,f.id==='tyre-fl'?1.08:1.22,f.id==='tyre-fl'?.90:.82);
+  controls.enabled=true;if(f.id==='tyre-fl'){const b=boundsOf(componentScene),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3()),d=Math.max(s.y,s.z)*1.75;camera.position.set(c.x+d,c.y+s.y*.10,c.z+s.z*.08);controls.target.copy(c);controls.update()}else{fitCameraToObject(componentScene,1.22,.82);}
 }
 
 function resetVehicleView(){
