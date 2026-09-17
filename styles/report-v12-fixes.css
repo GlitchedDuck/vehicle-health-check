@@ -1,0 +1,53 @@
+.page-vehicle-summary{display:none}
+
+body.report-active .page-heading{
+  flex-wrap:nowrap;
+  gap:18px;
+}
+
+body.report-active .page-heading>span:first-child{
+  display:none;
+}
+
+body.report-active .page-vehicle-summary{
+  display:inline-block;
+  flex:0 1 auto;
+  white-space:nowrap;
+}
+
+body.report-active .topbar{
+  min-height:72px;
+}
+
+#route-report .viewer-toolbar>div:first-child span,
+#route-report .report-health-heading>div:last-child>span,
+#route-report .measurement-card>div:first-child>span,
+#route-report .explanation article>span,
+#route-report .mini-head span{
+  font-size:9px;
+}
+
+#route-report .viewer-button,
+#route-report .detail-head p,
+#route-report .explanation p,
+#route-report .mini-head strong,
+#route-report .findings-head>span,
+#route-report .finding-card small,
+#route-report .report-health-action small{
+  font-size:11px;
+}
+
+#route-report .finding-card strong{
+  font-size:12px;
+}
+
+#route-report .report-health-copy>p,
+#route-report .report-health-legend>div{
+  font-size:13px;
+}
+
+@media(max-width:1180px){
+  body.report-active .page-vehicle-summary{
+    display:none;
+  }
+}
