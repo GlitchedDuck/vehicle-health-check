@@ -1,2 +1,173 @@
-/* DriveWell v11 technician-inspection styles.
-   Route-specific rules will migrate here from the legacy stylesheet. */
+/* DriveWell v11a technician inspection workspace */
+
+#route-inspection .section-intro{
+  align-items:center;
+  margin-bottom:12px;
+}
+
+#route-inspection .section-intro h2{
+  font-size:26px;
+}
+
+#route-inspection .progress-card{
+  min-width:112px;
+  padding:10px 14px;
+  border-color:#cbd8e7;
+  box-shadow:0 8px 22px rgba(30,55,89,.06);
+}
+
+#route-inspection .progress-card strong{
+  font-size:19px;
+}
+
+#route-inspection .inspection-layout{
+  grid-template-columns:minmax(245px,280px) minmax(0,1fr);
+  gap:16px;
+}
+
+#route-inspection .inspection-list{
+  position:sticky;
+  top:105px;
+  max-height:calc(100vh - 126px);
+  overflow:auto;
+  border-radius:16px;
+  box-shadow:0 12px 28px rgba(24,45,73,.06);
+}
+
+#route-inspection .inspection-list-head{
+  position:sticky;
+  top:0;
+  z-index:2;
+  padding:12px 13px 9px;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(12px);
+}
+
+#route-inspection .tech-component{
+  min-height:54px;
+  padding:8px 10px;
+  grid-template-columns:30px minmax(0,1fr) auto;
+  gap:8px;
+}
+
+#route-inspection .tech-component-icon{
+  width:30px;
+  height:30px;
+  border-radius:9px;
+}
+
+#route-inspection .tech-component strong{
+  font-size:9px;
+}
+
+#route-inspection .tech-component small{
+  font-size:7.5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#route-inspection .tech-component.active{
+  background:linear-gradient(90deg,#eef5ff,#f8fbff);
+  box-shadow:inset 3px 0 0 var(--blue);
+}
+
+#route-inspection .capture-panel{
+  padding:0;
+  overflow:hidden;
+  border-radius:18px;
+}
+
+#route-inspection .capture-head{
+  padding:18px 20px 15px;
+  background:linear-gradient(180deg,#fbfdff,#f7faff);
+  border-bottom:1px solid #dce6f1;
+}
+
+#route-inspection .capture-head h3{
+  margin-top:7px;
+  font-size:23px;
+}
+
+#route-inspection .form-grid{
+  padding:16px 20px 14px;
+  gap:10px;
+}
+
+#route-inspection .form-grid label{
+  gap:5px;
+}
+
+#route-inspection .form-grid input,
+#route-inspection .form-grid select,
+#route-inspection .form-grid textarea{
+  padding:9px 10px;
+  border-radius:9px;
+}
+
+#route-inspection .form-grid .span-all:not(.evidence-drop){
+  grid-column:1 / 3;
+}
+
+#route-inspection .form-grid textarea{
+  min-height:102px;
+  resize:vertical;
+}
+
+#route-inspection .evidence-drop{
+  grid-column:3 / 4;
+  min-height:102px;
+  padding:10px!important;
+  align-content:center;
+  border-radius:12px!important;
+  background:linear-gradient(180deg,#fbfdff,#f6f9fd)!important;
+}
+
+#route-inspection .evidence-drop>span{
+  font-size:18px;
+}
+
+#route-inspection .capture-mapping{
+  margin:0 20px;
+  padding-top:13px;
+  gap:8px;
+}
+
+#route-inspection .capture-mapping div{
+  min-height:58px;
+  padding:9px 10px;
+  background:#f7f9fc;
+}
+
+#route-inspection .capture-actions{
+  min-height:62px;
+  margin:0;
+  padding:12px 20px 16px;
+}
+
+#route-inspection .capture-actions .button.primary{
+  min-width:126px;
+}
+
+#route-inspection .page-actions{
+  margin-top:12px;
+}
+
+@media(max-width:1050px){
+  #route-inspection .inspection-layout{grid-template-columns:240px minmax(0,1fr)}
+  #route-inspection .form-grid{grid-template-columns:1fr 1fr}
+  #route-inspection .form-grid .span-all:not(.evidence-drop){grid-column:1/-1}
+  #route-inspection .evidence-drop{grid-column:1/-1;min-height:86px}
+  #route-inspection .capture-mapping{grid-template-columns:1fr}
+}
+
+@media(max-width:720px){
+  #route-inspection .section-intro{display:flex;align-items:flex-start}
+  #route-inspection .inspection-layout{grid-template-columns:1fr}
+  #route-inspection .inspection-list{position:static;max-height:260px}
+  #route-inspection .form-grid{grid-template-columns:1fr;padding:14px}
+  #route-inspection .form-grid .span-all:not(.evidence-drop),
+  #route-inspection .evidence-drop{grid-column:auto}
+  #route-inspection .capture-mapping{margin:0 14px}
+  #route-inspection .capture-actions{padding:12px 14px 14px}
+}
