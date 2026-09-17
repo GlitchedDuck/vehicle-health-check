@@ -1,0 +1,370 @@
+body.report-active .topbar{
+  min-height:86px;
+  padding:14px 22px;
+  gap:24px;
+}
+
+body.report-active .page-heading{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px 18px;
+  min-width:0;
+}
+
+body.report-active .page-heading>span:first-child{
+  flex-basis:100%;
+  font-size:9px;
+  letter-spacing:.17em;
+}
+
+body.report-active .page-heading h1{
+  margin:0;
+  font-size:30px;
+  line-height:1;
+  letter-spacing:-.035em;
+}
+
+body.report-active .page-vehicle-summary{
+  color:#61728a;
+  font-size:14px;
+  font-weight:600;
+  border-left:1px solid #b9c6d5;
+  padding-left:18px;
+}
+
+body.report-active .topbar-right{
+  gap:10px;
+}
+
+body.report-active .connected-pill,
+body.report-active .vehicle-pill{
+  min-height:44px;
+  padding:8px 13px;
+  border-radius:13px;
+  font-size:10px;
+}
+
+body.report-active .user-avatar{
+  width:44px;
+  height:44px;
+  font-size:12px;
+}
+
+body.report-active #route-report{
+  padding-top:16px;
+}
+
+body.report-active #route-report .report-intro{
+  display:none;
+}
+
+#route-report .report-hero-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.62fr) minmax(360px,.88fr);
+  gap:16px;
+  align-items:stretch;
+}
+
+#route-report .viewer-panel,
+#route-report .report-health-summary{
+  border-radius:18px;
+  overflow:hidden;
+}
+
+#route-report .report-viewer-heading{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:74px;
+  padding:14px 16px;
+  background:#fff;
+  border-bottom:1px solid #e2e9f1;
+}
+
+#route-report .report-viewer-heading-icon,
+#route-report .report-health-icon{
+  display:grid;
+  place-items:center;
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  border-radius:12px;
+  background:#eaf2ff;
+  color:#0f376f;
+  font-size:21px;
+  font-weight:900;
+}
+
+#route-report .report-viewer-heading strong,
+#route-report .report-health-heading h2{
+  display:block;
+  color:#071a35;
+  font-size:21px;
+  line-height:1.1;
+  letter-spacing:-.025em;
+}
+
+#route-report .report-viewer-heading span,
+#route-report .report-health-heading p{
+  display:block;
+  margin-top:4px;
+  color:#75859a;
+  font-size:12px;
+  line-height:1.35;
+}
+
+#route-report .viewer-toolbar{
+  height:58px;
+  padding:0 16px;
+}
+
+#route-report .viewer-toolbar>div:first-child span{
+  font-size:8px;
+}
+
+#route-report .viewer-toolbar>div:first-child strong{
+  font-size:13px;
+}
+
+#route-report .viewer-button{
+  min-height:34px;
+  padding:0 12px;
+  font-size:9px;
+}
+
+#route-report .viewer{
+  height:470px;
+}
+
+#route-report .report-health-summary{
+  display:flex;
+  flex-direction:column;
+  padding:20px;
+  min-height:602px;
+  background:#fff;
+  box-shadow:0 14px 32px rgba(25,43,68,.08);
+}
+
+#route-report .report-health-heading{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+#route-report .report-health-heading>div:last-child>span{
+  display:block;
+  color:#6a83a4;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.14em;
+  margin-bottom:5px;
+}
+
+#route-report .report-health-heading h2{
+  margin:0;
+  font-size:23px;
+}
+
+#route-report .report-health-main{
+  display:grid;
+  grid-template-columns:minmax(190px,.9fr) minmax(0,1fr);
+  gap:20px;
+  align-items:center;
+  margin-top:30px;
+}
+
+#route-report .report-health-gauge{
+  position:relative;
+  width:min(100%,220px);
+  aspect-ratio:1;
+  margin:auto;
+  border-radius:50%;
+  background:conic-gradient(#44b985 0 68%,#f1b23b 68% 92%,#e95663 92% 100%);
+  box-shadow:inset 0 0 0 1px rgba(41,66,98,.06),0 8px 24px rgba(41,66,98,.08);
+}
+
+#route-report .report-health-gauge::before{
+  content:"";
+  position:absolute;
+  inset:18px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:inset 0 0 0 1px #edf1f6;
+}
+
+#route-report .report-health-gauge-inner{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-content:center;
+  text-align:center;
+  z-index:1;
+}
+
+#route-report .report-health-gauge-inner strong{
+  color:#071a35;
+  font-size:54px;
+  line-height:.95;
+  letter-spacing:-.05em;
+}
+
+#route-report .report-health-gauge-inner span{
+  margin-top:7px;
+  color:#66768b;
+  font-size:12px;
+  font-weight:700;
+}
+
+#route-report .report-health-copy>strong{
+  display:block;
+  color:#e59b16;
+  font-size:25px;
+  line-height:1.08;
+  letter-spacing:-.025em;
+}
+
+#route-report .report-health-copy>p{
+  margin:10px 0 20px;
+  color:#4e617c;
+  font-size:13px;
+  line-height:1.45;
+}
+
+#route-report .report-health-legend{
+  display:grid;
+  gap:10px;
+}
+
+#route-report .report-health-legend>div{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  color:#50627b;
+  font-size:12px;
+}
+
+#route-report .report-health-legend span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+#route-report .report-health-legend b{
+  color:#132b4d;
+  font-size:13px;
+}
+
+#route-report .health-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+}
+#route-report .health-dot.healthy{background:#44b985}
+#route-report .health-dot.advisory{background:#f1a40e}
+#route-report .health-dot.urgent{background:#ee3546}
+
+#route-report .report-health-action{
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  margin-top:auto;
+  width:100%;
+  padding:12px 14px;
+  border:1px solid #d8e5f5;
+  border-radius:14px;
+  background:#f2f7fd;
+  text-align:left;
+  color:#102847;
+  cursor:pointer;
+}
+
+#route-report .report-health-action-icon{
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:#dfeeff;
+  font-size:18px;
+}
+
+#route-report .report-health-action strong{
+  display:block;
+  font-size:13px;
+}
+
+#route-report .report-health-action small{
+  display:block;
+  margin-top:3px;
+  color:#718096;
+  font-size:10px;
+}
+
+#route-report .report-lower-grid{
+  display:grid;
+  grid-template-columns:minmax(330px,.82fr) minmax(0,1.48fr);
+  gap:16px;
+  align-items:start;
+  margin-top:16px;
+}
+
+#route-report .detail-panel{
+  position:static;
+  max-height:none;
+  padding:16px;
+}
+
+#route-report .findings-panel{
+  margin-top:0;
+}
+
+#route-report .detail-head h3{
+  font-size:21px;
+}
+
+#route-report .detail-head p,
+#route-report .explanation p,
+#route-report .mini-head strong,
+#route-report .findings-head>span,
+#route-report .finding-card small{
+  font-size:10px;
+}
+
+#route-report .measurement-card>div:first-child>span,
+#route-report .explanation article>span,
+#route-report .mini-head span{
+  font-size:8px;
+}
+
+#route-report .finding-card strong{
+  font-size:11px;
+}
+
+@media(max-width:1280px){
+  #route-report .report-hero-grid{grid-template-columns:minmax(0,1.35fr) minmax(330px,.85fr)}
+  #route-report .viewer{height:430px}
+  #route-report .report-health-main{grid-template-columns:1fr;gap:16px;margin-top:20px}
+  #route-report .report-health-summary{min-height:auto}
+  #route-report .report-health-action{margin-top:20px}
+}
+
+@media(max-width:1050px){
+  body.report-active .page-vehicle-summary{flex-basis:100%;border-left:0;padding-left:0}
+  #route-report .report-hero-grid,
+  #route-report .report-lower-grid{grid-template-columns:1fr}
+  #route-report .viewer{height:430px}
+}
+
+@media(max-width:720px){
+  body.report-active .topbar{align-items:flex-start}
+  body.report-active .topbar-right{display:none}
+  body.report-active .page-heading h1{font-size:25px}
+  body.report-active .page-vehicle-summary{font-size:12px}
+  #route-report .viewer{height:350px}
+  #route-report .report-health-summary{padding:16px}
+  #route-report .report-health-main{grid-template-columns:1fr}
+  #route-report .report-health-gauge{width:190px}
+}
