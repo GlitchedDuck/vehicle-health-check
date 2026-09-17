@@ -25,6 +25,10 @@ jobs:
           test -f js/state.js
           test -f js/config/component-manifest.js
           test -f styles/base.css
+          test -f styles/dashboard.css
+          test -f styles/inspection.css
+          test -f styles/report.css
+          test -f styles/approvals.css
           test -f assets/lowpoly_generic_suv.glb
 
       - name: Check JavaScript syntax
@@ -36,9 +40,9 @@ jobs:
           node --check js/state.js
           node --check js/config/component-manifest.js
 
-      - name: Check HTML entry points
+      - name: Confirm legacy runtime remains intact during baseline migration
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'styles/base.css' index.html
-          grep -q 'js/app.js' index.html
+          grep -q 'styles.css?v=10b' index.html
+          grep -q 'app.js?v=10b' index.html
