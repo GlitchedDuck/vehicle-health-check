@@ -23,7 +23,9 @@ jobs:
           test -f styles.css
           test -f js/app.js
           test -f js/state.js
+          test -f js/data/findings.js
           test -f js/config/component-manifest.js
+          test -f js/three/three-helpers.js
           test -f styles/base.css
           test -f styles/dashboard.css
           test -f styles/inspection.css
@@ -38,7 +40,25 @@ jobs:
           node --check app.js
           node --check js/app.js
           node --check js/state.js
+          node --check js/data/findings.js
           node --check js/config/component-manifest.js
+          node --check js/three/three-helpers.js
+
+      - name: Check extracted findings catalogue
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "id:'tyre-fl'" js/data/findings.js
+          grep -q "id:'brake-rr'" js/data/findings.js
+          grep -q "id:'battery'" js/data/findings.js
+          grep -q "id:'exhaust'" js/data/findings.js
+
+      - name: Check v11 module bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "./data/findings.js" js/app.js
+          grep -q "../app.js" js/app.js
 
       - name: Confirm legacy runtime remains intact during baseline migration
         shell: bash
