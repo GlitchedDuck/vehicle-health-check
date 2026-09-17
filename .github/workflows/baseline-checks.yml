@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - drivewell-v11-baseline
+      - drivewell-v11b-3d-models
       - main
   pull_request:
 
@@ -26,6 +27,7 @@ jobs:
           test -f js/data/findings.js
           test -f js/config/component-manifest.js
           test -f js/three/three-helpers.js
+          test -f js/three/model-overrides.js
           test -f styles/base.css
           test -f styles/dashboard.css
           test -f styles/inspection.css
@@ -43,6 +45,7 @@ jobs:
           node --check js/data/findings.js
           node --check js/config/component-manifest.js
           node --check js/three/three-helpers.js
+          node --check js/three/model-overrides.js
 
       - name: Check extracted findings catalogue
         shell: bash
@@ -58,11 +61,12 @@ jobs:
         run: |
           set -euo pipefail
           grep -q "./data/findings.js" js/app.js
+          grep -q "./three/model-overrides.js" js/app.js
           grep -q "../app.js" js/app.js
 
-      - name: Confirm legacy runtime remains intact during baseline migration
+      - name: Confirm v11 entry points are active
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'styles.css?v=10b' index.html
-          grep -q 'app.js?v=10b' index.html
+          grep -q 'styles/base.css?v=11a' index.html
+          grep -q 'js/app.js?v=11a' index.html
