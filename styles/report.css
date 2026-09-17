@@ -1,2 +1,154 @@
-/* DriveWell v11 customer-report styles.
-   Route-specific rules will migrate here from the legacy stylesheet. */
+/* DriveWell v11a customer vehicle-health report */
+
+#route-report .report-intro{
+  margin-bottom:14px;
+}
+
+#route-report .report-intro h2{
+  font-size:27px;
+}
+
+#route-report .report-grid{
+  grid-template-columns:minmax(0,1.9fr) minmax(360px,.7fr);
+  gap:16px;
+  align-items:start;
+}
+
+#route-report .viewer-panel{
+  border-radius:20px;
+  box-shadow:0 20px 46px rgba(6,18,33,.16);
+}
+
+#route-report .viewer-toolbar{
+  height:68px;
+  padding:0 18px;
+  background:linear-gradient(180deg,rgba(13,29,49,.98),rgba(8,20,35,.98));
+}
+
+#route-report .viewer-toolbar>div:first-child strong{
+  font-size:14px;
+}
+
+#route-report .viewer{
+  height:700px;
+  background:radial-gradient(circle at 50% 24%,#223f69 0,#10243c 40%,#07121e 78%);
+}
+
+#route-report .viewer-tip{
+  left:16px;
+  bottom:16px;
+  padding:8px 10px;
+  font-size:7.5px;
+  border:1px solid rgba(135,164,203,.2);
+}
+
+#route-report .detail-panel{
+  position:sticky;
+  top:104px;
+  gap:9px;
+  padding:16px;
+  max-height:calc(100vh - 126px);
+  overflow:auto;
+  box-shadow:0 14px 32px rgba(25,43,68,.08);
+}
+
+#route-report .detail-head{
+  align-items:flex-start;
+  padding-bottom:2px;
+}
+
+#route-report .detail-head h3{
+  font-size:22px;
+  letter-spacing:-.03em;
+}
+
+#route-report .price strong{
+  font-size:21px;
+}
+
+#route-report .measurement-card{
+  padding:12px;
+  background:linear-gradient(180deg,#fbfcfe,#f7fafd);
+}
+
+#route-report .measurement-card>div:first-child strong{
+  font-size:21px;
+}
+
+#route-report .explanation{
+  gap:6px;
+}
+
+#route-report .explanation article{
+  padding:5px 0 5px 10px;
+  border-left-color:#cfdaea;
+}
+
+#route-report .explanation article:last-child{
+  border-left-color:#4f86e8;
+  background:#f6f9ff;
+  border-radius:0 9px 9px 0;
+  padding-right:8px;
+}
+
+#route-report .evidence-card,
+#route-report .history-card{
+  padding:9px 10px;
+}
+
+#route-report .evidence-visual{
+  height:100px;
+}
+
+#route-report .history-chart{
+  height:78px;
+}
+
+#route-report .decision-grid{
+  position:sticky;
+  bottom:0;
+  padding-top:8px;
+  background:linear-gradient(180deg,rgba(255,255,255,0),#fff 24%);
+}
+
+#route-report .approve-button,
+#route-report .decision-grid .button{
+  min-height:44px;
+}
+
+#route-report .findings-panel{
+  margin-top:16px;
+  padding:14px;
+}
+
+#route-report .finding-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+
+#route-report .finding-card{
+  min-height:58px;
+  padding:10px;
+}
+
+#route-report .finding-card.active{
+  border-color:#3d7ee7;
+  background:linear-gradient(180deg,#f4f8ff,#eef5ff);
+  box-shadow:0 8px 20px rgba(44,103,202,.10);
+}
+
+@media(max-width:1280px){
+  #route-report .report-grid{grid-template-columns:minmax(0,1.5fr) minmax(340px,.8fr)}
+  #route-report .viewer{height:610px}
+}
+
+@media(max-width:1100px){
+  #route-report .report-grid{grid-template-columns:1fr}
+  #route-report .detail-panel{position:static;max-height:none}
+  #route-report .viewer{height:560px}
+}
+
+@media(max-width:720px){
+  #route-report .viewer{height:410px}
+  #route-report .finding-grid{grid-template-columns:1fr}
+}
