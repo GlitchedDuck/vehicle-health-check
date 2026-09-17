@@ -81,26 +81,33 @@ function addVehicleSummary(){
   heading.append(summary);
 }
 
+function updateHealthCounts(){
+  const urgent = Number(document.getElementById('urgentCount')?.textContent || 1);
+  const advisory = Number(document.getElementById('attentionCount')?.textContent || 7);
+  const totalChecks = 24;
+  const healthy = Math.max(0,totalChecks-urgent-advisory);
+  const map = {
+    reportUrgentCount: urgent,
+    reportAdvisoryCount: advisory,
+    reportHealthyCount: healthy,
+    reportAttentionTotal: urgent + advisory
+  };
+  Object.entries(map).forEach(([id,value]) => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = String(value);
+  });
+}
+
 function syncReportMode(){
   const active = document.getElementById('route-report')?.classList.contains('active');
   document.body.classList.toggle('report-active', !!active);
+  if(active) updateHealthCounts();
+}
 
-  if(active){
-    const urgent = Number(document.getElementById('urgentCount')?.textContent || 1);
-    const advisory = Number(document.getElementById('attentionCount')?.textContent || 7);
-    const totalChecks = 24;
-    const healthy = Math.max(0,totalChecks-urgent-advisory);
-    const map = {
-      reportUrgentCount: urgent,
-      reportAdvisoryCount: advisory,
-      reportHealthyCount: healthy,
-      reportAttentionTotal: urgent + advisory
-    };
-    Object.entries(map).forEach(([id,value]) => {
-      const el = document.getElementById(id);
-      if(el) el.textContent = String(value);
-    });
-  }
+function setShellModeForRoute(route){
+  // Apply the shell state in the same click turn as navigation. This prevents a
+  // one-frame sidebar/header/font jump while the legacy router swaps routes.
+  document.body.classList.toggle('report-active', route === 'report');
 }
 
 buildReportLayout();
@@ -108,8 +115,12 @@ addVehicleSummary();
 
 const pageTitle = document.getElementById('pageTitle');
 if(pageTitle){
-  new MutationObserver(() => requestAnimationFrame(syncReportMode)).observe(pageTitle,{childList:true,subtree:true,characterData:true});
+  new MutationObserver(syncReportMode).observe(pageTitle,{childList:true,subtree:true,characterData:true});
 }
 
-document.querySelectorAll('[data-route]').forEach(button => button.addEventListener('click', () => requestAnimationFrame(syncReportMode)));
-requestAnimationFrame(syncReportMode);
+document.querySelectorAll('[data-route]').forEach(button => button.addEventListener('click', () => {
+  setShellModeForRoute(button.dataset.route);
+  if(button.dataset.route === 'report') requestAnimationFrame(updateHealthCounts);
+}));
+
+syncReportMode();
