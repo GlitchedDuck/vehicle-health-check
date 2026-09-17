@@ -1,0 +1,167 @@
+/* DriveWell v14 — denser, larger-type desktop report */
+
+@media(min-width:1100px) and (min-height:760px){
+  body.report-active .platform-shell{grid-template-columns:200px minmax(0,1fr)}
+  body.report-active .sidebar{padding:13px 11px}
+  body.report-active .nav-button strong{font-size:11px}
+  body.report-active .nav-button small{font-size:8px}
+
+  body.report-active .main{padding:0 14px 10px}
+  body.report-active .topbar{height:60px;min-height:60px;margin-bottom:8px}
+  body.report-active .page-heading h1{font-size:26px}
+  body.report-active .page-vehicle-summary{font-size:13px}
+
+  body.report-active #route-report{
+    height:calc(100vh - 78px);
+    display:grid;
+    grid-template-columns:minmax(0,1.72fr) minmax(390px,.86fr);
+    grid-template-rows:235px 120px minmax(0,1fr);
+    gap:9px;
+  }
+
+  /* Let the four report cards participate directly in the page grid. */
+  #route-report .report-hero-grid,
+  #route-report .report-lower-grid{display:contents}
+
+  #route-report .viewer-panel{grid-column:1;grid-row:1 / 3}
+  #route-report .report-health-summary{grid-column:2;grid-row:1}
+  #route-report .detail-panel{grid-column:1;grid-row:3}
+  #route-report .findings-panel{grid-column:2;grid-row:2 / 4}
+
+  /* Viewer: less chrome, more actual model. */
+  #route-report .report-viewer-heading{
+    height:48px;
+    min-height:48px;
+    flex-basis:48px;
+    padding:7px 11px;
+  }
+  #route-report .report-viewer-heading strong{font-size:18px}
+  #route-report .report-viewer-heading span{font-size:11px}
+  #route-report .viewer-toolbar{
+    height:40px;
+    min-height:40px;
+    flex-basis:40px;
+  }
+  #route-report .viewer-toolbar>div:first-child strong{font-size:12px}
+  #route-report .viewer-toolbar>div:first-child span{font-size:8px}
+  #route-report .viewer-button{font-size:9px}
+  #route-report .viewer-tip{font-size:8px}
+
+  /* Health summary is now a compact summary rather than a stretched white card. */
+  #route-report .report-health-summary{
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    height:235px;
+    min-height:235px;
+    padding:12px 14px;
+    overflow:hidden;
+  }
+  #route-report .report-health-heading{gap:9px}
+  #route-report .report-health-heading h2{font-size:20px}
+  #route-report .report-health-heading p{font-size:10.5px}
+  #route-report .report-health-heading>div:last-child>span{font-size:7.5px}
+  #route-report .report-health-main{
+    display:grid;
+    grid-template-columns:116px minmax(0,1fr);
+    gap:13px;
+    align-items:center;
+    margin:5px 0;
+    min-height:0;
+  }
+  #route-report .report-health-gauge{width:112px;max-width:112px}
+  #route-report .report-health-gauge::before{inset:10px}
+  #route-report .report-health-gauge-inner strong{font-size:36px}
+  #route-report .report-health-gauge-inner span{font-size:9px;margin-top:2px}
+  #route-report .report-health-copy>strong{font-size:19px}
+  #route-report .report-health-copy>p{font-size:10.5px;line-height:1.3;margin:4px 0 7px}
+  #route-report .report-health-legend{gap:4px}
+  #route-report .report-health-legend>div{font-size:10px}
+  #route-report .report-health-legend b{font-size:11px}
+  #route-report .report-health-action{
+    margin:0;
+    padding:6px 9px;
+    grid-template-columns:28px minmax(0,1fr) auto;
+    min-height:38px;
+  }
+  #route-report .report-health-action-icon{width:28px;height:28px}
+  #route-report .report-health-action strong{font-size:10.5px}
+  #route-report .report-health-action small{font-size:8.5px}
+
+  /* Selected finding: use the available area for useful text, not empty card height. */
+  #route-report .detail-panel{
+    display:grid;
+    grid-template-columns:.72fr 1.28fr 1.28fr;
+    grid-template-rows:52px 104px minmax(138px,1fr) 38px;
+    grid-template-areas:
+      "head head head"
+      "measurement explanation explanation"
+      "evidence history history"
+      "decision decision decision";
+    gap:7px;
+    padding:10px;
+  }
+  #route-report .detail-head{min-height:0;padding:0 2px 5px}
+  #route-report .detail-head h3{font-size:20px;margin:4px 0 1px}
+  #route-report .detail-head p{font-size:10px}
+  #route-report .severity{font-size:9px;padding:5px 8px}
+  #route-report .price span{font-size:8px}
+  #route-report .price strong{font-size:20px}
+
+  #route-report .measurement-card{padding:10px}
+  #route-report .measurement-card>div:first-child>span{font-size:9px}
+  #route-report .measurement-card>div:first-child strong{font-size:21px}
+  #route-report .meter-labels{font-size:8px}
+
+  #route-report .explanation{gap:7px}
+  #route-report .explanation article{padding:9px 10px}
+  #route-report .explanation article>span{font-size:8.5px}
+  #route-report .explanation p{
+    margin-top:5px;
+    font-size:11px;
+    line-height:1.3;
+  }
+
+  #route-report .evidence-card,
+  #route-report .history-card{
+    display:flex;
+    flex-direction:column;
+    padding:8px 9px;
+  }
+  #route-report .mini-head span{font-size:8px}
+  #route-report .mini-head strong{font-size:9.5px}
+  #route-report .evidence-visual{
+    flex:1 1 auto;
+    height:auto;
+    min-height:105px;
+    margin-top:5px;
+  }
+  #route-report .history-chart{
+    flex:1 1 auto;
+    height:auto;
+    min-height:112px;
+    margin-top:4px;
+  }
+  #route-report .history-chart svg{width:100%;height:100%}
+
+  #route-report .approve-button,
+  #route-report .decision-grid .button{min-height:38px;font-size:10.5px}
+
+  /* Findings use the full right rail, allowing larger labels with less dead space. */
+  #route-report .findings-panel{padding:11px}
+  #route-report .findings-head{margin-bottom:8px}
+  #route-report .findings-head .eyebrow{font-size:8.5px}
+  #route-report .findings-head h3{font-size:18px;margin-top:3px}
+  #route-report .finding-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:repeat(4,minmax(0,1fr));
+    gap:7px;
+  }
+  #route-report .finding-card{
+    padding:10px 11px;
+    gap:9px;
+    border-radius:10px;
+  }
+  #route-report .finding-card-icon{width:31px;height:31px}
+  #route-report .finding-card strong{font-size:11.5px;line-height:1.15}
+  #route-report .finding-card small{font-size:9px;line-height:1.2;margin-top:3px}
+}
