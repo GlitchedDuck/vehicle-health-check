@@ -28,7 +28,17 @@ const metalMaterial = (name='metal') => {
 };
 
 const glassMaterial = () => {
-  const material = new THREE.MeshPhysicalMaterial({ color: 0xc9e4ff, transparent: true, opacity: .3, roughness: .05, metalness: 0, clearcoat: .9 });
+  const material = new THREE.MeshPhysicalMaterial({
+    color: 0xd9efff,
+    transparent: true,
+    opacity: .24,
+    roughness: .04,
+    metalness: 0,
+    transmission: .18,
+    clearcoat: .95,
+    clearcoatRoughness: .04,
+    side: THREE.DoubleSide
+  });
   material.name = 'lens glass';
   return material;
 };
@@ -111,13 +121,64 @@ function makeBatteryClamp(){
   return g;
 }
 
-function makeHeadlampLens(){
+function headlampProfileGeometry(depth=.46, scale=1){
+  const shape = new THREE.Shape();
+  shape.moveTo(-1.48 * scale, -.32 * scale);
+  shape.bezierCurveTo(-1.30 * scale, .10 * scale, -1.08 * scale, .42 * scale, -.68 * scale, .48 * scale);
+  shape.bezierCurveTo(-.12 * scale, .56 * scale, .62 * scale, .45 * scale, 1.28 * scale, .17 * scale);
+  shape.lineTo(1.42 * scale, -.03 * scale);
+  shape.bezierCurveTo(1.08 * scale, -.22 * scale, .62 * scale, -.38 * scale, .04 * scale, -.43 * scale);
+  shape.bezierCurveTo(-.50 * scale, -.48 * scale, -1.05 * scale, -.44 * scale, -1.48 * scale, -.32 * scale);
+  shape.closePath();
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth,
+    bevelEnabled: true,
+    bevelSegments: 4,
+    bevelSize: .055 * scale,
+    bevelThickness: .045 * scale,
+    steps: 1,
+    curveSegments: 18
+  });
+  geometry.center();
+  return geometry;
+}
+
+function makeProjectorModule(radius=.38, depth=.42){
   const g = new THREE.Group();
-  g.name = 'DriveWell headlamp lens';
-  const lens = mesh(new THREE.SphereGeometry(1.05, 42, 24, 0, Math.PI * .95, .3, Math.PI * .48), glassMaterial(), 'headlamp lens');
-  lens.scale.set(1.7, .72, .55);
-  lens.rotation.set(.05, -.14, -.08);
+  g.name = 'DriveWell headlamp projector module';
+
+  const carrier = cylinder(radius * 1.16, radius * 1.05, depth, darkMaterial('projector housing plastic'), 'projector housing', 44);
+  carrier.rotation.x = Math.PI / 2;
+  g.add(carrier);
+
+  const reflector = cylinder(radius, radius * .76, depth * .68, metalMaterial('projector reflector metal'), 'projector reflector', 44);
+  reflector.rotation.x = Math.PI / 2;
+  reflector.position.z = .11;
+  g.add(reflector);
+
+  const lensMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xeaf7ff,
+    transparent: true,
+    opacity: .55,
+    roughness: .02,
+    metalness: 0,
+    transmission: .32,
+    clearcoat: 1
+  });
+  lensMaterial.name = 'projector lens glass';
+  const lens = mesh(new THREE.SphereGeometry(radius * .73, 36, 20), lensMaterial, 'projector lens');
+  lens.scale.z = .28;
+  lens.position.z = depth * .55;
   g.add(lens);
+
+  return g;
+}
+
+function makeHeadlampFocusPiece(){
+  const g = makeProjectorModule(.38, .44);
+  g.name = 'DriveWell failed projector module';
+  g.scale.setScalar(.96);
   return g;
 }
 
@@ -125,33 +186,56 @@ function makeHeadlampFull(){
   const g = new THREE.Group();
   g.name = 'DriveWell headlamp assembly';
 
-  const housing = mesh(new THREE.SphereGeometry(1.15, 42, 26), darkMaterial('headlamp housing plastic'), 'headlamp housing');
-  housing.scale.set(1.75, .78, .62);
-  housing.rotation.z = -.08;
+  const housing = mesh(headlampProfileGeometry(.56, 1.02), darkMaterial('headlamp housing plastic'), 'headlamp housing');
+  housing.position.z = -.12;
   g.add(housing);
 
-  const projectorMaterial = metalMaterial('projector metal');
-  const projector = cylinder(.43, .5, .48, projectorMaterial, 'headlamp projector');
-  projector.rotation.x = Math.PI / 2;
-  projector.position.set(-.34, .03, .38);
-  g.add(projector);
+  const inner = mesh(headlampProfileGeometry(.34, .91), metalMaterial('headlamp reflector carrier'), 'headlamp reflector carrier');
+  inner.position.z = .10;
+  inner.scale.set(.98, .90, 1);
+  g.add(inner);
 
-  const secondary = cylinder(.28, .34, .4, projectorMaterial, 'headlamp secondary projector');
-  secondary.rotation.x = Math.PI / 2;
-  secondary.position.set(.62, -.02, .35);
+  const mainProjector = makeProjectorModule(.36, .42);
+  mainProjector.position.set(-.42, .01, .34);
+  g.add(mainProjector);
+
+  const secondary = makeProjectorModule(.25, .34);
+  secondary.position.set(.48, -.04, .34);
+  secondary.scale.setScalar(.88);
   g.add(secondary);
 
-  const drlMaterial = metalMaterial('headlamp drl carrier');
-  const drl = tube([[-1.2,.34,.46],[-.48,.56,.51],[.42,.48,.49],[1.18,.18,.43]], .055, drlMaterial, 'headlamp DRL strip');
+  const drlMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xf5fbff,
+    emissive: 0xc8e7ff,
+    emissiveIntensity: .7,
+    roughness: .18,
+    metalness: .02
+  });
+  drlMaterial.name = 'headlamp drl light';
+  const drl = tube([[-1.10,.25,.39],[-.66,.39,.44],[-.04,.41,.44],[.54,.31,.42],[1.03,.12,.39]], .045, drlMaterial, 'headlamp DRL strip');
   g.add(drl);
 
-  const lens = makeHeadlampLens();
-  lens.children.forEach(child => g.add(child));
+  const indicatorMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffa12b,
+    emissive: 0x6f3000,
+    emissiveIntensity: .35,
+    roughness: .34,
+    metalness: .02
+  });
+  indicatorMaterial.name = 'headlamp indicator';
+  const indicator = box([.34, .10, .08], indicatorMaterial, 'headlamp indicator');
+  indicator.position.set(.95, -.13, .42);
+  indicator.rotation.z = -.12;
+  g.add(indicator);
+
+  const lens = mesh(headlampProfileGeometry(.07, 1.01), glassMaterial(), 'headlamp clear lens');
+  lens.position.z = .48;
+  g.add(lens);
 
   // The legacy viewer clones the loaded headlamp to create the exploded issue
-  // element. Return only the lens for that second clone instead of duplicating
-  // the complete lamp assembly.
-  g.clone = () => makeHeadlampLens();
+  // element. Return only the projector module so the issue highlight is a
+  // believable failed light unit rather than a giant recoloured lens.
+  g.clone = () => makeHeadlampFocusPiece();
   return g;
 }
 
