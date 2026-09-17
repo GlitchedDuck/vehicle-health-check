@@ -1,9 +1,8 @@
-/* DriveWell v11 stylesheet entry point.
-   The legacy stylesheet remains the visual source of truth during the baseline
-   migration. Route-specific files can be extracted without changing index.html. */
+/* DriveWell stylesheet entry point. */
 
 @import url('../styles.css');
 @import url('./dashboard.css');
 @import url('./inspection.css');
 @import url('./report.css');
+@import url('./report-v12.css');
 @import url('./approvals.css');
