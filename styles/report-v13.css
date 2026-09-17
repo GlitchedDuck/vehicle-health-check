@@ -1,0 +1,386 @@
+/* DriveWell v13 — one-screen vehicle health report at normal browser zoom */
+
+.page-vehicle-summary{display:none}
+
+body.report-active .platform-shell{
+  grid-template-columns:220px minmax(0,1fr);
+  height:100vh;
+  min-height:0;
+}
+
+body.report-active .sidebar{
+  height:100vh;
+  padding:14px 12px;
+}
+
+body.report-active .dw-brand{
+  gap:9px;
+  padding:0 4px 13px;
+}
+
+body.report-active .dw-mark{
+  width:38px;
+  height:38px;
+  flex-basis:38px;
+}
+
+body.report-active .dw-wordmark strong{font-size:16px}
+body.report-active .dw-wordmark small{font-size:8px}
+body.report-active .dealer-card{margin:0 2px 12px;padding:10px 11px;border-radius:12px}
+body.report-active .dealer-card>span{font-size:7px}
+body.report-active .dealer-card strong{font-size:11px}
+body.report-active .dealer-card small{font-size:7px;margin-top:4px}
+body.report-active .sidebar-nav{gap:4px}
+body.report-active .nav-heading{font-size:7px;padding-bottom:3px}
+body.report-active .nav-button{
+  min-height:48px;
+  grid-template-columns:28px 1fr;
+  gap:8px;
+  padding:7px 9px;
+  border-radius:11px;
+}
+body.report-active .nav-icon{width:28px;height:28px;border-radius:8px}
+body.report-active .nav-icon svg{width:15px;height:15px}
+body.report-active .nav-button strong{font-size:10px}
+body.report-active .nav-button small{font-size:7px}
+body.report-active .sidebar-footer{display:none}
+
+body.report-active .main{
+  height:100vh;
+  min-height:0;
+  padding:0 16px 12px;
+  overflow:hidden;
+}
+
+body.report-active .topbar{
+  height:64px;
+  min-height:64px;
+  margin-bottom:10px;
+  padding:0 6px;
+  gap:18px;
+}
+
+body.report-active .page-heading{
+  display:flex;
+  align-items:center;
+  flex-wrap:nowrap;
+  gap:14px;
+  min-width:0;
+}
+
+body.report-active .page-heading>span:first-child{display:none}
+body.report-active .page-heading h1{
+  flex:0 0 auto;
+  font-size:25px;
+  line-height:1;
+}
+body.report-active .page-vehicle-summary{
+  display:block;
+  min-width:0;
+  padding-left:14px;
+  border-left:1px solid #c9d4e0;
+  color:#66768b;
+  font-size:12px;
+  font-weight:650;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+body.report-active .topbar-right{gap:7px}
+body.report-active .connected-pill,
+body.report-active .vehicle-pill{
+  min-height:36px;
+  padding:6px 10px;
+  border-radius:10px;
+}
+body.report-active .connected-pill{font-size:8px}
+body.report-active .vehicle-pill span{font-size:7px}
+body.report-active .vehicle-pill strong{font-size:9px}
+body.report-active .user-avatar{width:36px;height:36px;font-size:10px}
+
+body.report-active #route-report{
+  height:calc(100vh - 86px);
+  min-height:0;
+  padding-top:0;
+  display:grid;
+  grid-template-rows:minmax(0,46%) minmax(0,54%);
+  gap:10px;
+  overflow:hidden;
+}
+
+body.report-active #route-report .report-intro{display:none}
+
+#route-report .report-hero-grid,
+#route-report .report-lower-grid{
+  min-height:0;
+  height:100%;
+  margin:0;
+  gap:10px;
+}
+
+#route-report .report-hero-grid{
+  grid-template-columns:minmax(0,1.58fr) minmax(330px,.82fr);
+}
+
+#route-report .report-lower-grid{
+  grid-template-columns:minmax(0,1.42fr) minmax(360px,.78fr);
+}
+
+#route-report .viewer-panel{
+  min-height:0;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  border-radius:15px;
+}
+
+#route-report .report-viewer-heading{
+  min-height:50px;
+  height:50px;
+  flex:0 0 50px;
+  padding:8px 12px;
+  gap:9px;
+}
+
+#route-report .report-viewer-heading-icon,
+#route-report .report-health-icon{
+  width:32px;
+  height:32px;
+  flex-basis:32px;
+  border-radius:9px;
+  font-size:17px;
+}
+
+#route-report .report-viewer-heading strong,
+#route-report .report-health-heading h2{
+  font-size:17px;
+}
+
+#route-report .report-viewer-heading span,
+#route-report .report-health-heading p{
+  margin-top:2px;
+  font-size:10px;
+}
+
+#route-report .viewer-toolbar{
+  height:44px;
+  min-height:44px;
+  flex:0 0 44px;
+  padding:0 12px;
+}
+#route-report .viewer-toolbar>div:first-child span{font-size:7px}
+#route-report .viewer-toolbar>div:first-child strong{font-size:11px}
+#route-report .viewer-button{min-height:29px;padding:0 9px;font-size:8px;border-radius:8px}
+
+#route-report .viewer{
+  height:auto;
+  min-height:0;
+  flex:1 1 auto;
+}
+
+#route-report .viewer-tip{left:10px;bottom:8px;padding:5px 7px;font-size:7px}
+#route-report .focus-banner,
+#route-report .exploded-caption{transform:scale(.88);transform-origin:top left}
+
+#route-report .report-health-summary{
+  height:100%;
+  min-height:0;
+  padding:13px 14px;
+  border-radius:15px;
+  overflow:hidden;
+}
+
+#route-report .report-health-heading{gap:9px}
+#route-report .report-health-heading>div:last-child>span{font-size:7px;margin-bottom:2px}
+#route-report .report-health-heading h2{font-size:18px}
+
+#route-report .report-health-main{
+  flex:1 1 auto;
+  display:grid;
+  grid-template-columns:145px minmax(0,1fr);
+  gap:14px;
+  align-items:center;
+  margin-top:8px;
+  min-height:0;
+}
+
+#route-report .report-health-gauge{width:140px;max-width:140px}
+#route-report .report-health-gauge::before{inset:13px}
+#route-report .report-health-gauge-inner strong{font-size:39px}
+#route-report .report-health-gauge-inner span{font-size:9px;margin-top:4px}
+#route-report .report-health-copy>strong{font-size:18px}
+#route-report .report-health-copy>p{margin:6px 0 10px;font-size:10px;line-height:1.35}
+#route-report .report-health-legend{gap:5px}
+#route-report .report-health-legend>div{font-size:9px}
+#route-report .report-health-legend b{font-size:10px}
+#route-report .health-dot{width:8px;height:8px}
+
+#route-report .report-health-action{
+  margin-top:8px;
+  padding:8px 10px;
+  grid-template-columns:30px minmax(0,1fr) auto;
+  gap:8px;
+  border-radius:10px;
+}
+#route-report .report-health-action-icon{width:30px;height:30px;font-size:14px}
+#route-report .report-health-action strong{font-size:10px}
+#route-report .report-health-action small{font-size:8px;margin-top:1px}
+
+#route-report .detail-panel,
+#route-report .findings-panel{
+  height:100%;
+  min-height:0;
+  margin:0;
+  border-radius:15px;
+  overflow:hidden;
+}
+
+#route-report .detail-panel{
+  display:grid;
+  grid-template-columns:.8fr 1.2fr 1.1fr;
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+  grid-template-areas:
+    "head head head"
+    "measurement explanation explanation"
+    "evidence history history"
+    "decision decision decision";
+  gap:7px;
+  padding:10px;
+}
+
+#route-report .detail-head{
+  grid-area:head;
+  min-height:44px;
+  align-items:center;
+  padding-bottom:5px;
+}
+#route-report .detail-head h3{font-size:17px;margin:4px 0 1px}
+#route-report .detail-head p{font-size:9px}
+#route-report .price strong{font-size:17px}
+#route-report .price span{font-size:7px}
+
+#route-report .measurement-card{
+  grid-area:measurement;
+  min-height:0;
+  padding:8px;
+}
+#route-report .measurement-card>div:first-child>span{font-size:7px}
+#route-report .measurement-card>div:first-child strong{font-size:17px}
+#route-report .meter{margin:7px 0 4px}
+#route-report .meter-labels{font-size:6px}
+
+#route-report .explanation{
+  grid-area:explanation;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+}
+#route-report .explanation article{
+  min-width:0;
+  padding:7px 8px;
+  border-left:3px solid #d6e0eb;
+  border-radius:0 8px 8px 0;
+  background:#fbfcfe;
+}
+#route-report .explanation article:last-child{padding-right:8px}
+#route-report .explanation article>span{font-size:7px}
+#route-report .explanation p{
+  margin:4px 0 0;
+  font-size:9px;
+  line-height:1.28;
+}
+
+#route-report .evidence-card{grid-area:evidence}
+#route-report .history-card{grid-area:history}
+#route-report .evidence-card,
+#route-report .history-card{
+  min-height:0;
+  padding:7px 8px;
+  overflow:hidden;
+}
+#route-report .mini-head span{font-size:7px}
+#route-report .mini-head strong{font-size:8px}
+#route-report .evidence-visual{height:86px;margin-top:5px}
+#route-report .history-chart{height:86px;margin-top:2px}
+
+#route-report .decision-grid{
+  grid-area:decision;
+  position:static;
+  display:grid;
+  grid-template-columns:1.15fr .9fr .9fr;
+  gap:6px;
+  padding:0;
+  background:none;
+}
+#route-report .approve-button,
+#route-report .decision-grid .button{min-height:34px;font-size:9px;border-radius:8px}
+#route-report .decision-status{display:none}
+
+#route-report .findings-panel{
+  display:flex;
+  flex-direction:column;
+  padding:10px;
+}
+#route-report .findings-head{
+  flex:0 0 auto;
+  gap:8px;
+  margin-bottom:7px;
+}
+#route-report .findings-head h3{font-size:15px;margin:3px 0 0}
+#route-report .findings-head>span{display:none}
+#route-report .finding-grid{
+  flex:1 1 auto;
+  min-height:0;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-auto-rows:minmax(0,1fr);
+  gap:6px;
+}
+#route-report .finding-card{
+  min-height:0;
+  height:100%;
+  padding:7px 8px;
+  border-radius:9px;
+}
+#route-report .finding-card-icon{width:27px;height:27px}
+#route-report .finding-card strong{font-size:9px}
+#route-report .finding-card small{font-size:7.5px;margin-top:1px}
+
+/* Keep 100% zoom one-screen behaviour for normal desktop/laptop heights. */
+@media(min-width:1100px) and (min-height:760px){
+  body.report-active{overflow:hidden}
+}
+
+/* Below a normal laptop viewport, preserve readability and allow scrolling. */
+@media(max-width:1099px), (max-height:759px){
+  body.report-active{overflow:auto}
+  body.report-active .platform-shell{height:auto;min-height:100vh;grid-template-columns:200px minmax(0,1fr)}
+  body.report-active .sidebar{height:100vh}
+  body.report-active .main{height:auto;min-height:100vh;overflow:visible}
+  body.report-active #route-report{height:auto;display:block;overflow:visible}
+  #route-report .report-hero-grid,
+  #route-report .report-lower-grid{height:auto;grid-template-columns:1fr;margin-bottom:10px}
+  #route-report .viewer{height:390px;min-height:390px}
+  #route-report .report-health-summary{min-height:300px}
+  #route-report .detail-panel{display:block;height:auto}
+  #route-report .detail-panel>*{margin-bottom:8px}
+  #route-report .explanation{display:grid}
+  #route-report .findings-panel{height:auto}
+  #route-report .finding-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto}
+  #route-report .finding-card{min-height:52px}
+}
+
+@media(max-width:720px){
+  body.report-active .platform-shell{display:block}
+  body.report-active .sidebar{display:none}
+  body.report-active .main{padding:0 10px 12px}
+  body.report-active .topbar{height:auto;min-height:62px}
+  body.report-active .page-heading{flex-wrap:wrap;padding:9px 0}
+  body.report-active .page-heading h1{font-size:22px}
+  body.report-active .page-vehicle-summary{flex-basis:100%;border-left:0;padding-left:0;font-size:10px}
+  #route-report .viewer{height:340px;min-height:340px}
+  #route-report .report-health-main{grid-template-columns:1fr}
+  #route-report .report-health-gauge{width:150px;max-width:150px}
+  #route-report .explanation{grid-template-columns:1fr}
+  #route-report .finding-grid{grid-template-columns:1fr}
+}
