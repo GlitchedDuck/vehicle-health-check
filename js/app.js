@@ -6,8 +6,9 @@
 
 import { FINDINGS } from './data/findings.js';
 import './three/model-overrides.js';
+import './three/hotspot-anchor-fix.js';
 
-export const DRIVEWELL_VERSION = '11.1.0-3d-models';
+export const DRIVEWELL_VERSION = '11.2.0-hotspot-anchors';
 
 // Preserve the existing v10b storage contract during the refactor. On a fresh
 // browser session the demo state now originates from the extracted findings
