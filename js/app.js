@@ -1,19 +1,15 @@
-// DriveWell v11 application entry point.
-//
-// The visible v10b runtime remains unchanged while data and viewer concerns are
-// extracted behind stable modules. This bridge prepares the runtime cutover
-// without changing any current routes, markup or interactions.
+// DriveWell application entry point.
 
 import { FINDINGS } from './data/findings.js';
 import './three/model-overrides.js';
 import './three/brake-model-overrides.js';
 import './three/hotspot-anchor-fix.js';
+import './report-layout-v12.js';
 
-export const DRIVEWELL_VERSION = '11.3.0-brake-models';
+export const DRIVEWELL_VERSION = '12.0.0-report-redesign';
 
 // Preserve the existing v10b storage contract during the refactor. On a fresh
-// browser session the demo state now originates from the extracted findings
-// catalogue rather than needing another copy in a new v11 module.
+// browser session the demo state originates from the extracted findings catalogue.
 const legacyStateKey = 'drivewellV5State';
 if (!localStorage.getItem(legacyStateKey)) {
   localStorage.setItem(legacyStateKey, JSON.stringify({
