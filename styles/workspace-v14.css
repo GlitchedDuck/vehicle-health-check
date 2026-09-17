@@ -1,0 +1,345 @@
+/* DriveWell v14 workspace alignment — Dashboard, Inspection and Approvals */
+
+body:not(.report-active) .platform-shell{
+  grid-template-columns:220px minmax(0,1fr);
+  min-height:100vh;
+}
+
+body:not(.report-active) .sidebar{
+  height:100vh;
+  padding:14px 12px;
+}
+
+body:not(.report-active) .dw-brand{
+  gap:9px;
+  padding:0 4px 13px;
+}
+body:not(.report-active) .dw-mark{width:38px;height:38px;flex-basis:38px}
+body:not(.report-active) .dw-wordmark strong{font-size:16px}
+body:not(.report-active) .dw-wordmark small{font-size:8px}
+body:not(.report-active) .dealer-card{margin:0 2px 12px;padding:10px 11px;border-radius:12px}
+body:not(.report-active) .dealer-card>span{font-size:7px}
+body:not(.report-active) .dealer-card strong{font-size:11px}
+body:not(.report-active) .dealer-card small{font-size:7px;margin-top:4px}
+body:not(.report-active) .sidebar-nav{gap:4px}
+body:not(.report-active) .nav-heading{font-size:7px;padding-bottom:3px}
+body:not(.report-active) .nav-button{
+  min-height:48px;
+  grid-template-columns:28px 1fr;
+  gap:8px;
+  padding:7px 9px;
+  border-radius:11px;
+}
+body:not(.report-active) .nav-icon{width:28px;height:28px;border-radius:8px}
+body:not(.report-active) .nav-icon svg{width:15px;height:15px}
+body:not(.report-active) .nav-button strong{font-size:10px}
+body:not(.report-active) .nav-button small{font-size:7.5px}
+body:not(.report-active) .sidebar-footer{display:none}
+
+body:not(.report-active) .main{
+  min-width:0;
+  padding:0 16px 14px;
+}
+
+body:not(.report-active) .topbar{
+  height:64px;
+  min-height:64px;
+  margin-bottom:12px;
+  padding:0 6px;
+  gap:18px;
+}
+body:not(.report-active) .page-heading>span:first-child{display:none}
+body:not(.report-active) .page-heading h1{
+  margin:0;
+  font-size:25px;
+  line-height:1;
+  letter-spacing:-.035em;
+}
+body:not(.report-active) .topbar-right{gap:7px}
+body:not(.report-active) .connected-pill,
+body:not(.report-active) .vehicle-pill{
+  min-height:36px;
+  padding:6px 10px;
+  border-radius:10px;
+}
+body:not(.report-active) .connected-pill{font-size:8px}
+body:not(.report-active) .vehicle-pill span{font-size:7px}
+body:not(.report-active) .vehicle-pill strong{font-size:9px}
+body:not(.report-active) .user-avatar{width:36px;height:36px;font-size:10px}
+
+body:not(.report-active) .panel,
+body:not(.report-active) .stat-card{
+  border-radius:15px;
+  box-shadow:0 10px 26px rgba(24,45,73,.06);
+}
+
+body:not(.report-active) .eyebrow{
+  font-size:9px;
+  letter-spacing:.11em;
+}
+body:not(.report-active) .section-intro{
+  align-items:center;
+  margin-bottom:12px;
+  gap:16px;
+}
+body:not(.report-active) .section-intro h2{
+  margin:4px 0;
+  font-size:24px;
+  line-height:1.08;
+}
+body:not(.report-active) .section-intro p{
+  font-size:12px;
+  line-height:1.4;
+}
+body:not(.report-active) .button{min-height:38px;font-size:11px;border-radius:9px}
+
+/* Dashboard */
+#route-dashboard .stat-grid{
+  gap:10px;
+  margin-bottom:10px;
+}
+#route-dashboard .stat-card{padding:13px 14px}
+#route-dashboard .stat-card>span{font-size:10px}
+#route-dashboard .stat-card strong{margin:5px 0 2px;font-size:27px}
+#route-dashboard .stat-card small{font-size:10px}
+#route-dashboard .dashboard-grid{gap:10px}
+#route-dashboard .panel-head{padding:13px 14px 9px}
+#route-dashboard .panel-head h3{font-size:16px}
+#route-dashboard .filter-pill,
+#route-dashboard .text-button,
+#route-dashboard .live-dot{font-size:9px}
+#route-dashboard .bar-chart{height:195px;padding:17px 20px 18px}
+#route-dashboard .bar-chart b{font-size:8px}
+#route-dashboard .chart-key{font-size:9px;padding-bottom:10px}
+#route-dashboard .health-body{grid-template-columns:130px 1fr;padding:0 14px 10px}
+#route-dashboard .health-ring{width:112px;height:112px}
+#route-dashboard .health-ring strong{font-size:31px}
+#route-dashboard .health-ring span{font-size:9px}
+#route-dashboard .health-stats>div{padding:7px 0;font-size:10px}
+#route-dashboard .vehicle-meta{padding:9px 14px 12px;gap:7px}
+#route-dashboard .vehicle-meta div{padding:7px 8px}
+#route-dashboard .vehicle-meta span{font-size:8px}
+#route-dashboard .vehicle-meta strong{font-size:10px}
+#route-dashboard .activity-list,
+#route-dashboard .queue-list{padding:0 12px 12px}
+#route-dashboard .activity-row,
+#route-dashboard .queue-row{padding:9px 4px}
+#route-dashboard .activity-row strong,
+#route-dashboard .queue-row strong{font-size:10.5px}
+#route-dashboard .activity-row small,
+#route-dashboard .activity-row time,
+#route-dashboard .queue-row small,
+#route-dashboard .queue-row>span{font-size:8.5px}
+
+/* Inspection */
+#route-inspection .section-intro h2{font-size:24px}
+#route-inspection .progress-card{
+  min-width:110px;
+  padding:8px 12px;
+  border-radius:10px;
+}
+#route-inspection .progress-card strong{font-size:20px}
+#route-inspection .progress-card span{font-size:8px}
+#route-inspection .inspection-layout{
+  grid-template-columns:minmax(250px,275px) minmax(0,1fr);
+  gap:10px;
+}
+#route-inspection .inspection-list{
+  top:76px;
+  max-height:calc(100vh - 104px);
+  border-radius:15px;
+}
+#route-inspection .inspection-list-head{padding:11px 12px 9px}
+#route-inspection .inspection-list-head strong{font-size:11px}
+#route-inspection .inspection-list-head span{font-size:8px}
+#route-inspection .tech-component{
+  min-height:52px;
+  padding:7px 9px;
+  grid-template-columns:30px minmax(0,1fr) auto;
+}
+#route-inspection .tech-component strong{font-size:10.5px}
+#route-inspection .tech-component small{font-size:8.5px}
+#route-inspection .tech-component .severity{font-size:8px}
+#route-inspection .capture-panel{border-radius:15px}
+#route-inspection .capture-head{padding:14px 16px 12px}
+#route-inspection .capture-head h3{margin:5px 0 1px;font-size:21px}
+#route-inspection .capture-head p{font-size:10px}
+#route-inspection .category-chip,
+#route-inspection .severity{font-size:9px}
+#route-inspection .form-grid{padding:13px 16px 11px;gap:9px}
+#route-inspection .form-grid label{font-size:10.5px}
+#route-inspection .form-grid input,
+#route-inspection .form-grid select,
+#route-inspection .form-grid textarea{padding:8px 9px;font-size:11px}
+#route-inspection .form-grid textarea{min-height:82px}
+#route-inspection .evidence-drop{min-height:82px}
+#route-inspection .evidence-drop strong{font-size:10px}
+#route-inspection .evidence-drop small{font-size:8px}
+#route-inspection .capture-mapping{margin:0 16px;padding-top:10px}
+#route-inspection .capture-mapping div{min-height:50px;padding:8px 9px}
+#route-inspection .capture-mapping span{font-size:8px}
+#route-inspection .capture-mapping strong{font-size:9px}
+#route-inspection .capture-actions{min-height:52px;padding:9px 16px 12px}
+#route-inspection .page-actions{margin-top:9px}
+
+/* Approvals / communications */
+#route-communications .section-intro{margin-bottom:10px}
+#route-communications .decision-kpis{
+  display:flex;
+  gap:8px;
+}
+#route-communications .decision-kpis>div{
+  min-width:92px;
+  padding:9px 12px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:#fff;
+  text-align:right;
+}
+#route-communications .decision-kpis span,
+#route-communications .decision-kpis strong{display:block}
+#route-communications .decision-kpis span{font-size:8px;color:#72839a;text-transform:uppercase;font-weight:800}
+#route-communications .decision-kpis strong{margin-top:2px;font-size:19px}
+#route-communications .communications-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(330px,.75fr);
+  gap:10px;
+  align-items:stretch;
+}
+#route-communications .conversation-list,
+#route-communications .conversation-detail{
+  border-radius:15px;
+  overflow:hidden;
+}
+#route-communications .conversation-tabs{
+  display:flex;
+  gap:5px;
+  padding:10px;
+  border-bottom:1px solid var(--line2);
+}
+#route-communications .conversation-tabs button{
+  min-height:32px;
+  padding:0 11px;
+  border:1px solid #d4deea;
+  border-radius:8px;
+  background:#f8fafc;
+  color:#50627a;
+  font-size:9px;
+  font-weight:800;
+}
+#route-communications .conversation-tabs button.active{
+  border-color:#7ca8ef;
+  background:#edf4ff;
+  color:#1e5fc9;
+}
+#route-communications #conversationFeed{
+  max-height:calc(100vh - 190px);
+  overflow:auto;
+  padding:0 10px 10px;
+}
+#route-communications #conversationFeed>*{
+  font-size:10px;
+}
+#route-communications .conversation-detail{
+  padding:14px;
+}
+#route-communications .conversation-detail h3{
+  margin:5px 0 10px;
+  font-size:20px;
+}
+#route-communications .conversation-context{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 11px;
+  border-radius:10px;
+  background:#f5f8fc;
+  font-size:10px;
+}
+#route-communications .message-thread{
+  min-height:180px;
+  max-height:calc(100vh - 390px);
+  overflow:auto;
+  margin:10px 0;
+  padding:10px;
+  border:1px solid #e1e8f0;
+  border-radius:11px;
+  background:#fbfcfe;
+  font-size:10.5px;
+}
+#route-communications .reply-label{
+  display:grid;
+  gap:6px;
+  color:#5f7086;
+  font-size:10px;
+  font-weight:800;
+}
+#route-communications .reply-label textarea{
+  min-height:82px;
+  padding:9px 10px;
+  border:1px solid #cad5e2;
+  border-radius:9px;
+  resize:vertical;
+  font-size:11px;
+}
+#route-communications .button.full{width:100%;margin-top:9px}
+
+@media(min-width:1100px) and (min-height:760px){
+  #route-dashboard.active{
+    display:grid;
+    grid-template-rows:auto auto minmax(0,1fr);
+    height:calc(100vh - 88px);
+    overflow:hidden;
+  }
+  #route-dashboard .dashboard-grid{
+    min-height:0;
+    grid-template-columns:1.18fr .82fr;
+    grid-template-rows:minmax(0,1fr) minmax(0,1fr);
+  }
+  #route-dashboard .dashboard-grid>.panel{min-height:0;overflow:hidden}
+
+  #route-inspection.active{
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr) auto;
+    height:calc(100vh - 88px);
+    gap:0;
+    overflow:hidden;
+  }
+  #route-inspection .inspection-layout{min-height:0;overflow:hidden}
+  #route-inspection .inspection-list{position:static;max-height:none;height:100%}
+  #route-inspection .capture-panel{height:100%;overflow:auto}
+
+  #route-communications.active{
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr);
+    height:calc(100vh - 88px);
+    overflow:hidden;
+  }
+  #route-communications .communications-grid{min-height:0;height:100%}
+  #route-communications .conversation-list,
+  #route-communications .conversation-detail{height:100%;min-height:0}
+}
+
+@media(max-width:1099px), (max-height:759px){
+  body:not(.report-active) .platform-shell{grid-template-columns:200px minmax(0,1fr)}
+  #route-dashboard .dashboard-grid,
+  #route-communications .communications-grid{grid-template-columns:1fr}
+  #route-inspection .inspection-layout{grid-template-columns:230px minmax(0,1fr)}
+  #route-communications #conversationFeed,
+  #route-communications .message-thread{max-height:none}
+}
+
+@media(max-width:720px){
+  body:not(.report-active) .platform-shell{display:block}
+  body:not(.report-active) .sidebar{display:none}
+  body:not(.report-active) .main{padding:0 10px 14px}
+  body:not(.report-active) .topbar-right{display:none}
+  #route-dashboard .stat-grid{grid-template-columns:1fr 1fr}
+  #route-inspection .inspection-layout{grid-template-columns:1fr}
+  #route-inspection .inspection-list{position:static;max-height:280px}
+  #route-inspection .form-grid{grid-template-columns:1fr}
+  #route-inspection .form-grid .span-all:not(.evidence-drop),
+  #route-inspection .evidence-drop{grid-column:auto}
+  #route-communications .decision-kpis{width:100%}
+  #route-communications .decision-kpis>div{flex:1;min-width:0}
+}
