@@ -1,0 +1,201 @@
+/* DriveWell v15 — one shared application shell across every route.
+   Route-specific styles may change page content only; the navigation, header,
+   base typography and card language remain fixed when switching screens. */
+
+:root{
+  --dw-shell-sidebar:200px;
+  --dw-shell-header:60px;
+  --dw-shell-gap:8px;
+  --dw-shell-radius:14px;
+  --dw-type-page:26px;
+  --dw-type-nav:11px;
+  --dw-type-nav-sub:8px;
+  --dw-type-body:11px;
+  --dw-type-label:9px;
+}
+
+html,body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Same outer geometry whether Vehicle Health is active or not. */
+body.report-active .platform-shell,
+body:not(.report-active) .platform-shell{
+  grid-template-columns:var(--dw-shell-sidebar) minmax(0,1fr);
+  min-height:100vh;
+}
+
+body.report-active .sidebar,
+body:not(.report-active) .sidebar{
+  height:100vh;
+  padding:13px 11px;
+}
+
+body.report-active .dw-brand,
+body:not(.report-active) .dw-brand{
+  gap:9px;
+  padding:0 4px 13px;
+}
+body.report-active .dw-mark,
+body:not(.report-active) .dw-mark{width:38px;height:38px;flex-basis:38px}
+body.report-active .dw-wordmark strong,
+body:not(.report-active) .dw-wordmark strong{font-size:16px}
+body.report-active .dw-wordmark small,
+body:not(.report-active) .dw-wordmark small{font-size:8px}
+
+body.report-active .dealer-card,
+body:not(.report-active) .dealer-card{
+  margin:0 2px 12px;
+  padding:10px 11px;
+  border-radius:12px;
+}
+body.report-active .dealer-card>span,
+body:not(.report-active) .dealer-card>span{font-size:7px}
+body.report-active .dealer-card strong,
+body:not(.report-active) .dealer-card strong{font-size:11px}
+body.report-active .dealer-card small,
+body:not(.report-active) .dealer-card small{font-size:7px;margin-top:4px}
+
+body.report-active .sidebar-nav,
+body:not(.report-active) .sidebar-nav{gap:4px}
+body.report-active .nav-heading,
+body:not(.report-active) .nav-heading{font-size:8px;padding-bottom:3px}
+body.report-active .nav-button,
+body:not(.report-active) .nav-button{
+  min-height:48px;
+  grid-template-columns:28px minmax(0,1fr);
+  gap:8px;
+  padding:7px 9px;
+  border-radius:11px;
+}
+body.report-active .nav-icon,
+body:not(.report-active) .nav-icon{width:28px;height:28px;border-radius:8px}
+body.report-active .nav-icon svg,
+body:not(.report-active) .nav-icon svg{width:15px;height:15px}
+body.report-active .nav-button strong,
+body:not(.report-active) .nav-button strong{
+  font-size:var(--dw-type-nav);
+  line-height:1.15;
+}
+body.report-active .nav-button small,
+body:not(.report-active) .nav-button small{
+  margin-top:2px;
+  font-size:var(--dw-type-nav-sub);
+  line-height:1.15;
+}
+body.report-active .sidebar-footer,
+body:not(.report-active) .sidebar-footer{display:none}
+
+body.report-active .main,
+body:not(.report-active) .main{
+  min-width:0;
+  padding:0 14px 10px;
+}
+
+body.report-active .topbar,
+body:not(.report-active) .topbar{
+  height:var(--dw-shell-header);
+  min-height:var(--dw-shell-header);
+  margin-bottom:var(--dw-shell-gap);
+  padding:0 6px;
+  gap:18px;
+}
+
+body.report-active .page-heading,
+body:not(.report-active) .page-heading{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  gap:14px;
+}
+body.report-active .page-heading>span:first-child,
+body:not(.report-active) .page-heading>span:first-child{display:none}
+body.report-active .page-heading h1,
+body:not(.report-active) .page-heading h1{
+  flex:0 0 auto;
+  margin:0;
+  font-size:var(--dw-type-page);
+  line-height:1;
+  letter-spacing:-.035em;
+}
+
+body.report-active .topbar-right,
+body:not(.report-active) .topbar-right{gap:7px}
+body.report-active .connected-pill,
+body:not(.report-active) .connected-pill,
+body.report-active .vehicle-pill,
+body:not(.report-active) .vehicle-pill{
+  min-height:36px;
+  padding:6px 10px;
+  border-radius:10px;
+}
+body.report-active .connected-pill,
+body:not(.report-active) .connected-pill{font-size:8px}
+body.report-active .vehicle-pill span,
+body:not(.report-active) .vehicle-pill span{font-size:7px}
+body.report-active .vehicle-pill strong,
+body:not(.report-active) .vehicle-pill strong{font-size:9px}
+body.report-active .user-avatar,
+body:not(.report-active) .user-avatar{width:36px;height:36px;font-size:10px}
+
+/* Shared visual language for content cards and common typography. */
+.panel,.stat-card{
+  border-radius:var(--dw-shell-radius);
+  box-shadow:0 10px 26px rgba(24,45,73,.06);
+}
+.eyebrow{
+  font-size:var(--dw-type-label);
+  line-height:1.2;
+  letter-spacing:.11em;
+}
+.button{
+  border-radius:9px;
+  font-size:11px;
+}
+
+/* The vehicle summary exists globally in the DOM but belongs only to report. */
+.page-vehicle-summary{display:none}
+body.report-active .page-vehicle-summary{
+  display:block;
+  min-width:0;
+  padding-left:14px;
+  border-left:1px solid #c9d4e0;
+  color:#66768b;
+  font-size:13px;
+  font-weight:650;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Responsive shell is also common to all routes. */
+@media(max-width:1099px), (max-height:759px){
+  body.report-active .platform-shell,
+  body:not(.report-active) .platform-shell{
+    grid-template-columns:200px minmax(0,1fr);
+    height:auto;
+    min-height:100vh;
+  }
+  body.report-active .main,
+  body:not(.report-active) .main{height:auto;min-height:100vh}
+}
+
+@media(max-width:720px){
+  body.report-active .platform-shell,
+  body:not(.report-active) .platform-shell{display:block}
+  body.report-active .sidebar,
+  body:not(.report-active) .sidebar{display:none}
+  body.report-active .main,
+  body:not(.report-active) .main{padding:0 10px 12px}
+  body.report-active .topbar,
+  body:not(.report-active) .topbar{height:auto;min-height:60px}
+  body.report-active .topbar-right,
+  body:not(.report-active) .topbar-right{display:none}
+  body.report-active .page-heading,
+  body:not(.report-active) .page-heading{flex-wrap:wrap;padding:8px 0}
+  body.report-active .page-heading h1,
+  body:not(.report-active) .page-heading h1{font-size:23px}
+  body.report-active .page-vehicle-summary{flex-basis:100%;border-left:0;padding-left:0;font-size:10px}
+}
