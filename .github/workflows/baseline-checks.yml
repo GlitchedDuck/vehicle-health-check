@@ -1,0 +1,44 @@
+name: DriveWell baseline checks
+
+on:
+  push:
+    branches:
+      - drivewell-v11-baseline
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify required baseline files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f index.html
+          test -f app.js
+          test -f styles.css
+          test -f js/app.js
+          test -f js/state.js
+          test -f js/config/component-manifest.js
+          test -f styles/base.css
+          test -f assets/lowpoly_generic_suv.glb
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check js/app.js
+          node --check js/state.js
+          node --check js/config/component-manifest.js
+
+      - name: Check HTML entry points
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'styles/base.css' index.html
+          grep -q 'js/app.js' index.html
