@@ -1,0 +1,83 @@
+/* DriveWell predictive maintenance report treatment */
+
+#route-report .history-card .forecast-strip{
+  flex:0 0 auto;
+  margin-top:6px;
+  padding:8px 10px;
+  border:1px solid #cbdcf2;
+  border-radius:10px;
+  background:linear-gradient(180deg,#f5f9ff,#eef5ff);
+  color:#17395f;
+}
+
+#route-report .history-card .forecast-strip.hidden{display:none}
+
+#route-report .forecast-strip-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:3px;
+}
+
+#route-report .forecast-strip-head span{
+  color:#54769f;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+
+#route-report .forecast-strip-head b{
+  padding:3px 6px;
+  border-radius:999px;
+  background:#dff3ea;
+  color:#197753;
+  font-size:8px;
+  font-weight:850;
+}
+
+#route-report .forecast-strip>strong{
+  display:block;
+  font-size:11px;
+  line-height:1.2;
+}
+
+#route-report .forecast-strip>small{
+  display:block;
+  margin-top:2px;
+  color:#566b84;
+  font-size:9px;
+  line-height:1.25;
+}
+
+#route-report .forecast-strip>em{
+  display:block;
+  margin-top:4px;
+  color:#7b8999;
+  font-size:7.5px;
+  font-style:normal;
+}
+
+#route-report .finding-card{position:relative}
+
+#route-report .forecast-badge{
+  position:absolute;
+  right:7px;
+  bottom:6px;
+  padding:3px 6px;
+  border-radius:999px;
+  background:#e9f2ff;
+  color:#3569a8;
+  font-size:7.5px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+@media(min-width:1100px) and (min-height:760px){
+  #route-report .history-chart{min-height:82px}
+}
+
+@media(max-width:1099px), (max-height:759px){
+  #route-report .forecast-strip>strong{font-size:12px}
+  #route-report .forecast-strip>small{font-size:10px}
+}
