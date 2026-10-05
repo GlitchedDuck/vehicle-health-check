@@ -1,4 +1,4 @@
-import { COMPONENT_FORECASTS, VEHICLE_FORECAST_CONTEXT, calculateForecast } from './data/forecast.js';
+import { COMPONENT_FORECASTS, calculateForecast } from './data/forecast.js';
 
 const reportTitle=document.getElementById('reportTitle');
 const historyCard=document.querySelector('#route-report .history-card');
@@ -22,6 +22,7 @@ function ensureForecastStrip(){
     </div>
     <strong id="forecastHeadline"></strong>
     <small id="forecastDetail"></small>
+    <small id="forecastSource" class="forecast-source"></small>
     <em>Forecast only — the current inspection result always takes priority.</em>
   `;
   historyCard.append(strip);
@@ -51,28 +52,35 @@ function renderForecast(){
     : `Forecast interval reached around ${formatMiles(forecast.nextDueMileage)} miles`;
 
   const detail=remaining>0
-    ? `~${formatMiles(remaining)} miles remaining · based on an average ${formatMiles(forecast.averageIntervalMiles)}-mile replacement interval`
-    : `~${formatMiles(remaining)} miles beyond the historical interval · review the current inspection result`;
+    ? `~${formatMiles(remaining)} miles remaining · typical interval ${formatMiles(forecast.averageIntervalMiles)} miles`
+    : `~${formatMiles(remaining)} miles beyond the forecast interval · review the current inspection result`;
 
   document.getElementById('forecastHeadline').textContent=headline;
   document.getElementById('forecastDetail').textContent=detail;
+  document.getElementById('forecastSource').textContent=`Basis: ${forecast.source}`;
   document.getElementById('forecastConfidence').textContent=`${forecast.confidence} confidence`;
 }
 
 function decorateFindingCards(){
   if(!findings) return;
+
   for(const profile of Object.values(COMPONENT_FORECASTS)){
     const card=findings.querySelector(`[data-finding="${profile.findingId}"]`);
-    if(!card || card.querySelector('.forecast-badge')) continue;
+    if(!card) continue;
+
     const forecast=calculateForecast(profile.findingId);
     if(!forecast) continue;
 
-    const badge=document.createElement('span');
-    badge.className='forecast-badge';
+    let badge=card.querySelector('.forecast-badge');
+    if(!badge){
+      badge=document.createElement('span');
+      badge.className='forecast-badge';
+      card.append(badge);
+    }
+
     badge.textContent=forecast.milesRemaining>0
       ? `Forecast ${formatMiles(forecast.milesRemaining)} mi`
       : 'Forecast due';
-    card.append(badge);
   }
 }
 
