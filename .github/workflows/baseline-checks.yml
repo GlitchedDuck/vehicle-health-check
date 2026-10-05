@@ -75,11 +75,13 @@ jobs:
         run: |
           set -euo pipefail
           grep -q "./data/findings.js" js/app.js
-          grep -q "./three/model-overrides.js" js/app.js
-          grep -q "./three/brake-model-overrides.js" js/app.js
           grep -q "./report-layout-v12.js" js/app.js
           grep -q "./report-forecast.js" js/app.js
           grep -q "../app.js" js/app.js
+          grep -q "import('./js/three/viewer-runtime.js')" app.js
+          grep -q "./model-overrides.js" js/three/viewer-runtime.js
+          grep -q "./brake-model-overrides.js" js/three/viewer-runtime.js
+          grep -q "./hotspot-anchor-fix.js" js/three/viewer-runtime.js
 
       - name: Confirm active entry points
         shell: bash
