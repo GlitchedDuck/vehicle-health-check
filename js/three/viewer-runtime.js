@@ -17,6 +17,7 @@ const severityFor=f=>{
   return 'green';
 };
 const severityLabel=s=>s==='red'?'Urgent':s==='amber'?'Attention':'Healthy';
+const VISIBLE_IDS=new Set(['tyre-fl','brake-rr','lamp-fr','wiper-front']);
 
 let viewerBridge={
   getFindings:()=>[],
@@ -512,7 +513,7 @@ function resetVehicleView(){
   pendingComponent=null;cameraTween=null;componentRoot.visible=false;vehicleRoot.visible=true;setVehicleFade(1);setHotspotSelection();
   $('viewerError').classList.add('hidden');$('focusBanner').classList.add('hidden');$('explodedCaption').classList.add('hidden');$('backToVehicle').classList.add('hidden');
   $('viewerModeLabel').textContent='VEHICLE OVERVIEW';$('viewerTitle').textContent='Choose a highlighted area';$('tyreAssemblyPanel').classList.add('hidden');
-  controls.enabled=true;camera.position.set(5.7,2.9,5.9);controls.target.set(0,1.05,0);controls.update();
+  controls.enabled=true;camera.position.set(4.0,2.3,4.1);controls.target.set(0,1.0,0);controls.update();
   if(focusGlow){focusRoot.remove(focusGlow);focusGlow=null}
 }
 $('backToVehicle').addEventListener('click',resetVehicleView);
