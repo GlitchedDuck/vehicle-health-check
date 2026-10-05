@@ -3,7 +3,6 @@
 import { FINDINGS } from './data/findings.js';
 import './three/model-overrides.js';
 import './three/brake-model-overrides.js';
-import './three/hotspot-anchor-fix.js';
 import './report-layout-v12.js';
 import './report-forecast.js';
 
