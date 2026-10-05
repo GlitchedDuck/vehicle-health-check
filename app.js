@@ -114,6 +114,7 @@ function routeTo(route){
   }[route]||'DriveWell';
 
   setViewerRoute(route==='report');
+  window.scrollTo({top:0,left:0,behavior:'auto'});
 
   if(route==='dashboard')renderDashboard();
   if(route==='inspection')renderTechnician();
