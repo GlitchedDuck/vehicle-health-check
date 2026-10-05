@@ -78,9 +78,10 @@ function decorateFindingCards(){
       card.append(badge);
     }
 
-    badge.textContent=forecast.milesRemaining>0
+    const nextText=forecast.milesRemaining>0
       ? `Forecast ${formatMiles(forecast.milesRemaining)} mi`
       : 'Forecast due';
+    if(badge.textContent!==nextText) badge.textContent=nextText;
   }
 }
 
@@ -92,7 +93,7 @@ if(findings){
   new MutationObserver(()=>{
     decorateFindingCards();
     renderForecast();
-  }).observe(findings,{childList:true,subtree:true});
+  }).observe(findings,{childList:true});
 }
 
 requestAnimationFrame(()=>{
