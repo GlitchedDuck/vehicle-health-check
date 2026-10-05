@@ -1,4 +1,4 @@
-/* DriveWell predictive maintenance report treatment */
+/* DriveWell maintenance outlook treatment */
 
 #route-report .history-card .forecast-strip{
   flex:0 0 auto;
@@ -58,6 +58,12 @@
   font-style:normal;
 }
 
+#route-report .forecast-source{
+  color:#6f7f93;
+  font-size:8px;
+  font-weight:700;
+}
+
 #route-report .finding-card{position:relative}
 
 #route-report .forecast-badge{
@@ -73,18 +79,114 @@
   white-space:nowrap;
 }
 
+#route-report .forecast-badge.due-now{
+  background:#fff0d8;
+  color:#9a6300;
+}
+
+#route-report .maintenance-outlook{
+  flex:0 0 auto;
+  margin:0 0 8px;
+  padding:8px;
+  border:1px solid #d8e5f5;
+  border-radius:11px;
+  background:#f7faff;
+}
+
+#route-report .maintenance-outlook-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+#route-report .maintenance-outlook-head span{
+  color:#54769f;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+
+#route-report .maintenance-outlook-head small{
+  color:#7a899d;
+  font-size:7.5px;
+}
+
+#route-report .maintenance-outlook-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+}
+
+#route-report .maintenance-outlook-item{
+  min-width:0;
+  min-height:42px;
+  padding:6px 7px;
+  border:1px solid #dce6f1;
+  border-radius:8px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:7px;
+  text-align:left;
+  cursor:pointer;
+}
+
+#route-report .maintenance-outlook-item:hover{
+  border-color:#9bb7ea;
+  background:#f5f8ff;
+}
+
+#route-report .maintenance-outlook-item span{
+  min-width:0;
+}
+
+#route-report .maintenance-outlook-item strong,
+#route-report .maintenance-outlook-item small{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+#route-report .maintenance-outlook-item strong{
+  color:#152c4b;
+  font-size:9.5px;
+}
+
+#route-report .maintenance-outlook-item small{
+  margin-top:2px;
+  color:#60748f;
+  font-size:8px;
+}
+
+#route-report .maintenance-outlook-item b{
+  flex:0 0 auto;
+  padding:3px 5px;
+  border-radius:999px;
+  background:#e7f4ee;
+  color:#26765a;
+  font-size:7px;
+}
+
 @media(min-width:1100px) and (min-height:760px){
   #route-report .history-chart{min-height:82px}
+  #route-report .forecast-strip-head span,
+  #route-report .forecast-strip-head b{font-size:9px}
+  #route-report .forecast-strip>strong{font-size:11.5px}
+  #route-report .forecast-strip>small{font-size:9.5px}
+  #route-report .forecast-strip>em{font-size:8.5px}
+  #route-report .forecast-badge{font-size:8.5px}
+  #route-report .maintenance-outlook-head span{font-size:9px}
+  #route-report .maintenance-outlook-head small{font-size:8px}
+  #route-report .maintenance-outlook-item strong{font-size:10px}
+  #route-report .maintenance-outlook-item small{font-size:8.5px}
 }
 
 @media(max-width:1099px), (max-height:759px){
   #route-report .forecast-strip>strong{font-size:12px}
   #route-report .forecast-strip>small{font-size:10px}
-}
-
-
-#route-report .forecast-source{
-  color:#6f7f93;
-  font-size:8px;
-  font-weight:700;
+  #route-report .maintenance-outlook-list{grid-template-columns:1fr}
 }
