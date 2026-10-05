@@ -4,7 +4,7 @@ import { FINDINGS } from './data/findings.js';
 import './report-layout-v12.js';
 import './report-forecast.js';
 
-export const DRIVEWELL_VERSION = '21.0.0-lazy-3d-runtime';
+export const DRIVEWELL_VERSION = '22.0.0-forecast-loop-fix';
 
 // Preserve the existing v10b storage contract during the refactor. On a fresh
 // browser session the demo state originates from the extracted findings catalogue.
