@@ -1,0 +1,86 @@
+/* DriveWell v24 — health summary spacing fix. */
+
+@media(min-width:1100px) and (min-height:760px){
+  body.report-active #route-report{
+    grid-template-rows:255px 100px minmax(0,1fr);
+  }
+
+  #route-report .report-health-summary{
+    height:255px;
+    min-height:255px;
+    grid-template-rows:auto minmax(0,1fr) auto;
+    padding:11px 14px 12px;
+  }
+
+  #route-report .report-health-heading{
+    margin-bottom:2px;
+  }
+
+  #route-report .report-health-heading h2{
+    font-size:20px;
+  }
+
+  #route-report .report-health-heading p{
+    margin-top:2px;
+    font-size:10.5px;
+    line-height:1.25;
+  }
+
+  #route-report .report-health-main{
+    grid-template-columns:104px minmax(0,1fr);
+    gap:12px;
+    margin:4px 0 7px;
+    min-height:112px;
+    align-items:center;
+  }
+
+  #route-report .report-health-gauge{
+    width:100px;
+    max-width:100px;
+  }
+
+  #route-report .report-health-gauge::before{
+    inset:9px;
+  }
+
+  #route-report .report-health-gauge-inner strong{
+    font-size:34px;
+  }
+
+  #route-report .report-health-copy>strong{
+    font-size:18px;
+  }
+
+  #route-report .report-health-copy>p{
+    margin:3px 0 6px;
+    font-size:10.5px;
+    line-height:1.25;
+  }
+
+  #route-report .report-health-legend{
+    gap:3px;
+  }
+
+  #route-report .report-health-legend>div{
+    min-height:16px;
+    font-size:10.5px;
+  }
+
+  #route-report .report-health-action{
+    min-height:42px;
+    margin:0;
+    padding:6px 9px;
+    grid-template-columns:28px minmax(0,1fr) auto;
+  }
+
+  #route-report .report-health-action strong{
+    font-size:11px;
+    line-height:1.15;
+  }
+
+  #route-report .report-health-action small{
+    margin-top:1px;
+    font-size:9px;
+    line-height:1.15;
+  }
+}
