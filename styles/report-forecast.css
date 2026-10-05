@@ -81,3 +81,10 @@
   #route-report .forecast-strip>strong{font-size:12px}
   #route-report .forecast-strip>small{font-size:10px}
 }
+
+
+#route-report .forecast-source{
+  color:#6f7f93;
+  font-size:8px;
+  font-weight:700;
+}
