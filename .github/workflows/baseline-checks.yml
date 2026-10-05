@@ -1,21 +1,22 @@
-name: DriveWell baseline checks
+name: DriveWell validation
 
 on:
   push:
     branches:
+      - main
       - drivewell-v11-baseline
       - drivewell-v11b-3d-models
-      - main
   pull_request:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Verify required baseline files
+      - name: Verify required application files
         shell: bash
         run: |
           set -euo pipefail
@@ -25,14 +26,21 @@ jobs:
           test -f js/app.js
           test -f js/state.js
           test -f js/data/findings.js
+          test -f js/data/forecast.js
           test -f js/config/component-manifest.js
+          test -f js/report-layout-v12.js
+          test -f js/report-forecast.js
           test -f js/three/three-helpers.js
           test -f js/three/model-overrides.js
+          test -f js/three/brake-model-overrides.js
           test -f styles/base.css
           test -f styles/dashboard.css
           test -f styles/inspection.css
           test -f styles/report.css
+          test -f styles/report-forecast.css
           test -f styles/approvals.css
+          test -f styles/workspace-v14.css
+          test -f styles/shell-v15.css
           test -f assets/lowpoly_generic_suv.glb
 
       - name: Check JavaScript syntax
@@ -43,11 +51,15 @@ jobs:
           node --check js/app.js
           node --check js/state.js
           node --check js/data/findings.js
+          node --check js/data/forecast.js
           node --check js/config/component-manifest.js
+          node --check js/report-layout-v12.js
+          node --check js/report-forecast.js
           node --check js/three/three-helpers.js
           node --check js/three/model-overrides.js
+          node --check js/three/brake-model-overrides.js
 
-      - name: Check extracted findings catalogue
+      - name: Check findings catalogue
         shell: bash
         run: |
           set -euo pipefail
@@ -56,17 +68,38 @@ jobs:
           grep -q "id:'battery'" js/data/findings.js
           grep -q "id:'exhaust'" js/data/findings.js
 
-      - name: Check v11 module bridge
+      - name: Check application module bridge
         shell: bash
         run: |
           set -euo pipefail
           grep -q "./data/findings.js" js/app.js
           grep -q "./three/model-overrides.js" js/app.js
+          grep -q "./three/brake-model-overrides.js" js/app.js
+          grep -q "./report-layout-v12.js" js/app.js
+          grep -q "./report-forecast.js" js/app.js
           grep -q "../app.js" js/app.js
 
-      - name: Confirm v11 entry points are active
+      - name: Confirm active entry points
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'styles/base.css?v=11a' index.html
-          grep -q 'js/app.js?v=11a' index.html
+
+          css_version="$(sed -n "s/.*styles\/base\.css?v=\([0-9][0-9]*\).*/\1/p" index.html | head -n1)"
+          js_version="$(sed -n "s/.*js\/app\.js?v=\([0-9][0-9]*\).*/\1/p" index.html | head -n1)"
+
+          test -n "$css_version"
+          test -n "$js_version"
+          test "$css_version" = "$js_version"
+
+          grep -q "styles/base.css?v=$css_version" index.html
+          grep -q "js/app.js?v=$js_version" index.html
+
+          echo "DriveWell entry points are active at cache version v$css_version"
+
+      - name: Check stylesheet stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "report-forecast.css" styles/base.css
+          grep -q "workspace-v14.css" styles/base.css
+          grep -q "shell-v15.css" styles/base.css
