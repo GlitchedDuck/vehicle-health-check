@@ -32,7 +32,7 @@ function severityFor(f){if(f.direction==='lowBad'){if(f.value<=f.red)return'red'
 const severityLabel=s=>s==='red'?'Urgent':s==='amber'?'Attention':'Healthy';
 function recommendationText(f){const s=severityFor(f);if(s==='red')return`${f.recommendation}. This item needs dealing with before normal use.`;if(s==='amber')return`${f.recommendation}. It is not shown as an immediate stop-driving issue, but it should be planned.`;return'No action is currently required beyond routine monitoring.'}
 function toast(text){const e=$('toast');e.textContent=text;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2000)}
-function routeTo(route){document.querySelectorAll('.route').forEach(r=>r.classList.toggle('active',r.id===`route-${route}`));document.querySelectorAll('.nav-button').forEach(n=>n.classList.toggle('active',n.dataset.route===route));$('pageTitle').textContent={dashboard:'Manager Dashboard',inspection:'Technician Inspection',report:'Vehicle Health Report',communications:'Communications & Approvals'}[route]||'DriveWell';if(route==='dashboard')renderDashboard();if(route==='inspection')renderTechnician();if(route==='report'){renderCustomer();requestAnimationFrame(resizeViewer)}if(route==='communications')renderCommunications()}
+function routeTo(route){document.querySelectorAll('.route').forEach(r=>r.classList.toggle('active',r.id===`route-${route}`));document.querySelectorAll('.nav-button').forEach(n=>n.classList.toggle('active',n.dataset.route===route));$('pageTitle').textContent={dashboard:'Manager Dashboard',inspection:'Technician Inspection',report:'Vehicle Health Report',communications:'Communications & Approvals'}[route]||'DriveWell';setViewerActive(route==='report');if(route==='dashboard')renderDashboard();if(route==='inspection')renderTechnician();if(route==='report'){renderCustomer();requestAnimationFrame(resizeViewer)}if(route==='communications')renderCommunications()}
 document.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',()=>routeTo(b.dataset.route)));
 
 function renderDashboard(){$('urgentCount').textContent=state.findings.filter(f=>severityFor(f)==='red').length;$('attentionCount').textContent=state.findings.filter(f=>severityFor(f)==='amber').length;const a=Object.values(state.decisions).filter(d=>d.action==='approved').length;$('reportState').textContent=a?`${a} item${a===1?'':'s'} approved`:'Awaiting decision'}
@@ -64,12 +64,11 @@ const camera=new THREE.PerspectiveCamera(31,1,.05,100);
 camera.position.set(5.7,2.9,5.9);
 
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.06;
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=false;
 viewer.appendChild(renderer.domElement);
 
 const controls=new OrbitControls(camera,renderer.domElement);
@@ -81,7 +80,7 @@ controls.maxPolarAngle=Math.PI/1.95;
 controls.target.set(0,1.0,0);
 
 scene.add(new THREE.HemisphereLight(0xeaf2ff,0x09101a,1.55));
-const key=new THREE.DirectionalLight(0xfffbf3,3.05);key.position.set(4.8,7,5.4);key.castShadow=true;key.shadow.mapSize.set(2048,2048);scene.add(key);
+const key=new THREE.DirectionalLight(0xfffbf3,3.05);key.position.set(4.8,7,5.4);key.castShadow=false;scene.add(key);
 const fill=new THREE.DirectionalLight(0x7fa8ff,1.15);fill.position.set(-5,3,-3.2);scene.add(fill);
 const rim=new THREE.DirectionalLight(0xffffff,1.25);rim.position.set(-3,4.6,5.5);scene.add(rim);
 
@@ -547,31 +546,85 @@ $('backToVehicle').addEventListener('click',resetVehicleView);
 $('resetView').addEventListener('click',()=>{if(componentRoot.visible&&componentScene)fitCameraToObject(componentScene,1.22,.82);else resetVehicleView()});
 
 const loader=new GLTFLoader();
-loader.load('./assets/lowpoly_generic_suv.glb',gltf=>{
-  vehicleModel=gltf.scene;
-  vehicleModel.traverse(o=>{
-    if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;
-    const name=(o.name||'').toLowerCase();
-    if(name.includes('body'))o.material=whitePaint();
-    else if(name.includes('glass'))o.material=glassMaterial();
-    else if(o.material)o.material=cloneMaterialDeep(o.material);
-    (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>vehicleMaterials.push({mat:m,baseOpacity:m.opacity??1,baseTransparent:!!m.transparent}));
+let vehicleLoadStarted=false;
+let vehicleLoadComplete=false;
+
+function ensureVehicleLoaded(){
+  if(vehicleLoadStarted)return;
+  vehicleLoadStarted=true;
+  $('viewerLoading').classList.remove('hidden');
+
+  loader.load('./assets/lowpoly_generic_suv.glb',gltf=>{
+    vehicleModel=gltf.scene;
+    vehicleModel.traverse(o=>{
+      if(!o.isMesh)return;o.castShadow=false;o.receiveShadow=false;
+      const name=(o.name||'').toLowerCase();
+      if(name.includes('body'))o.material=whitePaint();
+      else if(name.includes('glass'))o.material=glassMaterial();
+      else if(o.material)o.material=cloneMaterialDeep(o.material);
+      (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>vehicleMaterials.push({mat:m,baseOpacity:m.opacity??1,baseTransparent:!!m.transparent}));
+    });
+    carGroup.add(vehicleModel);
+    const raw=boundsOf(vehicleModel),size=raw.getSize(new THREE.Vector3()),scale=6.0/Math.max(size.x,size.z);
+    vehicleModel.scale.setScalar(scale);centreAndGround(vehicleModel,.13);
+    carGroup.rotation.y=.68;vehicleRoot.updateMatrixWorld(true);
+    deriveAnchors();buildHotspotButtons();resetVehicleView();
+    vehicleLoadComplete=true;
+    $('viewerLoading').classList.add('hidden');
+  },undefined,()=>{
+    $('viewerLoading').classList.add('hidden');
+    $('viewerError').classList.remove('hidden');
   });
-  carGroup.add(vehicleModel);
-  const raw=boundsOf(vehicleModel),size=raw.getSize(new THREE.Vector3()),scale=6.0/Math.max(size.x,size.z);
-  vehicleModel.scale.setScalar(scale);centreAndGround(vehicleModel,.13);
-  carGroup.rotation.y=.68;vehicleRoot.updateMatrixWorld(true);
-  deriveAnchors();buildHotspotButtons();resetVehicleView();$('viewerLoading').classList.add('hidden');
-},undefined,()=>{$('viewerLoading').classList.add('hidden');$('viewerError').classList.remove('hidden')});
+}
 
 function resizeViewer(){
+  if(!viewerActive)return;
   const r=viewer.getBoundingClientRect();if(!r.width||!r.height)return;
   renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();updateHotspots();
 }
-window.addEventListener('resize',resizeViewer);resizeViewer();
+window.addEventListener('resize',resizeViewer);
+
+let viewerActive=false;
+let animationFrameId=0;
+let lastRenderAt=0;
+
+function startViewerLoop(){
+  if(animationFrameId||!viewerActive||document.hidden)return;
+  animationFrameId=requestAnimationFrame(animate);
+}
+
+function stopViewerLoop(){
+  if(animationFrameId)cancelAnimationFrame(animationFrameId);
+  animationFrameId=0;
+}
+
+function setViewerActive(active){
+  viewerActive=!!active;
+  if(viewerActive){
+    ensureVehicleLoaded();
+    requestAnimationFrame(()=>{
+      resizeViewer();
+      startViewerLoop();
+    });
+  }else{
+    stopViewerLoop();
+  }
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)stopViewerLoop();
+  else if(viewerActive)startViewerLoop();
+});
 
 function animate(now){
-  requestAnimationFrame(animate);
+  animationFrameId=0;
+  if(!viewerActive||document.hidden)return;
+  animationFrameId=requestAnimationFrame(animate);
+
+  // Cap the expensive WebGL work at ~30fps. The UI itself remains full speed.
+  if(now-lastRenderAt<33)return;
+  lastRenderAt=now;
+
   if(cameraTween){
     const p=Math.min(1,(now-cameraTween.start)/cameraTween.duration),e=1-Math.pow(1-p,3);
     camera.position.lerpVectors(cameraTween.startPos,cameraTween.endPos,e);controls.target.lerpVectors(cameraTween.startTarget,cameraTween.endTarget,e);
@@ -587,6 +640,5 @@ function animate(now){
   if(focusGlow){const s=1+Math.sin(now*.005)*.07;focusGlow.scale.setScalar(s);focusGlow.material.opacity=.12+.035*Math.sin(now*.004)}
   controls.update();updateHotspots();renderer.render(scene,camera);
 }
-requestAnimationFrame(animate);
 
 routeTo('dashboard');renderTechnician();renderCustomer();renderCommunications();
