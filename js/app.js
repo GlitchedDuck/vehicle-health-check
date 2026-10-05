@@ -6,7 +6,7 @@ import './three/brake-model-overrides.js';
 import './report-layout-v12.js';
 import './report-forecast.js';
 
-export const DRIVEWELL_VERSION = '17.0.0-expanded-wear-forecast';
+export const DRIVEWELL_VERSION = '18.0.0-3d-cleanup';
 
 // Preserve the existing v10b storage contract during the refactor. On a fresh
 // browser session the demo state originates from the extracted findings catalogue.
