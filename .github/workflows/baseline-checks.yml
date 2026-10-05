@@ -33,6 +33,7 @@ jobs:
           test -f js/three/three-helpers.js
           test -f js/three/model-overrides.js
           test -f js/three/brake-model-overrides.js
+          test -f js/three/viewer-runtime.js
           test -f styles/base.css
           test -f styles/dashboard.css
           test -f styles/inspection.css
@@ -58,6 +59,7 @@ jobs:
           node --check js/three/three-helpers.js
           node --check js/three/model-overrides.js
           node --check js/three/brake-model-overrides.js
+          node --check js/three/viewer-runtime.js
 
       - name: Check findings catalogue
         shell: bash
