@@ -7,7 +7,7 @@ import './three/hotspot-anchor-fix.js';
 import './report-layout-v12.js';
 import './report-forecast.js';
 
-export const DRIVEWELL_VERSION = '19.0.0-3d-recovery';
+export const DRIVEWELL_VERSION = '20.0.0-performance';
 
 // Preserve the existing v10b storage contract during the refactor. On a fresh
 // browser session the demo state originates from the extracted findings catalogue.
