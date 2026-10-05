@@ -151,13 +151,32 @@ function scaleToMax(root,target){
   if(m>0)root.scale.multiplyScalar(target/m);
   root.updateMatrixWorld(true);
 }
-function fitCameraToObject(root,padding=1.30,angle=.78){
+function cameraBoundsOf(root){
   root.updateMatrixWorld(true);
-  const box=boundsOf(root),size=box.getSize(new THREE.Vector3()),centre=box.getCenter(new THREE.Vector3());
+  const box=new THREE.Box3();
+  const meshBox=new THREE.Box3();
+  let hasBounds=false;
+  root.traverse(o=>{
+    if(!o.isMesh||o.userData?.ignoreCameraFit)return;
+    let parent=o.parent,ignored=false;
+    while(parent&&parent!==root){
+      if(parent.userData?.ignoreCameraFit){ignored=true;break}
+      parent=parent.parent;
+    }
+    if(ignored)return;
+    meshBox.setFromObject(o);
+    if(meshBox.isEmpty())return;
+    box.union(meshBox);hasBounds=true;
+  });
+  return hasBounds?box:boundsOf(root);
+}
+function fitCameraToObject(root,padding=1.18,angle=.78){
+  root.updateMatrixWorld(true);
+  const box=cameraBoundsOf(root),size=box.getSize(new THREE.Vector3()),centre=box.getCenter(new THREE.Vector3());
   const maxDim=Math.max(size.x,size.y,size.z);
   const fov=THREE.MathUtils.degToRad(camera.fov);
   const distance=(maxDim*.5/Math.tan(fov*.5))*padding;
-  const dir=new THREE.Vector3(Math.sin(angle),.34,Math.cos(angle)).normalize();
+  const dir=new THREE.Vector3(Math.sin(angle),.30,Math.cos(angle)).normalize();
   camera.position.copy(centre).add(dir.multiplyScalar(distance));
   controls.target.copy(centre);
   controls.update();
@@ -174,12 +193,36 @@ function makeAnchor(id,world){
 }
 function deriveAnchors(){
   hotspotAnchors.forEach(a=>vehicleRoot.remove(a));hotspotAnchors.clear();
-  const fl=findNodeLike(vehicleModel,'Wheel_FL'),rr=findNodeLike(vehicleModel,'Wheel_RR');
+
+  const fl=findNodeLike(vehicleModel,'Wheel_FL','Wheel FL');
+  const fr=findNodeLike(vehicleModel,'Wheel_FR','Wheel FR');
+  const rl=findNodeLike(vehicleModel,'Wheel_RL','Wheel RL');
+  const rr=findNodeLike(vehicleModel,'Wheel_RR','Wheel RR');
+
   if(fl)makeAnchor('tyre-fl',nodeWorldCentre(fl));
   if(rr)makeAnchor('brake-rr',nodeWorldCentre(rr));
-  const box=boundsOf(vehicleModel),size=box.getSize(new THREE.Vector3()),c=box.getCenter(new THREE.Vector3());
-  makeAnchor('lamp-fr',new THREE.Vector3(box.max.x-size.x*.13,c.y+size.y*.04,box.max.z-size.z*.05));
-  makeAnchor('wiper-front',new THREE.Vector3(c.x,c.y+size.y*.28,box.max.z-size.z*.27));
+
+  if(fl&&fr&&rl&&rr){
+    const pFL=nodeWorldCentre(fl),pFR=nodeWorldCentre(fr),pRL=nodeWorldCentre(rl),pRR=nodeWorldCentre(rr);
+    const front=pFL.clone().add(pFR).multiplyScalar(.5);
+    const rear=pRL.clone().add(pRR).multiplyScalar(.5);
+    const forward=front.clone().sub(rear);forward.y=0;
+    const wheelbase=Math.max(.01,forward.length());forward.normalize();
+
+    const lamp=pFR.clone()
+      .add(forward.clone().multiplyScalar(THREE.MathUtils.clamp(wheelbase*.19,.48,.82)))
+      .add(new THREE.Vector3(0,THREE.MathUtils.clamp(wheelbase*.15,.42,.62),0));
+    makeAnchor('lamp-fr',lamp);
+
+    const wiper=front.clone()
+      .add(forward.clone().multiplyScalar(-THREE.MathUtils.clamp(wheelbase*.22,.54,.82)))
+      .add(new THREE.Vector3(0,THREE.MathUtils.clamp(wheelbase*.34,.90,1.22),0));
+    makeAnchor('wiper-front',wiper);
+  }else{
+    const box=boundsOf(vehicleModel),size=box.getSize(new THREE.Vector3()),centre=box.getCenter(new THREE.Vector3());
+    makeAnchor('lamp-fr',new THREE.Vector3(box.max.x-size.x*.13,centre.y+size.y*.04,box.max.z-size.z*.05));
+    makeAnchor('wiper-front',new THREE.Vector3(centre.x,centre.y+size.y*.28,box.max.z-size.z*.27));
+  }
 }
 function hotspotColour(f){const s=severityFor(f);return s==='red'?'#d34e5a':s==='amber'?'#d89725':'#2ca273'}
 function buildHotspotButtons(){
@@ -230,11 +273,38 @@ function recolourAsset(root,mode='neutral'){
     if(!o.isMesh)return;
     const src=Array.isArray(o.material)?o.material[0]:o.material;
     const n=((o.name||'')+' '+(src?.name||'')).toLowerCase();
-    let colour=0x8f9aa8,metal=.52,rough=.32;
+
+    if(n.includes('scale reference')){
+      o.visible=false;
+      return;
+    }
+
+    let colour=0x8f9aa8,metal=.52,rough=.32,clearcoat=.08;
     if(n.includes('tyre')||n.includes('rubber')){colour=0x11161c;metal=.01;rough=.86}
     if(n.includes('plastic')||n.includes('housing')||n.includes('battery')){colour=0x283542;metal=.08;rough=.48}
-    if(mode==='issue')colour=0xcd4551;
-    o.material=new THREE.MeshPhysicalMaterial({color:colour,metalness:metal,roughness:rough,clearcoat:mode==='issue'?.25:.08,clearcoatRoughness:.2});
+    if(n.includes('glass')||n.includes('lens')){
+      const material=cloneMaterialDeep(src);
+      if(material?.color)material.color.setHex(0xdceeff);
+      material.transparent=true;
+      material.opacity=Math.min(material.opacity??.45,.48);
+      material.depthWrite=false;
+      o.material=material;
+      return;
+    }
+
+    if(mode==='issue'){
+      const brakeAssembly=n.includes('caliper')||n.includes('brake pad');
+      if(brakeAssembly){
+        if(n.includes('pad friction')){colour=0xcd4551;metal=.04;rough=.72;clearcoat=.04}
+        else if(n.includes('backing')){colour=0x697683;metal=.62;rough=.38}
+        else{colour=0x555f6b;metal=.62;rough=.30}
+      }else{
+        colour=0xcd4551;
+        clearcoat=.22;
+      }
+    }
+
+    o.material=new THREE.MeshPhysicalMaterial({color:colour,metalness:metal,roughness:rough,clearcoat,clearcoatRoughness:.2});
   });
 }
 
@@ -302,8 +372,23 @@ function addExploded(obj,from,to){
 }
 function contextCar(group){
   const clone=vehicleModel.clone(true);
-  clone.traverse(o=>{if(!o.isMesh)return;o.material=cloneMaterialDeep(o.material);const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{if(m.color)m.color.setHex(0x75869a);m.transparent=true;m.opacity=.045;m.depthWrite=false})});
-  clone.scale.setScalar(.26);clone.rotation.y=.68;clone.position.set(-2.8,.13,-1.1);group.add(clone);
+  clone.userData.ignoreCameraFit=true;
+  clone.traverse(o=>{
+    o.userData.ignoreCameraFit=true;
+    if(!o.isMesh)return;
+    o.material=cloneMaterialDeep(o.material);
+    const mats=Array.isArray(o.material)?o.material:[o.material];
+    mats.forEach(m=>{
+      if(m.color)m.color.setHex(0x718198);
+      m.transparent=true;
+      m.opacity=.026;
+      m.depthWrite=false;
+    });
+  });
+  clone.scale.setScalar(.22);
+  clone.rotation.y=.68;
+  clone.position.set(-2.65,.10,-1.05);
+  group.add(clone);
 }
 
 
@@ -354,6 +439,27 @@ function polishRealWheel(root){
     }
   });
 }
+function buildVehicleWheelForService(nodeName,targetScale=2.9){
+  const source=findNodeLike(vehicleModel,nodeName,nodeName.replace('_',' '));
+  if(!source)throw new Error(`${nodeName} was not found in the vehicle GLB.`);
+
+  const wheel=source.clone(true);
+  wheel.traverse(o=>{
+    if(!o.isMesh)return;
+    o.material=cloneMaterialDeep(o.material);
+    o.castShadow=true;
+    o.receiveShadow=true;
+  });
+
+  const box=boundsOf(wheel);
+  const centre=box.getCenter(new THREE.Vector3());
+  wheel.position.sub(centre);
+  wheel.updateMatrixWorld(true);
+  scaleToMax(wheel,targetScale);
+  centreAndGround(wheel,.12);
+  return wheel;
+}
+
 
 function makeTyreWearBand(wheelBox){
   const size=wheelBox.getSize(new THREE.Vector3());
@@ -471,9 +577,9 @@ async function buildAssembly(f){
     const tyreAssembly=buildFrontLeftTyreAssembly();
     while(tyreAssembly.children.length)g.add(tyreAssembly.children[0]);
   }else if(f.id==='brake-rr'){
-    const disc=await loadAsset('brakeDisc');recolourAsset(disc,'neutral');scaleToMax(disc,2.25);g.add(disc);addExploded(disc,new THREE.Vector3(-.25,1.35,0),new THREE.Vector3(-.55,1.35,0));
-    const cal=await loadAsset('brakeCaliper');recolourAsset(cal,'issue');scaleToMax(cal,1.75);g.add(cal);addExploded(cal,new THREE.Vector3(.55,1.4,.05),new THREE.Vector3(1.15,1.55,.35));
-    const wheel=await loadAsset('wheel');recolourAsset(wheel,'neutral');scaleToMax(wheel,2.6);g.add(wheel);addExploded(wheel,new THREE.Vector3(-.95,1.35,0),new THREE.Vector3(-1.75,1.38,.05));
+    const disc=await loadAsset('brakeDisc');recolourAsset(disc,'neutral');scaleToMax(disc,1.72);g.add(disc);addExploded(disc,new THREE.Vector3(-.15,1.34,0),new THREE.Vector3(-.48,1.34,0));
+    const cal=await loadAsset('brakeCaliper');recolourAsset(cal,'issue');scaleToMax(cal,.82);g.add(cal);addExploded(cal,new THREE.Vector3(.52,1.38,.02),new THREE.Vector3(.98,1.48,.24));
+    const wheel=buildVehicleWheelForService('Wheel_RR',2.9);g.add(wheel);addExploded(wheel,new THREE.Vector3(-.92,1.34,0),new THREE.Vector3(-1.72,1.36,.04));
   }else if(f.id==='battery'){
     const tray=await loadAsset('batteryTray');recolourAsset(tray,'neutral');scaleToMax(tray,2.7);g.add(tray);addExploded(tray,new THREE.Vector3(0,.62,0),new THREE.Vector3(0,.42,0));
     const bat=await loadAsset('battery');recolourAsset(bat,'neutral');scaleToMax(bat,2.55);g.add(bat);addExploded(bat,new THREE.Vector3(0,1.25,0),new THREE.Vector3(0,1.38,.08));
@@ -533,7 +639,7 @@ async function showComponentScene(f){
     :'Dedicated service assembly · rotate to explore';
   $('tyreAssemblyPanel').classList.toggle('hidden',f.id!=='tyre-fl');
   $('backToVehicle').classList.remove('hidden');$('viewerModeLabel').textContent='SERVICE ASSEMBLY';$('viewerTitle').textContent=f.title;
-  controls.enabled=true;if(f.id==='tyre-fl'){const b=boundsOf(componentScene),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3()),d=Math.max(s.y,s.z)*1.75;camera.position.set(c.x+d,c.y+s.y*.10,c.z+s.z*.08);controls.target.copy(c);controls.update()}else{fitCameraToObject(componentScene,1.22,.82);}
+  controls.enabled=true;if(f.id==='tyre-fl'){const b=boundsOf(componentScene),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3()),d=Math.max(s.y,s.z)*1.75;camera.position.set(c.x+d,c.y+s.y*.10,c.z+s.z*.08);controls.target.copy(c);controls.update()}else{fitCameraToObject(componentScene,1.14,.82);}
 }
 
 function resetVehicleView(){
