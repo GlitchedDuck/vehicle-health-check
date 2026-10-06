@@ -62,3 +62,25 @@ This replaces component-specific behaviour being spread throughout the viewer co
 ## Non-goals for the baseline
 
 The baseline is intentionally not a visual redesign. It should look and behave like the current DriveWell demo while the internals become safer to change.
+
+## Technician Assist workflow
+
+v26 adds a dealership workshop-assistant layer alongside the existing VHC journey:
+
+```text
+Job card
+  -> Inspection finding
+  -> Guided diagnosis
+  -> Customer authorisation
+  -> Manufacturer procedure
+  -> Parts
+  -> Repair evidence
+  -> Technician QC
+  -> DMS / warranty-ready repair note
+```
+
+The browser demo stores assistant progress locally under `drivewellTechAssistantV1`. Curated demo guides live in `js/data/repair-guides.js`, and the route styling is isolated in `styles/assistant.css`.
+
+### Production boundary
+
+Technician Assist is an orchestration and evidence layer. Vehicle-specific repair specifications must be supplied by an approved OEM/workshop-data integration. AI-generated or hard-coded demo content must not be treated as authoritative repair data.
