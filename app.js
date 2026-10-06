@@ -166,7 +166,7 @@ $('evidenceInput').addEventListener('change',e=>{const file=e.target.files[0];if
 $('saveFinding').addEventListener('click',()=>{const f=findingById(selectedTechId);f.value=Number($('techMeasurement').value);f.condition=$('techCondition').value;f.recommendation=$('techRecommendation').value;f.note=$('techNote').value.trim();const file=$('evidenceInput').files[0];if(file)f.evidenceName=file.name;persist();$('captureSaved').textContent='Saved · customer report updated';toast(`${f.title} saved`);renderTechnician()});
 
 
-function assistantCheckKey(id,group,index){return \`\${id}:\${group}:\${index}\`}
+function assistantCheckKey(id,group,index){return `${id}:${group}:${index}`}
 function assistantAuth(f){
   const action=state.decisions[f.id]?.action;
   if(action==='approved')return{label:'Approved by customer',className:'auth-approved',approved:true};
@@ -182,12 +182,12 @@ function assistantProgress(f,guide){
 }
 function assistantFindingButton(f){
   const s=severityFor(f);
-  return \`<button class="assistant-finding \${f.id===selectedAssistantId?'active':''}" data-assistant-finding="\${f.id}" type="button"><span class="assistant-find-icon">\${f.icon}</span><span><strong>\${f.title}</strong><small>\${f.value} \${f.unit} · \${f.condition}</small></span><span class="severity \${s}">\${severityLabel(s)}</span></button>\`;
+  return `<button class="assistant-finding ${f.id===selectedAssistantId?'active':''}" data-assistant-finding="${f.id}" type="button"><span class="assistant-find-icon">${f.icon}</span><span><strong>${f.title}</strong><small>${f.value} ${f.unit} · ${f.condition}</small></span><span class="severity ${s}">${severityLabel(s)}</span></button>`;
 }
 function assistantChecksHtml(f,items,group){
   return items.map((item,i)=>{
     const checked=!!assistantState.completed[assistantCheckKey(f.id,group,i)];
-    return \`<label class="assistant-check \${checked?'done':''}"><input type="checkbox" data-assistant-check data-group="\${group}" data-index="\${i}" \${checked?'checked':''}><span>\${item}</span></label>\`;
+    return `<label class="assistant-check ${checked?'done':''}"><input type="checkbox" data-assistant-check data-group="${group}" data-index="${i}" ${checked?'checked':''}><span>${item}</span></label>`;
   }).join('');
 }
 function ensureAssistantDiagnostics(id){
@@ -210,12 +210,12 @@ function renderAssistant(){
   }));
 
   const s=severityFor(f);
-  $('assistantSeverity').className=\`severity \${s}\`;
+  $('assistantSeverity').className=`severity ${s}`;
   $('assistantSeverity').textContent=severityLabel(s);
   $('assistantTitle').textContent=f.title;
   $('assistantLocation').textContent=f.location;
   $('assistantSymptom').textContent=guide.symptom;
-  $('assistantMeasurement').textContent=\`\${f.value} \${f.unit} · \${f.condition}\`;
+  $('assistantMeasurement').textContent=`${f.value} ${f.unit} · ${f.condition}`;
   $('assistantSource').textContent=guide.source;
 
   const auth=assistantAuth(f);
@@ -234,7 +234,7 @@ function renderAssistant(){
   $('assistantDiagnosticResult').value=diagnostic.result||'';
   $('assistantDiagnosticNotes').value=diagnostic.notes||'';
 
-  $('assistantPartsList').innerHTML=guide.parts.map(part=>\`<div class="part-line"><span>\${part}</span><b>Parts lookup required</b></div>\`).join('');
+  $('assistantPartsList').innerHTML=guide.parts.map(part=>`<div class="part-line"><span>${part}</span><b>Parts lookup required</b></div>`).join('');
   const partsRequested=!!assistantState.parts[f.id];
   $('assistantPartsStatus').textContent=partsRequested?'Parts request sent':auth.approved?'Ready to request':'Waiting for customer authorisation';
   $('assistantPartsButton').textContent=partsRequested?'Parts requested ✓':'Request parts';
@@ -250,8 +250,8 @@ function renderAssistant(){
   $('assistantSummary').textContent=assistantState.summaries[f.id]||'Complete the workflow or generate a draft summary at any time.';
 
   const progress=assistantProgress(f,guide);
-  $('assistantProgressBar').style.width=\`\${progress.pct}%\`;
-  $('assistantProgressText').textContent=\`\${progress.pct}% complete · \${progress.done}/\${progress.total} checks\`;
+  $('assistantProgressBar').style.width=`${progress.pct}%`;
+  $('assistantProgressText').textContent=`${progress.pct}% complete · ${progress.done}/${progress.total} checks`;
   persistAssistant();
 }
 
@@ -333,15 +333,15 @@ $('assistantGenerateSummary').addEventListener('click',()=>{
   const f=findingById(selectedAssistantId),guide=getRepairGuide(f.id),diagnostic=ensureAssistantDiagnostics(f.id),auth=assistantAuth(f);
   const procedureDone=guide.procedure.filter((_,i)=>assistantState.completed[assistantCheckKey(f.id,'procedure',i)]).length;
   const summary=[
-    \`Repair order RO-261006-0147 — \${f.title} (\${f.location})\`,
-    \`Inspection finding: \${f.value} \${f.unit}; \${f.condition}. Recommendation: \${f.recommendation}.\`,
-    \`Diagnosis: \${diagnostic.notes||f.note||'Technician diagnostic narrative not yet added.'}\`,
-    \`Fault / tester data: \${diagnostic.codes||'Not recorded'}; result: \${diagnostic.result||'Not recorded'}.\`,
-    \`Workshop procedure: \${procedureDone}/\${guide.procedure.length} guided checkpoints technician-confirmed. Source: \${guide.source}.\`,
-    \`Customer authorisation: \${auth.label}. Parts: \${assistantState.parts[f.id]?'request sent':'not requested'}.\`,
-    \`Evidence: \${assistantState.evidence[f.id]||f.evidenceName||'none added'}. QC sign-off: \${assistantState.qcSigned[f.id]?'complete':'outstanding'}.\`,
+    `Repair order RO-261006-0147 — ${f.title} (${f.location})`,
+    `Inspection finding: ${f.value} ${f.unit}; ${f.condition}. Recommendation: ${f.recommendation}.`,
+    `Diagnosis: ${diagnostic.notes||f.note||'Technician diagnostic narrative not yet added.'}`,
+    `Fault / tester data: ${diagnostic.codes||'Not recorded'}; result: ${diagnostic.result||'Not recorded'}.`,
+    `Workshop procedure: ${procedureDone}/${guide.procedure.length} guided checkpoints technician-confirmed. Source: ${guide.source}.`,
+    `Customer authorisation: ${auth.label}. Parts: ${assistantState.parts[f.id]?'request sent':'not requested'}.`,
+    `Evidence: ${assistantState.evidence[f.id]||f.evidenceName||'none added'}. QC sign-off: ${assistantState.qcSigned[f.id]?'complete':'outstanding'}.`,
     'Technician review required before this note is submitted to the DMS, warranty system or customer record.'
-  ].join('\\n');
+  ].join('\n');
   assistantState.summaries[f.id]=summary;
   persistAssistant();
   $('assistantSummary').textContent=summary;
