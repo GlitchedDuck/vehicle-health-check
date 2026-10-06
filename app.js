@@ -1,4 +1,4 @@
-
+import { getRepairGuide, TECHNICIAN_LEVELS } from './js/data/repair-guides.js';
 
 const $=id=>document.getElementById(id);
 const money=v=>v===0?'No charge':new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(v);
@@ -25,6 +25,39 @@ if(!state.messages.length)state.messages=[
 let evidenceUrls={},selectedFindingId=state.findings[0].id,selectedTechId=state.findings[0].id,selectedConversation=0;
 const persist=()=>localStorage.setItem('drivewellV5State',JSON.stringify(state));
 const findingById=id=>state.findings.find(f=>f.id===id);
+const ASSISTANT_STATE_KEY='drivewellTechAssistantV1';
+const assistantState=(()=>{
+  const fallback={
+    selectedId:state.findings[0].id,
+    level:'technician',
+    completed:{},
+    diagnostics:{},
+    parts:{},
+    qcSigned:{},
+    summaries:{},
+    evidence:{}
+  };
+  try{
+    const saved=JSON.parse(localStorage.getItem(ASSISTANT_STATE_KEY));
+    if(!saved)return fallback;
+    return{
+      ...fallback,
+      ...saved,
+      completed:saved.completed||{},
+      diagnostics:saved.diagnostics||{},
+      parts:saved.parts||{},
+      qcSigned:saved.qcSigned||{},
+      summaries:saved.summaries||{},
+      evidence:saved.evidence||{}
+    };
+  }catch{return fallback}
+})();
+let selectedAssistantId=state.findings.some(f=>f.id===assistantState.selectedId)?assistantState.selectedId:state.findings[0].id;
+const persistAssistant=()=>{
+  assistantState.selectedId=selectedAssistantId;
+  localStorage.setItem(ASSISTANT_STATE_KEY,JSON.stringify(assistantState));
+};
+
 function severityFor(f){if(f.direction==='lowBad'){if(f.value<=f.red)return'red';if(f.value<=f.amber)return'amber';return'green'}if(f.value>=f.red)return'red';if(f.value>=f.amber)return'amber';return'green'}
 const severityLabel=s=>s==='red'?'Urgent':s==='amber'?'Attention':'Healthy';
 function recommendationText(f){const s=severityFor(f);if(s==='red')return`${f.recommendation}. This item needs dealing with before normal use.`;if(s==='amber')return`${f.recommendation}. It is not shown as an immediate stop-driving issue, but it should be planned.`;return'No action is currently required beyond routine monitoring.'}
@@ -109,6 +142,7 @@ function routeTo(route){
   $('pageTitle').textContent={
     dashboard:'Manager Dashboard',
     inspection:'Technician Inspection',
+    assistant:'Technician Assistant',
     report:'Vehicle Health Report',
     communications:'Communications & Approvals'
   }[route]||'DriveWell';
@@ -118,6 +152,7 @@ function routeTo(route){
 
   if(route==='dashboard')renderDashboard();
   if(route==='inspection')renderTechnician();
+  if(route==='assistant')renderAssistant();
   if(route==='report')renderCustomer();
   if(route==='communications')renderCommunications();
 }
@@ -129,6 +164,205 @@ function renderTechnician(){$('techComponentList').innerHTML=state.findings.map(
 $('techMeasurement').addEventListener('input',()=>{const f={...findingById(selectedTechId),value:Number($('techMeasurement').value)},s=severityFor(f);$('techAutoSeverity').className=`severity ${s}`;$('techAutoSeverity').textContent=`${severityLabel(s)} · automatic`});
 $('evidenceInput').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;evidenceUrls[selectedTechId]=URL.createObjectURL(file);$('evidenceFileName').textContent=file.name});
 $('saveFinding').addEventListener('click',()=>{const f=findingById(selectedTechId);f.value=Number($('techMeasurement').value);f.condition=$('techCondition').value;f.recommendation=$('techRecommendation').value;f.note=$('techNote').value.trim();const file=$('evidenceInput').files[0];if(file)f.evidenceName=file.name;persist();$('captureSaved').textContent='Saved · customer report updated';toast(`${f.title} saved`);renderTechnician()});
+
+
+function assistantCheckKey(id,group,index){return \`\${id}:\${group}:\${index}\`}
+function assistantAuth(f){
+  const action=state.decisions[f.id]?.action;
+  if(action==='approved')return{label:'Approved by customer',className:'auth-approved',approved:true};
+  if(action==='deferred')return{label:'Deferred by customer',className:'auth-deferred',approved:false};
+  if(action==='question')return{label:'Customer question open',className:'auth-pending',approved:false};
+  return{label:'Awaiting decision',className:'auth-pending',approved:false};
+}
+function assistantProgress(f,guide){
+  const groups=[['diagnostic',guide.diagnosticChecks],['procedure',guide.procedure],['qc',guide.qc]];
+  const total=groups.reduce((sum,[,items])=>sum+items.length,0);
+  const done=groups.reduce((sum,[group,items])=>sum+items.filter((_,i)=>assistantState.completed[assistantCheckKey(f.id,group,i)]).length,0);
+  return{done,total,pct:total?Math.round(done/total*100):0};
+}
+function assistantFindingButton(f){
+  const s=severityFor(f);
+  return \`<button class="assistant-finding \${f.id===selectedAssistantId?'active':''}" data-assistant-finding="\${f.id}" type="button"><span class="assistant-find-icon">\${f.icon}</span><span><strong>\${f.title}</strong><small>\${f.value} \${f.unit} · \${f.condition}</small></span><span class="severity \${s}">\${severityLabel(s)}</span></button>\`;
+}
+function assistantChecksHtml(f,items,group){
+  return items.map((item,i)=>{
+    const checked=!!assistantState.completed[assistantCheckKey(f.id,group,i)];
+    return \`<label class="assistant-check \${checked?'done':''}"><input type="checkbox" data-assistant-check data-group="\${group}" data-index="\${i}" \${checked?'checked':''}><span>\${item}</span></label>\`;
+  }).join('');
+}
+function ensureAssistantDiagnostics(id){
+  if(!assistantState.diagnostics[id])assistantState.diagnostics[id]={codes:'',result:'',notes:''};
+  return assistantState.diagnostics[id];
+}
+function renderAssistant(){
+  const f=findingById(selectedAssistantId)||state.findings[0];
+  if(!f)return;
+  selectedAssistantId=f.id;
+  assistantState.selectedId=f.id;
+  const guide=getRepairGuide(f.id);
+  if(!guide)return;
+
+  $('assistantFindingList').innerHTML=state.findings.map(assistantFindingButton).join('');
+  document.querySelectorAll('[data-assistant-finding]').forEach(button=>button.addEventListener('click',()=>{
+    selectedAssistantId=button.dataset.assistantFinding;
+    persistAssistant();
+    renderAssistant();
+  }));
+
+  const s=severityFor(f);
+  $('assistantSeverity').className=\`severity \${s}\`;
+  $('assistantSeverity').textContent=severityLabel(s);
+  $('assistantTitle').textContent=f.title;
+  $('assistantLocation').textContent=f.location;
+  $('assistantSymptom').textContent=guide.symptom;
+  $('assistantMeasurement').textContent=\`\${f.value} \${f.unit} · \${f.condition}\`;
+  $('assistantSource').textContent=guide.source;
+
+  const auth=assistantAuth(f);
+  $('assistantAuthStatus').textContent=auth.label;
+  $('assistantAuthStatus').className=auth.className;
+
+  $('assistantLevel').value=assistantState.level;
+  $('assistantLevelDescription').textContent=TECHNICIAN_LEVELS[assistantState.level]?.description||'';
+
+  $('assistantDiagnosticChecks').innerHTML=assistantChecksHtml(f,guide.diagnosticChecks,'diagnostic');
+  $('assistantProcedureChecks').innerHTML=assistantChecksHtml(f,guide.procedure,'procedure');
+  $('assistantQcChecks').innerHTML=assistantChecksHtml(f,guide.qc,'qc');
+
+  const diagnostic=ensureAssistantDiagnostics(f.id);
+  $('assistantFaultCodes').value=diagnostic.codes||'';
+  $('assistantDiagnosticResult').value=diagnostic.result||'';
+  $('assistantDiagnosticNotes').value=diagnostic.notes||'';
+
+  $('assistantPartsList').innerHTML=guide.parts.map(part=>\`<div class="part-line"><span>\${part}</span><b>Parts lookup required</b></div>\`).join('');
+  const partsRequested=!!assistantState.parts[f.id];
+  $('assistantPartsStatus').textContent=partsRequested?'Parts request sent':auth.approved?'Ready to request':'Waiting for customer authorisation';
+  $('assistantPartsButton').textContent=partsRequested?'Parts requested ✓':'Request parts';
+
+  const evidenceName=assistantState.evidence[f.id]||f.evidenceName||'No additional evidence selected';
+  $('assistantEvidenceName').textContent=evidenceName;
+  $('assistantEvidenceStatus').textContent=evidenceName==='No additional evidence selected'?'No added evidence':evidenceName;
+
+  const qcSigned=!!assistantState.qcSigned[f.id];
+  $('assistantQcStatus').textContent=qcSigned?'Signed off by technician':'Technician sign-off required';
+  $('assistantQcSignoff').textContent=qcSigned?'Technician sign-off complete ✓':'Complete technician sign-off';
+
+  $('assistantSummary').textContent=assistantState.summaries[f.id]||'Complete the workflow or generate a draft summary at any time.';
+
+  const progress=assistantProgress(f,guide);
+  $('assistantProgressBar').style.width=\`\${progress.pct}%\`;
+  $('assistantProgressText').textContent=\`\${progress.pct}% complete · \${progress.done}/\${progress.total} checks\`;
+  persistAssistant();
+}
+
+function updateAssistantDiagnostic(field,value){
+  const diagnostic=ensureAssistantDiagnostics(selectedAssistantId);
+  diagnostic[field]=value;
+  persistAssistant();
+}
+
+$('assistantLevel').addEventListener('change',e=>{
+  assistantState.level=e.target.value;
+  persistAssistant();
+  renderAssistant();
+});
+$('route-assistant').addEventListener('change',e=>{
+  const input=e.target.closest('[data-assistant-check]');
+  if(!input)return;
+  assistantState.completed[assistantCheckKey(selectedAssistantId,input.dataset.group,Number(input.dataset.index))]=input.checked;
+  persistAssistant();
+  renderAssistant();
+});
+$('assistantFaultCodes').addEventListener('input',e=>updateAssistantDiagnostic('codes',e.target.value));
+$('assistantDiagnosticResult').addEventListener('input',e=>updateAssistantDiagnostic('result',e.target.value));
+$('assistantDiagnosticNotes').addEventListener('input',e=>updateAssistantDiagnostic('notes',e.target.value));
+
+$('assistantVoiceButton').addEventListener('click',()=>{
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){toast('Voice dictation is not supported in this browser');return}
+  const recognition=new SpeechRecognition();
+  recognition.lang='en-GB';
+  recognition.interimResults=false;
+  recognition.maxAlternatives=1;
+  $('assistantVoiceButton').textContent='Listening…';
+  recognition.onresult=event=>{
+    const transcript=event.results[0][0].transcript.trim();
+    const box=$('assistantDiagnosticNotes');
+    box.value=[box.value.trim(),transcript].filter(Boolean).join(' ');
+    updateAssistantDiagnostic('notes',box.value);
+  };
+  recognition.onerror=()=>toast('Voice dictation could not start');
+  recognition.onend=()=>{$('assistantVoiceButton').textContent='🎙 Dictate note'};
+  recognition.start();
+});
+
+$('assistantPartsButton').addEventListener('click',()=>{
+  const f=findingById(selectedAssistantId);
+  const auth=assistantAuth(f);
+  if(!auth.approved){toast('Customer authorisation is required before the parts request');return}
+  assistantState.parts[f.id]=true;
+  persistAssistant();
+  renderAssistant();
+  toast('Parts request linked to the repair order');
+});
+
+$('assistantEvidenceInput').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const f=findingById(selectedAssistantId);
+  assistantState.evidence[f.id]=file.name;
+  f.evidenceName=file.name;
+  evidenceUrls[f.id]=URL.createObjectURL(file);
+  persist();
+  persistAssistant();
+  renderAssistant();
+  toast('Evidence attached to the finding');
+});
+
+$('assistantQcSignoff').addEventListener('click',()=>{
+  const f=findingById(selectedAssistantId),guide=getRepairGuide(f.id);
+  const complete=guide.qc.every((_,i)=>assistantState.completed[assistantCheckKey(f.id,'qc',i)]);
+  if(!complete){toast('Complete every QC check before technician sign-off');return}
+  assistantState.qcSigned[f.id]=true;
+  persistAssistant();
+  renderAssistant();
+  toast('Technician QC sign-off recorded');
+});
+
+$('assistantGenerateSummary').addEventListener('click',()=>{
+  const f=findingById(selectedAssistantId),guide=getRepairGuide(f.id),diagnostic=ensureAssistantDiagnostics(f.id),auth=assistantAuth(f);
+  const procedureDone=guide.procedure.filter((_,i)=>assistantState.completed[assistantCheckKey(f.id,'procedure',i)]).length;
+  const summary=[
+    \`Repair order RO-261006-0147 — \${f.title} (\${f.location})\`,
+    \`Inspection finding: \${f.value} \${f.unit}; \${f.condition}. Recommendation: \${f.recommendation}.\`,
+    \`Diagnosis: \${diagnostic.notes||f.note||'Technician diagnostic narrative not yet added.'}\`,
+    \`Fault / tester data: \${diagnostic.codes||'Not recorded'}; result: \${diagnostic.result||'Not recorded'}.\`,
+    \`Workshop procedure: \${procedureDone}/\${guide.procedure.length} guided checkpoints technician-confirmed. Source: \${guide.source}.\`,
+    \`Customer authorisation: \${auth.label}. Parts: \${assistantState.parts[f.id]?'request sent':'not requested'}.\`,
+    \`Evidence: \${assistantState.evidence[f.id]||f.evidenceName||'none added'}. QC sign-off: \${assistantState.qcSigned[f.id]?'complete':'outstanding'}.\`,
+    'Technician review required before this note is submitted to the DMS, warranty system or customer record.'
+  ].join('\\n');
+  assistantState.summaries[f.id]=summary;
+  persistAssistant();
+  $('assistantSummary').textContent=summary;
+  toast('Draft repair summary generated');
+});
+
+$('assistantOpenInspection').addEventListener('click',()=>{
+  selectedTechId=selectedAssistantId;
+  routeTo('inspection');
+});
+$('assistantOpenApprovals').addEventListener('click',()=>routeTo('communications'));
+$('assistantOpenReport').addEventListener('click',()=>{
+  selectedFindingId=selectedAssistantId;
+  routeTo('report');
+});
+$('openAssistantFromInspection').addEventListener('click',()=>{
+  selectedAssistantId=selectedTechId;
+  assistantState.selectedId=selectedAssistantId;
+  persistAssistant();
+  routeTo('assistant');
+});
 
 function measurementPct(f){return Math.max(0,Math.min(100,((f.value-f.min)/(f.max-f.min))*100))}
 function findingCard(f){const s=severityFor(f);return`<button class="finding-card ${f.id===selectedFindingId?'active':''}" data-finding="${f.id}" type="button"><span class="finding-card-icon">${f.icon}</span><span><strong>${f.title}</strong><small>${f.value} ${f.unit} · ${severityLabel(s)}</small></span></button>`}
