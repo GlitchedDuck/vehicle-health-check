@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="DriveWell connected vehicle health platform demo." />
   <title>DriveWell | Vehicle Health Platform</title>
-  <link rel="stylesheet" href="./styles/base.css?v=25" />
+  <link rel="stylesheet" href="./styles/base.css?v=26" />
   <script type="importmap">
   {
     "imports": {
@@ -56,6 +56,10 @@
         <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="m9.4 16.2-4.2-4.2 1.4-1.4 2.8 2.8 7-7L17.8 8l-8.4 8.2ZM5 21c-.6 0-1-.2-1.4-.6C3.2 20 3 19.6 3 19V5c0-.6.2-1 .6-1.4C4 3.2 4.4 3 5 3h10l6 6v10c0 .6-.2 1-.6 1.4-.4.4-.8.6-1.4.6H5Zm9-11h5l-5-5v5Z"/></svg></span>
         <span><strong>Inspection</strong><small>Technician capture</small></span>
       </button>
+      <button class="nav-button" data-route="assistant" type="button">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5v1.2a5.5 5.5 0 0 1 2.8 4.8V17a3 3 0 0 1-3 3h-1.3l-1.2 2h-4.6l-1.2-2H7.2a3 3 0 0 1-3-3v-4a5.5 5.5 0 0 1 2.8-4.8V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v2.5l-1.2.5a3.5 3.5 0 0 0-1.6 3v4a1 1 0 0 0 1 1H10l.8 2h2.4l.8-2h2.8a1 1 0 0 0 1-1v-4a3.5 3.5 0 0 0-1.6-3L15 9.5V7a3 3 0 0 0-3-3Zm-2 8h4v2h-4v-2Z"/></svg></span>
+        <span><strong>Technician Assist</strong><small>AI-guided workshop</small></span>
+      </button>
       <button class="nav-button" data-route="report" type="button">
         <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 4.5c-5 0-9.3 3.1-11 7.5 1.7 4.4 6 7.5 11 7.5s9.3-3.1 11-7.5c-1.7-4.4-6-7.5-11-7.5Zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></span>
         <span><strong>Vehicle Health</strong><small>Customer report</small></span>
@@ -69,7 +73,7 @@
     <div class="sidebar-footer">
       <div><span>Today</span><strong>28 inspections</strong></div>
       <div><span>Approved</span><strong>£12.4k</strong></div>
-      <small>DriveWell demo · v25</small>
+      <small>DriveWell demo · v26</small>
     </div>
   </aside>
 
@@ -148,7 +152,102 @@
           <div class="capture-actions"><span id="captureSaved"></span><button id="saveFinding" class="button primary" type="button">Save finding</button></div>
         </section>
       </div>
-      <div class="page-actions"><button class="button secondary" data-route="dashboard" type="button">Back to dashboard</button><button class="button primary" data-route="report" type="button">Preview customer report →</button></div>
+      <div class="page-actions"><button class="button secondary" data-route="dashboard" type="button">Back to dashboard</button><button id="openAssistantFromInspection" class="button secondary" type="button">Open Technician Assist</button><button class="button primary" data-route="report" type="button">Preview customer report →</button></div>
+    </section>
+
+    <section id="route-assistant" class="route">
+      <div class="assistant-hero">
+        <div><span class="eyebrow">TECHNICIAN ASSIST</span><h2>Guided diagnosis, repair & QC · AB12 CDE</h2><p>One connected workspace for the job card, inspection finding, manufacturer procedure, parts, evidence, customer authorisation and technician sign-off.</p></div>
+        <div class="assistant-safety"><strong>Workshop data guardrail</strong>This demo organises curated workflow prompts only. Live repair specifications, tightening values and procedures must come from manufacturer-approved data for the exact vehicle.</div>
+      </div>
+
+      <div class="job-strip">
+        <div><span>Repair order</span><strong>RO-261006-0147 · 2021 Example SUV</strong></div>
+        <div><span>Registration</span><strong>AB12 CDE</strong></div>
+        <div><span>Technician</span><strong>Jordan Davies · Bay 1</strong></div>
+        <div><span>Mileage</span><strong>41,280 miles</strong></div>
+        <div><span>Job status</span><strong>Inspection complete</strong></div>
+      </div>
+
+      <div class="assistant-layout">
+        <aside class="panel assistant-findings">
+          <div class="assistant-list-head"><strong>Job findings</strong><span>Select a repair</span></div>
+          <div id="assistantFindingList"></div>
+        </aside>
+
+        <section class="panel assistant-workspace">
+          <div class="assistant-workspace-head">
+            <div>
+              <div class="assistant-title-row"><span id="assistantSeverity" class="severity red">Urgent</span><h3 id="assistantTitle">Front left tyre</h3></div>
+              <p><span id="assistantLocation">Nearside front</span> · <span id="assistantSymptom">Low tread / uneven wear</span></p>
+            </div>
+            <label class="assistant-level">Guidance level
+              <select id="assistantLevel">
+                <option value="apprentice">Apprentice</option>
+                <option value="technician" selected>Technician</option>
+                <option value="master">Master technician</option>
+              </select>
+              <small id="assistantLevelDescription"></small>
+            </label>
+          </div>
+
+          <div class="assistant-context">
+            <div><span>Inspection result</span><strong id="assistantMeasurement">1.3 mm · Uneven wear</strong></div>
+            <div><span>Customer authorisation</span><strong id="assistantAuthStatus" class="auth-pending">Awaiting decision</strong></div>
+            <div><span>Workshop information</span><strong id="assistantSource">OEM workshop information</strong></div>
+            <div><span>Evidence pack</span><strong id="assistantEvidenceStatus">No added evidence</strong></div>
+          </div>
+
+          <div class="assistant-progress"><div class="assistant-progress-track"><i id="assistantProgressBar"></i></div><strong id="assistantProgressText">0% complete</strong></div>
+
+          <div class="assistant-grid">
+            <article class="assistant-card">
+              <div class="assistant-card-head"><div><span>1 · DIAGNOSE</span><h4>Confirm the concern</h4></div><small>Structured checks, fault data and voice notes.</small></div>
+              <div id="assistantDiagnosticChecks" class="assistant-checks"></div>
+              <div class="assistant-fields">
+                <label>Fault codes / tester result<input id="assistantFaultCodes" type="text" placeholder="e.g. no relevant DTCs"></label>
+                <label>Diagnostic result<input id="assistantDiagnosticResult" type="text" placeholder="Confirmed / further diagnosis needed"></label>
+                <label class="full">Technician diagnostic note<textarea id="assistantDiagnosticNotes" placeholder="Dictate or type the diagnostic reasoning and observations."></textarea></label>
+              </div>
+              <div class="voice-row"><button id="assistantVoiceButton" class="assistant-mini-button" type="button">🎙 Dictate note</button></div>
+            </article>
+
+            <article class="assistant-card">
+              <div class="assistant-card-head"><div><span>2 · PROCEDURE</span><h4>Manufacturer-led repair</h4></div><small>Never substitute generated values for approved workshop data.</small></div>
+              <div id="assistantProcedureChecks" class="assistant-checks"></div>
+            </article>
+
+            <article class="assistant-card">
+              <div class="assistant-card-head"><div><span>3 · PARTS & AUTHORISATION</span><h4>Keep the repair connected</h4></div><small>Parts activity follows the same finding the customer sees.</small></div>
+              <div id="assistantPartsList" class="parts-list"></div>
+              <div class="assistant-action-row"><small id="assistantPartsStatus">Parts not requested</small><button id="assistantPartsButton" class="button secondary" type="button">Request parts</button></div>
+            </article>
+
+            <article class="assistant-card">
+              <div class="assistant-card-head"><div><span>4 · EVIDENCE</span><h4>Build the repair record</h4></div><small>Photos, video and tester evidence stay attached to the finding.</small></div>
+              <label class="evidence-inline"><span><strong id="assistantEvidenceName">No additional evidence selected</strong><small>Image or video evidence for the job / warranty pack.</small></span><input id="assistantEvidenceInput" type="file" accept="image/*,video/*"></label>
+            </article>
+
+            <article class="assistant-card wide">
+              <div class="assistant-card-head"><div><span>5 · QUALITY CONTROL</span><h4>Verify before completion</h4></div><small>QC must be technician-confirmed; AI cannot sign off the repair.</small></div>
+              <div id="assistantQcChecks" class="assistant-checks"></div>
+              <div class="assistant-action-row"><small id="assistantQcStatus">Technician sign-off required</small><button id="assistantQcSignoff" class="button primary" type="button">Complete technician sign-off</button></div>
+            </article>
+
+            <article class="assistant-card wide">
+              <div class="assistant-card-head"><div><span>AI WORKSHOP SUMMARY</span><h4>Turn the job trail into a clean repair note</h4></div><small>Generated from captured facts and technician-confirmed steps.</small></div>
+              <div id="assistantSummary" class="summary-box">Complete the workflow or generate a draft summary at any time.</div>
+              <div class="assistant-action-row"><small id="assistantSummaryStatus">Draft only · technician review required</small><button id="assistantGenerateSummary" class="button secondary" type="button">Generate repair summary</button></div>
+            </article>
+          </div>
+
+          <div class="assistant-footer-actions">
+            <button id="assistantOpenInspection" class="button secondary" type="button">Back to inspection</button>
+            <button id="assistantOpenApprovals" class="button secondary" type="button">Open approvals</button>
+            <button id="assistantOpenReport" class="button primary" type="button">Open customer report →</button>
+          </div>
+        </section>
+      </div>
     </section>
 
     <section id="route-report" class="route">
@@ -202,6 +301,6 @@
 
 <div id="toast" class="toast"></div>
 <footer class="footer">DriveWell is a working internal demo name. 3D vehicle: “Lowpoly Generic SUV” by mk2design, CC BY 4.0.</footer>
-<script type="module" src="./js/app.js?v=25"></script>
+<script type="module" src="./js/app.js?v=26"></script>
 </body>
 </html>
