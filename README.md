@@ -1,14 +1,40 @@
-# DriveWell v10b — Front Left Tyre
+# DriveWell v26 — Technician Assist
 
-This release corrects the tyre model only.
+DriveWell is a browser-based dealership vehicle-health and workshop workflow prototype.
 
-- Uses the actual `Wheel_FL` mesh from the SUV GLB.
-- Preserves the original wheel material/UV texture instead of replacing it with a flat metallic material.
-- Removes the oversized red torus.
-- Uses a small tread-warning arc on the outer circumference.
-- Removes the ghost car from the tyre service scene.
-- Uses a tyre-specific side-on camera so the wheel face is visible.
-- Grounds the real wheel from its calculated bounds.
-- Does not pretend the tyre and rim can be separated: this source GLB stores `Wheel_FL` as one combined mesh.
+The current demo connects:
 
-Other component scenes are unchanged.
+- manager workshop dashboard
+- technician vehicle-health inspection capture
+- 3D customer vehicle-health report
+- customer approvals and questions
+- Technician Assist: guided diagnosis, manufacturer-procedure checkpoints, parts, evidence, QC and repair-note generation
+
+## Technician Assist
+
+The Technician Assist workspace is designed around a qualified technician, not AI replacing a technician.
+
+It connects a repair finding to:
+
+1. the inspection measurement and technician notes
+2. customer authorisation
+3. curated diagnostic prompts
+4. manufacturer-approved workshop information
+5. parts requests
+6. photo / video evidence
+7. technician-confirmed quality control
+8. a structured draft repair summary
+
+The prototype deliberately does **not** invent live torque values, repair specifications or manufacturer procedures. A production deployment should integrate approved OEM workshop data, the dealership DMS, parts systems and identity / audit services.
+
+## Demo vehicle
+
+The repository currently uses the Lowpoly Generic SUV GLB and the existing DriveWell component-view system.
+
+## Run locally
+
+The application is static and can be served with any local HTTP server. It is also structured for GitHub Pages deployment.
+
+## Current architecture
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the migration and component structure.
