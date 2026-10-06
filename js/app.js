@@ -4,7 +4,7 @@ import { FINDINGS } from './data/findings.js';
 import './report-layout-v12.js';
 import './report-forecast.js';
 
-export const DRIVEWELL_VERSION = '25.0.0-maintenance-outlook';
+export const DRIVEWELL_VERSION = '26.0.0-technician-assist';
 
 // Preserve the existing v10b storage contract during the refactor. On a fresh
 // browser session the demo state originates from the extracted findings catalogue.

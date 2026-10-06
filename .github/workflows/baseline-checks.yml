@@ -27,6 +27,7 @@ jobs:
           test -f js/state.js
           test -f js/data/findings.js
           test -f js/data/forecast.js
+          test -f js/data/repair-guides.js
           test -f js/config/component-manifest.js
           test -f js/report-layout-v12.js
           test -f js/report-forecast.js
@@ -37,6 +38,7 @@ jobs:
           test -f styles/base.css
           test -f styles/dashboard.css
           test -f styles/inspection.css
+          test -f styles/assistant.css
           test -f styles/report.css
           test -f styles/report-forecast.css
           test -f styles/approvals.css
@@ -53,6 +55,7 @@ jobs:
           node --check js/state.js
           node --check js/data/findings.js
           node --check js/data/forecast.js
+          node --check js/data/repair-guides.js
           node --check js/config/component-manifest.js
           node --check js/report-layout-v12.js
           node --check js/report-forecast.js
@@ -78,6 +81,7 @@ jobs:
           grep -q "./report-layout-v12.js" js/app.js
           grep -q "./report-forecast.js" js/app.js
           grep -q "../app.js" js/app.js
+          grep -q "repair-guides.js" app.js
           grep -q "import('./js/three/viewer-runtime.js')" app.js
           grep -q "./model-overrides.js" js/three/viewer-runtime.js
           grep -q "./brake-model-overrides.js" js/three/viewer-runtime.js
@@ -107,3 +111,4 @@ jobs:
           grep -q "report-forecast.css" styles/base.css
           grep -q "workspace-v14.css" styles/base.css
           grep -q "shell-v15.css" styles/base.css
+          grep -q "assistant.css" styles/base.css
